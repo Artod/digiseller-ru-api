@@ -105,16 +105,13 @@
 			
 			return
 			
-	P.pages =
+	P.routes =
 		articles:
-			route: "#{P.opts.hashPrefix}/articles(/:page)"
-			enter: ->
-				alert(1)
-			to: () ->
-				alert(0)
-				page = this.params['page'] or 0
-			render: ->
-				articles = [
+			url: '/articles(?:/([0-9]*))?'
+			action: (params) ->
+				page = params[1] or 0
+				
+				@render([
 					id: 980859
 					codepage: 0
 					currency: 'WMZ'
@@ -126,7 +123,12 @@
 					currency: 'WMZ'
 					title: 'Номер ICQ 121413515'
 					cost: 2000
-				]
+				])
+				
+				return
+
+			render: (articles) ->
+				out = ''
 				for article in articles
 					article.url = "#{P.opts.hashPrefix}/detail?id=#{article.id}&codepage=#{article.codepage}&currency=#{article.currency}"
 					out += P.tmpl(P.tmpls.article, article)
@@ -138,11 +140,26 @@
 				return
 				
 		article: ->
-			route: "#{P.opts.hashPrefix}/:(/:page)"
-			to: ->
-				page = this.params['page'] or 0
-			
-	P.init = ->		
+			url: '/detail(/:id)(/:codepage)(/:currency)'
+			action: (path) ->
+				page = path.params['page'] or 0
+				
+			render: (articles) ->
+				out = ''
+				for article in articles
+					article.url = "#{P.opts.hashPrefix}/detail?id=#{article.id}&codepage=#{article.codepage}&currency=#{article.currency}"
+					out += P.tmpl(P.tmpls.article, article)
+					
+				P.el.widget.innerHTML = P.tmpl(P.tmpls.articles,
+					out: out
+				)
+				
+				return
+	inited = no
+	P.init = ->
+		off if inited
+		inited = yes
+		
 		P.el.head = P.dom.$('head')[0] || document.documentElement
 		P.el.body = P.dom.$('body')[0] || document.documentElement
 		P.el.widget = P.dom.$("##{P.opts.widgetId}")
@@ -150,35 +167,377 @@
 		P.el.widget.innerHTML = '<img src="' + P.opts.host + P.opts.loader + '" style="plati-ru-loader" alt="" />'
 		
 		P.dom.getStyle(P.opts.host + P.opts.css + '?' + Math.random())
-		P.dom.getScript(P.opts.host + P.opts.tmpl + '?' + Math.random(), ->
-			for name, page of P.pages
-				continue unless page.route
+		P.dom.getScript(P.opts.host + P.opts.tmpl + '?' + Math.random(), ->		
+			for name, route of P.routes
+				continue unless route.url or route.action
 				
-				ref = P.path.map(page.route)
-				ref.to(page.to) if page.to
-				ref.enter(page.enter) if page.enter
+				((route) ->
+					P.historyClick.addRoute(P.opts.hashPrefix + route.url, (params) ->
+						route.action(params)
+					)
+				)(route)
 				
-				ref.enter(->
-					alert(2)
-				)
+				# path = P.Path.map(route.url)
+				# ((path, route) ->
+					# path.enter(->
+						# route.enter(@)
+						# return
+					# ) if route.enter				
 				
-
-			P.path.listen()	
+					# path.to(->
+						# route.to(@)
+						# return
+					# ) if route.to
+					
+					# P.historyClick.addRoute(route.url, route.action);
+					
+					# return					
+				# )(path, route)
+				
+			
+			P.historyClick.start()
 
 			return
-		)
-		
-		
+		)		
+
 		return
 		
 
 	# https://github.com/mtrpcic/pathjs
-	P.path = ( ->
-		`Path={version:"0.8.4",map:function(a){if(Path.routes.defined.hasOwnProperty(a)){return Path.routes.defined[a]}else{return new Path.core.route(a)}},root:function(a){Path.routes.root=a},rescue:function(a){Path.routes.rescue=a},history:{initial:{},pushState:function(a,b,c){if(Path.history.supported){if(Path.dispatch(c)){history.pushState(a,b,c)}}else{if(Path.history.fallback){window.location.hash="#"+c}}},popState:function(a){var b=!Path.history.initial.popped&&location.href==Path.history.initial.URL;Path.history.initial.popped=true;if(b)return;Path.dispatch(document.location.pathname)},listen:function(a){Path.history.supported=!!(window.history&&window.history.pushState);Path.history.fallback=a;if(Path.history.supported){Path.history.initial.popped="state"in window.history,Path.history.initial.URL=location.href;window.onpopstate=Path.history.popState}else{if(Path.history.fallback){for(route in Path.routes.defined){if(route.charAt(0)!="#"){Path.routes.defined["#"+route]=Path.routes.defined[route];Path.routes.defined["#"+route].path="#"+route}}Path.listen()}}}},match:function(a,b){var c={},d=null,e,f,g,h,i;for(d in Path.routes.defined){if(d!==null&&d!==undefined){d=Path.routes.defined[d];e=d.partition();for(h=0;h<e.length;h++){f=e[h];i=a;if(f.search(/:/)>0){for(g=0;g<f.split("/").length;g++){if(g<i.split("/").length&&f.split("/")[g].charAt(0)===":"){c[f.split("/")[g].replace(/:/,"")]=i.split("/")[g];i=i.replace(i.split("/")[g],f.split("/")[g])}}}if(f===i){if(b){d.params=c}return d}}}}return null},dispatch:function(a){var b,c;if(Path.routes.current!==a){Path.routes.previous=Path.routes.current;Path.routes.current=a;c=Path.match(a,true);if(Path.routes.previous){b=Path.match(Path.routes.previous);if(b!==null&&b.do_exit!==null){b.do_exit()}}if(c!==null){c.run();return true}else{if(Path.routes.rescue!==null){Path.routes.rescue()}}}},listen:function(){var a=function(){Path.dispatch(location.hash)};if(location.hash===""){if(Path.routes.root!==null){location.hash=Path.routes.root}}if("onhashchange"in window&&(!document.documentMode||document.documentMode>=8)){window.onhashchange=a}else{setInterval(a,50)}if(location.hash!==""){Path.dispatch(location.hash)}},core:{route:function(a){this.path=a;this.action=null;this.do_enter=[];this.do_exit=null;this.params={};Path.routes.defined[a]=this}},routes:{current:null,root:null,rescue:null,previous:null,defined:{}}};Path.core.route.prototype={to:function(a){this.action=a;return this},enter:function(a){if(a instanceof Array){this.do_enter=this.do_enter.concat(a)}else{this.do_enter.push(a)}return this},exit:function(a){this.do_exit=a;return this},partition:function(){var a=[],b=[],c=/\(([^}]+?)\)/g,d,e;while(d=c.exec(this.path)){a.push(d[1])}b.push(this.path.split("(")[0]);for(e=0;e<a.length;e++){b.push(b[b.length-1]+a[e])}return b},run:function(){var a=false,b,c,d;if(Path.routes.defined[this.path].hasOwnProperty("do_enter")){if(Path.routes.defined[this.path].do_enter.length>0){for(b=0;b<Path.routes.defined[this.path].do_enter.length;b++){c=Path.routes.defined[this.path].do_enter[b]();if(c===false){a=true;break}}}}if(!a){Path.routes.defined[this.path].action()}}}`
+	`Path={version:"0.8.4",map:function(a){if(Path.routes.defined.hasOwnProperty(a)){return Path.routes.defined[a]}else{return new Path.core.route(a)}},root:function(a){Path.routes.root=a},rescue:function(a){Path.routes.rescue=a},history:{initial:{},pushState:function(a,b,c){if(Path.history.supported){if(Path.dispatch(c)){history.pushState(a,b,c)}}else{if(Path.history.fallback){window.location.hash="#"+c}}},popState:function(a){var b=!Path.history.initial.popped&&location.href==Path.history.initial.URL;Path.history.initial.popped=true;if(b)return;Path.dispatch(document.location.pathname)},listen:function(a){Path.history.supported=!!(window.history&&window.history.pushState);Path.history.fallback=a;if(Path.history.supported){Path.history.initial.popped="state"in window.history,Path.history.initial.URL=location.href;window.onpopstate=Path.history.popState}else{if(Path.history.fallback){for(route in Path.routes.defined){if(route.charAt(0)!="#"){Path.routes.defined["#"+route]=Path.routes.defined[route];Path.routes.defined["#"+route].path="#"+route}}Path.listen()}}}},match:function(a,b){var c={},d=null,e,f,g,h,i;for(d in Path.routes.defined){if(d!==null&&d!==undefined){d=Path.routes.defined[d];e=d.partition();for(h=0;h<e.length;h++){f=e[h];i=a;if(f.search(/:/)>0){for(g=0;g<f.split("/").length;g++){if(g<i.split("/").length&&f.split("/")[g].charAt(0)===":"){c[f.split("/")[g].replace(/:/,"")]=i.split("/")[g];i=i.replace(i.split("/")[g],f.split("/")[g])}}}if(f===i){if(b){d.params=c}return d}}}}return null},dispatch:function(a){var b,c;if(Path.routes.current!==a){Path.routes.previous=Path.routes.current;Path.routes.current=a;c=Path.match(a,true);if(Path.routes.previous){b=Path.match(Path.routes.previous);if(b!==null&&b.do_exit!==null){b.do_exit()}}if(c!==null){c.run();return true}else{if(Path.routes.rescue!==null){Path.routes.rescue()}}}},listen:function(){var a=function(){Path.dispatch(location.hash)};if(location.hash===""){if(Path.routes.root!==null){location.hash=Path.routes.root}}if("onhashchange"in window&&(!document.documentMode||document.documentMode>=8)){window.onhashchange=a}else{setInterval(a,50)}if(location.hash!==""){Path.dispatch(location.hash)}},core:{route:function(a){this.path=a;this.action=null;this.do_enter=[];this.do_exit=null;this.params={};Path.routes.defined[a]=this}},routes:{current:null,root:null,rescue:null,previous:null,defined:{}}};Path.core.route.prototype={to:function(a){this.action=a;return this},enter:function(a){if(a instanceof Array){this.do_enter=this.do_enter.concat(a)}else{this.do_enter.push(a)}return this},exit:function(a){this.do_exit=a;return this},partition:function(){var a=[],b=[],c=/\(([^}]+?)\)/g,d,e;while(d=c.exec(this.path)){a.push(d[1])}b.push(this.path.split("(")[0]);for(e=0;e<a.length;e++){b.push(b[b.length-1]+a[e])}return b},run:function(){var a=false,b,c,d;if(Path.routes.defined[this.path].hasOwnProperty("do_enter")){if(Path.routes.defined[this.path].do_enter.length>0){for(b=0;b<Path.routes.defined[this.path].do_enter.length;b++){c=Path.routes.defined[this.path].do_enter[b]();if(c===false){a=true;break}}}}if(!a){Path.routes.defined[this.path].action()}}}`
 
-		Path
-	)()
+	P.Path = Path
+	
+	
+	
+	P.historyClick = `(function() {
+		var queueLinks = [],
+			virtualLinks = {},
+			counter = 0,
+			rootAlias = '',
+			needReload = false,
+			routes = [],
+			revRoutes = [],
+			opts;
 
+		function init() {
+			if (!historyClick.interval) {
+				historyClick.interval = setInterval(urlHashCheck, 100);
+			}
+		}
+
+		function urlHashCheck() {
+			var mayChangeReload = false; // needReload может обнулиться так как urlHashCheck может еще не закончиться а needReload уже поставили true
+			
+			if (needReload) {
+				mayChangeReload = true;
+			}
+
+			if (window.location.hash !== historyClick.currentHash || needReload) {
+				historyClick.prevHash = ( needReload ? historyClick.prevHash : historyClick.currentHash );
+				historyClick.currentHash = window.location.hash.toString();
+
+				go(historyClick.currentHash && historyClick.currentHash != '#' ? historyClick.currentHash : rootAlias);
+
+				if (mayChangeReload) {
+					needReload = false;
+				}
+			}
+		}
+		
+		function go(hash) {
+			if (!hash) {
+				return;
+			}
+			
+			var pattern,
+				callback;
+
+			for (var i = 0, len = revRoutes.length; i < len; i++) {
+				pattern = revRoutes[i][0];
+				callback = revRoutes[i][1];
+
+				if (pattern.test(hash) && typeof callback === 'function') {
+					callback(hash.match(pattern));
+					
+					return;
+				}
+			}
+		}
+
+		var historyClick = {
+			interval: null,
+			currentHash: '',
+			prevHash: '',
+			start: function() {
+				init();
+			},
+			rootAlias: function(hash) {
+				if (hash) {
+					rootAlias = hash;
+				} else {
+					return rootAlias;
+				}
+			},
+			addRoute: function(pattern, callback) {
+				if (typeof pattern === 'string') {
+					pattern = [pattern];
+				}
+
+				for (var i = 0; i < pattern.length; i++) {
+					routes.push([new RegExp(pattern[i], 'i'), callback]);
+				}
+
+				revRoutes = routes.slice().reverse(); // клонируем и реверсируем
+			},
+			reload: function() {
+				needReload = true;
+			},
+			changeHashSilent: function(hash) {
+				historyClick.prevHash = historyClick.currentHash;
+				historyClick.currentHash = window.location.hash = hash;
+			}
+		};
+		
+		return historyClick;
+	})();`
+	
+	
+	#https://github.com/ssteynfaardt/Xhr
+	class Xhr
+		#class methods
+		@readyState =	0
+		@status = null
+		#jsonp callback function
+
+		_parseUrl = (->
+			a = document.createElement("a")
+			(url) ->
+				a.href = url
+				host: a.host
+				hostname: a.hostname
+				pathname: a.pathname
+				port: a.port
+				protocol: a.protocol
+				search: a.search
+				hash: a.hash
+		)()
+
+		_isObject = (obj) ->
+			(obj.ownerDocument not instanceof Object) and (obj not instanceof Date) and (obj not instanceof RegExp) and (obj not instanceof Function) and (obj not instanceof String) and (obj not instanceof Boolean) and (obj not instanceof Number) and obj instanceof Object
+
+		_doJsonP = (url) ->
+			script = document.createElement("script")
+			script.type = 'text/javascript';
+			script.src = url
+			document.body.appendChild script
+
+		jpcb: ->
+		#public methods
+		constructor: () ->
+			
+			_callbackFunctions = {}
+			_setCallbackFor = (callbackFor, callbackFunction) ->
+				if(typeof callbackFor is 'string' and typeof callbackFunction is 'function')
+					_callbackFunctions[callbackFor] = callbackFunction
+
+			_doCallbackFor = (callbackFor) ->
+				if(typeof _callbackFunctions[callbackFor] is 'function')
+					_callbackFunctions[callbackFor](arguments[1],arguments[2],arguments[3])
+			#Instance varialbes, to access it @_.cors
+			@_ =
+				xhr: null
+				cors:	null
+				xhrType: 'form'
+				doCallbackFor: _doCallbackFor
+				setCallbackFor: _setCallbackFor
+
+		createXhrObject: ->
+			_validStatus = [200,201,204,304]
+			@_.cors = false
+			if window.XDomainRequest
+				@_.xhr = new XDomainRequest()
+				@_.cors = true
+			else if window.XMLHttpRequest
+				@_.xhr = new XMLHttpRequest()
+				@_.cors = true	if "withCredentials" of @_.xhr
+			else if window.ActiveXObject
+				try
+					@_.xhr = new ActiveXObject("MSXML2.XMLHTTP.3.0")
+				catch error
+					@_.xhr = null
+					throw Error(error);
+
+			_this = @
+			@_.xhr.onreadystatechange = ->
+				_this.readyState = _this._.xhr.readyState
+				_this._.doCallbackFor('readystatechange',_this._.xhr)
+				switch _this._.xhr.readyState
+					when 0, 1
+						_this._.doCallbackFor('loadstart',_this._.xhr)
+					when 2
+						_this._.doCallbackFor('progress',_this._.xhr)
+					when 3
+						_this._.doCallbackFor('onload',_this._.xhr)
+					when 4
+						try
+							if _this._.xhr.status in _validStatus
+								_this._.doCallbackFor('success',_this._.xhr.responseText,_this._.xhr.status,_this._.xhr)
+							else
+								_this._.doCallbackFor('error',_this._.xhr.responseText,_this._.xhr.status,_this._.xhr)
+						catch error
+							throw Error(error)
+
+						_this._.doCallbackFor('loadend',_this._.xhr.responseText, _this._.xhr.status,_this._.xhr)
+						_this._.xhr = null
+					else
+						throw Error("Unsupported readystate (#{_this._.xhr.readyState}) received.")
+
+			@_.xhr.ontimeout = ->
+				_this._.doCallbackFor('timeout',_this._.xhr)
+			@_.xhr.onabort = ->
+				_this._.doCallbackFor('abort',_this._.xhr)	
+
+			@_.xhr
+
+		_doAjaxCall: (url,method = "GET",data = null)->
+			if (url is undefined)
+				throw Error("URL required");
+			currentUrl = window.location
+
+			urlObj = _parseUrl(url);
+			xhrObj = @createXhrObject()
+
+			getContentType = (type = "form") ->
+				contentType = 'application/x-www-form-urlencoded'
+				switch type.toLowerCase()
+					when 'html'
+						contentType = 'text/html'
+					when 'json'
+						contentType = 'application/json'
+					when 'jsonp'
+						contentType = 'application/javascript'
+					when 'xml'
+						contentType = 'application/xml'
+					else
+						contentType = 'application/x-www-form-urlencoded'
+				contentType
+			
+			#check if we are making a CORS call
+			if (urlObj.host is currentUrl.host and urlObj.protocol is currentUrl.protocol and urlObj.port is currentUrl.port) then crossDomain = false else crossDomain = true
+			if crossDomain is false or @_.cors is true
+				xhrObj.open(method,url,true)
+				if(@_.cors)
+					xhrObj.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
+				if (data)
+					if(typeof data is 'string' and window.JSON)
+						try
+							data = JSON.parse(data)
+							@setType('json');						
+						catch e
+						
+
+					if(@_.xhrType is 'json' and typeof data is "object" and window.JSON)
+						data = JSON.stringify(data)
+						@setType('json');
+					else if(typeof data != "string")
+						xhrObj.setRequestHeader('Content-Type', getContentType('form'))
+						data = @serialize(data)
+						@setType('form');
+				xhrObj.setRequestHeader('Content-Type', getContentType(@_.xhrType))
+				xhrObj.send(data)
+			else
+				data = @serialize(data)
+				_doJsonP("#{data}&callback=")
+				throw Error "crossDomain Error"
+
+		serialize: (obj, keyed, prefix = '') ->
+			return prefix + encodeURIComponent(obj)	unless _isObject(obj)
+			result = ""
+			temp = ""
+			for index of obj
+				continue	unless obj.hasOwnProperty(index)
+				temp = (if keyed then keyed + "[" + encodeURIComponent(index) + "]" else encodeURIComponent(index))
+				result += @serialize(obj[index], temp, "&" + temp + "=")
+			result.substring(1)
+
+		setType: (type)->
+			_validTypes = ['form','html','json','jsonp','xml']
+			type = type.toLowerCase()
+			throw Error("Unsupported type (#{type})") if type not in _validTypes
+			@_.xhrType = type
+
+
+		cors: ->
+			if @_.cors is null
+				@createXhrObject()
+			@_.cors
+
+		abort: ->
+			try
+				@_.xhr.abort();
+				@_.xhr.onreadystatechange = ->
+				@readyState = 0
+			catch error
+				#throw Error(error)
+			@ononabort()
+			@
+
+		call: (url,method,data) ->
+			@_doAjaxCall(url,method,data)
+			@
+		head:(url) ->
+			@_doAjaxCall(url,"HEAD")
+			@
+		options:(url) ->
+			@_doAjaxCall(url,"OPTIONS")
+			@
+		get:(url) ->
+			@_doAjaxCall(url,"GET")
+			@
+		put: ( url, data) ->
+			@_doAjaxCall(url,"PUT",data)
+			@
+		post: ( url, data) ->
+			@_doAjaxCall(url,"POST",data)
+			@
+		delete: (url) ->
+			@_doAjaxCall(url,"DELETE")
+			@
+		jsonp:(url) ->
+			_doJsonP(url)
+			@
+
+		onreadystatechange: (callback) ->
+			@_.setCallbackFor('readystatechange',callback)
+			@
+		onloadstart: (callback) ->
+			@_.setCallbackFor('loadstart',callback)
+			@
+		onprogress: (callback) ->
+			@_.setCallbackFor('progress',callback)
+			@
+		onload: (callback) ->
+			@_.setCallbackFor('load',callback)
+			@
+		onerror: (callback) ->
+			@_.setCallbackFor('error',callback)
+			@
+		onsuccess: (callback) ->
+			@_.setCallbackFor('success',callback)
+			@
+		onloadend: (callback) ->
+			@_.setCallbackFor('loadend',callback)
+			@
+		ontimeout: (callback) ->
+			@_.setCallbackFor('timeout',callback)
+			@
+		onabort: (callback) ->
+			@_.setCallbackFor('abort',callback)
+			@
+	#Set some variables that will be available in the to use
+	P.Xhr = Xhr	
+	
 
 	# https://github.com/IntoMethod/Lightweight-JSONP
 	# Lightweight JSONP fetcher
