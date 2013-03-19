@@ -105,9 +105,40 @@
 			
 			return
 			
-	P.routes =
+	P.widget =
+		main:
+			el: null
+			
+		category:
+			el: null
+			render: (categories) ->
+				
+				return
+				
+		showcase: ->
+			el: null
+			render: (articles) ->
+				out = ''
+				for article in articles
+					article.url = "#{P.opts.hashPrefix}/detail?id=#{article.id}&codepage=#{article.codepage}&currency=#{article.currency}"
+					out += P.tmpl(P.tmpls.article, article)
+					
+				@el.innerHTML = P.tmpl(P.tmpls.articles,
+					out: out
+				)
+				
+				return
+		
+	P.route =
+		home:
+			url: '/home'
+			action: (params) ->			
+				# P.widget.articles.el.style.display = 'block'
+				P.widget.article.el.style.display = 'none'
+				P.widget.category.el.style.display = 'block'
+
 		articles:
-			url: '/articles(?:/([0-9]*))?'
+			url: '/articles(?:/([0-9]*))?'			
 			action: (params) ->
 				page = params[1] or 0
 				
@@ -126,33 +157,36 @@
 				])
 				
 				return
-
 			render: (articles) ->
 				out = ''
 				for article in articles
-					article.url = "#{P.opts.hashPrefix}/detail?id=#{article.id}&codepage=#{article.codepage}&currency=#{article.currency}"
+					article.url = "#{P.opts.hashPrefix}/detail/#{article.id}"
 					out += P.tmpl(P.tmpls.article, article)
 					
-				P.el.widget.innerHTML = P.tmpl(P.tmpls.articles,
+				P.widget.main.el.innerHTML = P.tmpl(P.tmpls.articles,
 					out: out
 				)
 				
 				return
+
+		article:
+			url: '/detail(?:/([0-9]*))'
+			action: (params) ->
+				id = params[1] or 0
+				console.log(id)
 				
-		article: ->
-			url: '/detail(/:id)(/:codepage)(/:currency)'
-			action: (path) ->
-				page = path.params['page'] or 0
-				
-			render: (articles) ->
-				out = ''
-				for article in articles
-					article.url = "#{P.opts.hashPrefix}/detail?id=#{article.id}&codepage=#{article.codepage}&currency=#{article.currency}"
-					out += P.tmpl(P.tmpls.article, article)
-					
-				P.el.widget.innerHTML = P.tmpl(P.tmpls.articles,
-					out: out
+				@render(
+					id: id
+					currency: 'WMZ'
+					header: 'Номер ICQ 121413515'
+					description: 'Описалово крутого товара'
+					cost: 1500
 				)
+				
+			render: (article) ->
+				out = ''
+
+				P.widget.main.el.innerHTML = P.tmpl(P.tmpls.articleDetail, article)
 				
 				return
 	inited = no
@@ -167,38 +201,26 @@
 		P.el.widget.innerHTML = '<img src="' + P.opts.host + P.opts.loader + '" style="plati-ru-loader" alt="" />'
 		
 		P.dom.getStyle(P.opts.host + P.opts.css + '?' + Math.random())
-		P.dom.getScript(P.opts.host + P.opts.tmpl + '?' + Math.random(), ->		
-			for name, route of P.routes
-				continue unless route.url or route.action
+		P.dom.getScript(P.opts.host + P.opts.tmpl + '?' + Math.random(), ->			
+			P.el.widget.innerHTML = P.tmpl(P.tmpls.main, {})
 				
+			P.widget.main.el = P.dom.$('#main')
+				
+			for name, route of P.route
+				continue unless route.url or route.action				
 				((route) ->
+					
 					P.historyClick.addRoute(P.opts.hashPrefix + route.url, (params) ->
 						route.action(params)
 					)
 				)(route)
 				
-				# path = P.Path.map(route.url)
-				# ((path, route) ->
-					# path.enter(->
-						# route.enter(@)
-						# return
-					# ) if route.enter				
-				
-					# path.to(->
-						# route.to(@)
-						# return
-					# ) if route.to
-					
-					# P.historyClick.addRoute(route.url, route.action);
-					
-					# return					
-				# )(path, route)
-				
+			P.historyClick.rootAlias('#home');
 			
 			P.historyClick.start()
 
 			return
-		)		
+		)
 
 		return
 		
