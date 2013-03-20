@@ -28,9 +28,20 @@
 			id = 1
 			() ->
 				id++
+				
+		getPopupParams: (width, height) ->
+			screenX = if typeof window.screenX isnt 'undefined' then window.screenX else window.screenLeft
+			screenY = if typeof window.screenY isnt 'undefined' then window.screenY else window.screenTop
+			outerWidth = if typeof window.outerWidth isnt 'undefined' then window.outerWidth else document.body.clientWidth
+			outerHeight = if typeof window.outerHeight isnt 'undefined' then window.outerHeight else (document.body.clientHeight - 22)
+			left = parseInt(screenX + ((outerWidth - width) / 2), 10)
+			top = parseInt(screenY + ((outerHeight - height) / 2.5), 10)
+
+			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0";
+
 
 	P.dom =
-		$: (selector) ->
+		$: (selector, context, tagName) ->
 			off if not selector?
 
 			type = selector.substring(0, 1)
@@ -40,9 +51,29 @@
 				when '#'
 					document.getElementById(name)
 				when '.'
-					document.getElementsByClassName(name)
+					tagName = tagName ? tagName : '*'
+					
+					`if ('function' !== typeof document.getElementsByClassName) {
+						for (
+							var i = -1,
+								results = [ ],
+								finder = new RegExp('(?:^|\\s)' + name + '(?:\\s|$)'),
+								a = context && context.getElementsByTagName && context.getElementsByTagName(tagName) || document.all || document.getElementsByTagName(tagName),
+								l = a.length;
+							++i < l;
+							finder.test(a[i].className) && results.push(a[i])
+						);
+
+						a = null;
+
+						return results;
+					} else {
+						return (context || document).getElementsByClassName(name);
+					}`
+					
+					return					
 				else
-					document.getElementsByTagName(selector)
+					(context || document).getElementsByTagName(selector)
 			
 		addEvent: (el, event, callback) ->
 			return off if not el?
@@ -59,7 +90,29 @@
 				el.detachEvent("on#{type}", callback)
 			else if el.removeEventListener
 				el.removeEventListener(event, callback, false)
-
+			
+		addClass: (els, c) ->
+			if not els.length
+				els = [els]
+			
+			re = new RegExp('(^|\\s)' + c + '(\\s|$)', 'g')
+			
+			for el in els
+				continue if re.test(el.className)
+				el.className = (el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
+			
+			return els
+		
+		removeClass: (els, c) ->
+			if not els.length
+				els = [els]
+			
+			re = new RegExp("(^|\\s)" + c + "(\\s|$)", "g")
+			for el in els
+				el.className = el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "")
+			
+			return els
+		  
 		waitFor: (prop, func, self, count) ->
 			if prop
 				func.apply(self)
@@ -108,39 +161,96 @@
 	P.widget =
 		main:
 			el: null
-			
 		category:
 			el: null
-			render: (categories) ->
+			init: (el) ->
+				@el = el
+				
+				categories = [
+					id: 1
+					name: '1 category'
+				,
+					id: 2
+					name: '2 category'
+					sub: [
+						id: 4
+						name: '4 category'
+						sub: [
+							id: 6
+							name: '6 category'
+						,
+							id: 7
+							name: '7 category'
+						]
+					]
+				,
+					id: 3
+					name: '3 category'
+					sub: [
+						id: 5
+						name: '5 category'
+					]
+				]				
+
+				@el.innerHTML = @render(categories)
+				@mark()
 				
 				return
+			mark: (cid) ->				
+				subs = P.dom.$('.plati-categories', @el, 'ul')				
+				for sub in subs
+					sub.style.display = 'none'
 				
-		showcase: ->
-			el: null
-			render: (articles) ->
-				out = ''
-				for article in articles
-					article.url = "#{P.opts.hashPrefix}/detail?id=#{article.id}&codepage=#{article.codepage}&currency=#{article.currency}"
-					out += P.tmpl(P.tmpls.article, article)
+				subs[0].style.display = ''
+				
+				cats = P.dom.$('.plati-category', @el, 'ul')
+				P.dom.removeClass(cats, 'plati-category-choosed')
+				
+				return unless cid
+				
+				cat = P.dom.$("#plati-category-#{cid}")
+				P.dom.addClass(cat, 'plati-category-choosed')
+				
+				parent = cat
+				while parent.id isnt 'plati-category'
+					parent.style.display = ''
+					parent = parent.parentNode					
+				
+				P.dom.$("#plati-category-sub-#{cid}")?.style.display = ''
 					
-				@el.innerHTML = P.tmpl(P.tmpls.articles,
+				return
+				
+			render: (categories, parent_cid) ->
+				return '' if not categories
+			
+				out = ''
+				for category in categories
+					category.url = "#{P.opts.hashPrefix}/articles/#{category.id}"
+					category.sub = @render(category.sub, category.id)
+					category.id = "plati-category-#{category.id}"
+					
+					out += P.tmpl(P.tmpls.category, category)
+					
+				P.tmpl(P.tmpls.categories,
+					id: if parent_cid then "plati-category-sub-#{parent_cid}" else ''
 					out: out
 				)
-				
-				return
 		
 	P.route =
 		home:
 			url: '/home'
 			action: (params) ->			
-				# P.widget.articles.el.style.display = 'block'
+				# P.widget.articles.el.style.display = ''
 				P.widget.article.el.style.display = 'none'
-				P.widget.category.el.style.display = 'block'
+				P.widget.category.el.style.display = ''
 
 		articles:
-			url: '/articles(?:/([0-9]*))?'			
+			url: '/articles/([0-9]*)(?:/([0-9]*))?'			
 			action: (params) ->
-				page = params[1] or 0
+				cid = params[1]
+				page = parseInt(params[2]) or 0
+				
+				P.widget.category.mark(cid)
 				
 				@render([
 					id: 980859
@@ -154,18 +264,64 @@
 					currency: 'WMZ'
 					title: 'Номер ICQ 121413515'
 					cost: 2000
-				])
+				], cid, page)
+				
+				@pagerMark(cid, page)
 				
 				return
-			render: (articles) ->
+				
+			pagerMark: (cid, curPage) ->
+				pager = P.dom.$("#plati-pager-#{cid}")				
+				pages = P.dom.$('a', pager)				
+				
+				for page, index in pages
+					P.dom[if curPage is index then 'addClass' else 'removeClass'](page, 'plati-page-choosed')
+			
+				return
+				
+			pagerRender: (cid, curPage, total) ->
 				out = ''
-				for article in articles
-					article.url = "#{P.opts.hashPrefix}/detail/#{article.id}"
-					out += P.tmpl(P.tmpls.article, article)
+				page = 0
+				
+				pager = P.dom.$("#plati-pager-#{cid}")
+				
+				unless total
+					pager.display = 'none'
+					return
+				
+				while page <= total
+					out += P.tmpl(P.tmpls.page,
+						page: page + 1
+						url: "#{P.opts.hashPrefix}/articles/#{cid}/#{page}"
+					)
 					
-				P.widget.main.el.innerHTML = P.tmpl(P.tmpls.articles,
+					page++
+					
+				pager.innerHTML = P.tmpl(P.tmpls.pages,
 					out: out
 				)
+				
+				return
+				
+			render: (articles, cid, page) ->
+				out = ''
+				for article in articles
+					article.title = cid + ' - ' + page + ' - ' + article.title
+					article.url = "#{P.opts.hashPrefix}/detail/#{article.id}"
+					out += P.tmpl(P.tmpls.article, article)
+				
+				container = P.dom.$("#plati-articles-#{cid}")
+				
+				if container
+					container.innerHTML = out
+				else
+					P.widget.main.el.innerHTML = P.tmpl(P.tmpls.articles,
+						id: "plati-articles-#{cid}"
+						idPages: "plati-pager-#{cid}"
+						out: out
+					)
+					
+					@pagerRender(cid, page, 10)
 				
 				return
 
@@ -173,7 +329,6 @@
 			url: '/detail(?:/([0-9]*))'
 			action: (params) ->
 				id = params[1] or 0
-				console.log(id)
 				
 				@render(
 					id: id
@@ -182,6 +337,14 @@
 					description: 'Описалово крутого товара'
 					cost: 1500
 				)
+				
+				P.dom.addEvent(P.dom.$('.plati-article-buy', P.widget.main.el, 'a')[0], 'click', (e) ->
+					window.open('//plati.ru', 'plati', P.util.getPopupParams(670, 500));
+				)
+				
+				P.widget.category.mark(7)
+				
+				return
 				
 			render: (article) ->
 				out = ''
@@ -196,27 +359,26 @@
 		
 		P.el.head = P.dom.$('head')[0] || document.documentElement
 		P.el.body = P.dom.$('body')[0] || document.documentElement
-		P.el.widget = P.dom.$("##{P.opts.widgetId}")
+		P.el.shop = P.dom.$("##{P.opts.widgetId}")
 		
-		P.el.widget.innerHTML = '<img src="' + P.opts.host + P.opts.loader + '" style="plati-ru-loader" alt="" />'
+		P.el.shop.innerHTML = '<img src="' + P.opts.host + P.opts.loader + '" style="plati-loader" alt="" />'
 		
 		P.dom.getStyle(P.opts.host + P.opts.css + '?' + Math.random())
 		P.dom.getScript(P.opts.host + P.opts.tmpl + '?' + Math.random(), ->			
-			P.el.widget.innerHTML = P.tmpl(P.tmpls.main, {})
-				
-			P.widget.main.el = P.dom.$('#main')
+			P.el.shop.innerHTML = P.tmpl(P.tmpls.main, {})
+			
+			P.widget.main.el = P.dom.$('#plati-main')
+			P.widget.category.init(P.dom.$('#plati-category'))
 				
 			for name, route of P.route
 				continue unless route.url or route.action				
 				((route) ->
-					
 					P.historyClick.addRoute(P.opts.hashPrefix + route.url, (params) ->
 						route.action(params)
 					)
 				)(route)
-				
-			P.historyClick.rootAlias('#home');
 			
+			P.historyClick.rootAlias('#home');			
 			P.historyClick.start()
 
 			return
