@@ -161,10 +161,41 @@
 	P.widget =
 		main:
 			el: null
+		search:
+			el: null
+			init: (el) ->
+				@el = el
+				
+				input = P.dom.$('.plati-search-input', @el, 'input')[0]
+				go = P.dom.$('.plati-search-go', @el, 'a')[0]
+				
+				P.dom.addEvent(go, 'click', (e) ->
+					if e.preventDefault then e.preventDefault() else e.returnValue = false
+					
+					window.location.hash = "#{P.opts.hashPrefix}/search?s=" + input.value
+					
+					return
+				)
+				
+				return
 		category:
 			el: null
 			init: (el) ->
 				@el = el
+				
+				P.JSONP.init(
+					callbackName: 'P.jsonpCallback'
+				)
+				
+				# P.jsonpCallback = ->					
+				
+				P.JSONP.get('http://shop.digiseller.ru/xml/test_JSON_shop_sections.asp',
+					param1: 'a'
+					param2: 'b'
+				, (response) ->
+					console.log(response);
+				)
+				# /* , "overrideCallbackName" */
 				
 				categories = [
 					id: 1
@@ -239,10 +270,23 @@
 	P.route =
 		home:
 			url: '/home'
-			action: (params) ->			
-				# P.widget.articles.el.style.display = ''
-				P.widget.article.el.style.display = 'none'
+			action: (params) ->	
+				P.widget.category.mark()
+				P.widget.main.el.innerHTML = 'Выберите категорию'
 				P.widget.category.el.style.display = ''
+				
+				return
+				
+		search:
+			url: '/search\\?s=(.*)'
+			action: (params) ->
+				search = params[1]
+				
+				P.widget.category.mark()
+				
+				P.widget.main.el.innerHTML = '<h2>Резльтутаты поиска по запросу "' + search + '"</h2>'
+				
+				return
 
 		articles:
 			url: '/articles/([0-9]*)(?:/([0-9]*))?'			
@@ -339,7 +383,11 @@
 				)
 				
 				P.dom.addEvent(P.dom.$('.plati-article-buy', P.widget.main.el, 'a')[0], 'click', (e) ->
-					window.open('//plati.ru', 'plati', P.util.getPopupParams(670, 500));
+					if e.preventDefault then e.preventDefault() else e.returnValue = false
+					
+					window.open('//plati.ru', 'plati', P.util.getPopupParams(670, 500))
+					
+					return
 				)
 				
 				P.widget.category.mark(7)
@@ -369,17 +417,21 @@
 			
 			P.widget.main.el = P.dom.$('#plati-main')
 			P.widget.category.init(P.dom.$('#plati-category'))
-				
+			P.widget.search.init(P.dom.$('#plati-search'))
+
 			for name, route of P.route
 				continue unless route.url or route.action				
-				((route) ->
+				((route) ->					
 					P.historyClick.addRoute(P.opts.hashPrefix + route.url, (params) ->
 						route.action(params)
 					)
 				)(route)
 			
-			P.historyClick.rootAlias('#home');			
+			P.historyClick.rootAlias(P.opts.hashPrefix + '/home');			
 			P.historyClick.start()
+			
+			if window.location.hash is ''		
+                P.historyClick.reload()            
 
 			return
 		)
@@ -440,8 +492,10 @@
 			for (var i = 0, len = revRoutes.length; i < len; i++) {
 				pattern = revRoutes[i][0];
 				callback = revRoutes[i][1];
-
+				console.log('pattern = ' + pattern);
+				console.log('hash = ' + hash);
 				if (pattern.test(hash) && typeof callback === 'function') {
+					console.log('true')
 					callback(hash.match(pattern));
 					
 					return;
@@ -726,9 +780,10 @@
 	# https://github.com/IntoMethod/Lightweight-JSONP
 	# Lightweight JSONP fetcher
 	# Copyright 2010-2012 Erik Karlsson. All rights reserved.
-	# BSD licensed
+	# BSD licensed	
 	P.JSONP = `(function(){
-		var counter = 0, head, window = this, config = {};
+		var _uid = 1, head, config = {}, _callbacks = [];
+		
 		function load(url, pfnError) {
 			var script = document.createElement('script'),
 				done = false;
@@ -757,42 +812,49 @@
 			}
 			head.appendChild( script );
 		}
+		
 		function encode(str) {
 			return encodeURIComponent(str);
 		}
-		function jsonp(url, params, callback, callbackName) {
-			var query = (url||'').indexOf('?') === -1 ? '?' : '&', key;
-					
-			callbackName = (callbackName||config['callbackName']||'callback');
-			var uniqueName = callbackName + "_json" + (++counter);
+		
+		function jsonp(url, params, callback) {			
+			var query = (url || '').indexOf('?') === -1 ? '?' : '&', key;
 			
 			params = params || {};
+			params.queryId = _uid++;
+			
 			for ( key in params ) {
 				if ( params.hasOwnProperty(key) ) {
-					query += encode(key) + "=" + encode(params[key]) + "&";
+					query += encode(key) + '=' + encode(params[key]) + '&';
 				}
-			}	
+			}
 			
-			window[ uniqueName ] = function(data){
-				callback(data);
-				try {
-					delete window[ uniqueName ];
-				} catch (e) {}
-				window[ uniqueName ] = null;
-			};
+			_callbacks[_uid] = callback;
 	 
-			load(url + query + callbackName + '=' + uniqueName);
-			return uniqueName;
+			load(url + query);
 		}
+		
 		function setDefaults(obj){
 			config = obj;
 		}
+		
 		return {
-			get:jsonp,
-			init:setDefaults
+			get: jsonp,			
+			callback: function(data) {
+				if (!data || !data.queryId || !_callbacks[data.queryId]) {
+					return;
+				}
+				
+				_callbacks[data.queryId](data);
+				
+				try {
+					delete _callbacks[data.queryId];
+				} catch (e) {}
+				
+				_callbacks[data.queryId] = null;
+			}
 		};
 	})();`
-
 
 	# http://documentcloud.github.com/underscore/
 	P.tmpl = `function(text, data) {
