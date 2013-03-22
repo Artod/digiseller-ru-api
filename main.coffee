@@ -1,3 +1,8 @@
+###
+Plati-ru-api
+22.03.2013 (c) http://artod.ru
+###
+
 ((window, document) ->
 	off if window.Plati?
 
@@ -20,6 +25,7 @@
 	P.util =
 		extend:	(target, source, overwrite) ->
 			for key of source
+				continue	unless source.hasOwnProperty(key)
 				target[key] = source[key] if overwrite or typeof target[key] is 'object'
 				
 			target
@@ -135,24 +141,32 @@
 			return
 		
 		# jQuery.getScript
-		getScript: (url, onLoad) ->			
+		getScript: (url, onLoad, onError) ->			
 			script = document.createElement('script')
 			script.type = 'text/javascript'
 			script.src = url
 			script.setAttribute('encoding', 'UTF-8')
 			
-			done = no
-			script.onload = script.onreadystatechange = () ->
-				if ( not done and (not this.readyState or this.readyState is 'loaded' or this.readyState is 'complete') )
-					done = yes
-
-					# Handle memory leak in IE
-					script.onload = script.onreadystatechange = null;
-					
-					P.el.head.removeChild(script) if P.el.head and script.parentNode
-					
-					onLoad() if onLoad?
+			done = no			
+			onComplite = (e) ->
+				done = yes
+				script.onload = script.onreadystatechange = null;					
+				P.el.head.removeChild(script) if P.el.head and script.parentNode
+				
 				return
+			
+			script.onload = script.onreadystatechange = (e) ->
+				if ( not done and (not this.readyState or this.readyState is 'loaded' or this.readyState is 'complete') )
+					onComplite()					
+					onLoad() if onLoad?
+					
+				return
+				
+			script.onerror = (e) ->				
+				onComplite()
+				onError if onError?
+					
+				return			
 
 			P.el.head.appendChild(script)
 			
@@ -163,39 +177,34 @@
 			el: null
 		search:
 			el: null
+			input: null
 			init: (el) ->
 				@el = el
 				
-				input = P.dom.$('.plati-search-input', @el, 'input')[0]
+				@input = P.dom.$('.plati-search-input', @el, 'input')[0]
 				go = P.dom.$('.plati-search-go', @el, 'a')[0]
 				
+				self = @
 				P.dom.addEvent(go, 'click', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 					
-					window.location.hash = "#{P.opts.hashPrefix}/search?s=" + input.value
+					window.location.hash = "#{P.opts.hashPrefix}/search?s=" + self.input.value
 					
 					return
 				)
 				
 				return
+				
 		category:
 			el: null
 			init: (el) ->
-				@el = el
+				@el = el				
 				
-				P.JSONP.init(
-					callbackName: 'P.jsonpCallback'
-				)
-				
-				# P.jsonpCallback = ->					
-				
-				P.JSONP.get('http://shop.digiseller.ru/xml/test_JSON_shop_sections.asp',
-					param1: 'a'
-					param2: 'b'
-				, (response) ->
-					console.log(response);
-				)
-				# /* , "overrideCallbackName" */
+				# P.JSONP.get('http://shop.digiseller.ru/xml/test_JSON_shop_sections.asp',
+					# sellerID: 2458464
+				# , (data) ->
+					# console.log(data);
+				# )
 				
 				categories = [
 					id: 1
@@ -227,6 +236,7 @@
 				@mark()
 				
 				return
+				
 			mark: (cid) ->				
 				subs = P.dom.$('.plati-categories', @el, 'ul')				
 				for sub in subs
@@ -282,9 +292,10 @@
 			action: (params) ->
 				search = params[1]
 				
+				P.widget.search.input.value = search				
 				P.widget.category.mark()
 				
-				P.widget.main.el.innerHTML = '<h2>Резльтутаты поиска по запросу "' + search + '"</h2>'
+				P.widget.main.el.innerHTML = '<h2>Результутаты поиска по запросу "' + search + '"</h2>'
 				
 				return
 
@@ -419,19 +430,22 @@
 			P.widget.category.init(P.dom.$('#plati-category'))
 			P.widget.search.init(P.dom.$('#plati-search'))
 
-			for name, route of P.route
-				continue unless route.url or route.action				
+			for name, route of P.route				
+				continue unless P.route.hasOwnProperty(name) or route.url or route.action
+				
 				((route) ->					
 					P.historyClick.addRoute(P.opts.hashPrefix + route.url, (params) ->
 						route.action(params)
 					)
+					
+					return
 				)(route)
 			
-			P.historyClick.rootAlias(P.opts.hashPrefix + '/home');			
+			P.historyClick.rootAlias(P.opts.hashPrefix + '/home');
 			P.historyClick.start()
 			
 			if window.location.hash is ''		
-                P.historyClick.reload()            
+                P.historyClick.reload()
 
 			return
 		)
@@ -444,17 +458,11 @@
 
 	P.Path = Path
 	
-	
-	
 	P.historyClick = `(function() {
-		var queueLinks = [],
-			virtualLinks = {},
-			counter = 0,
-			rootAlias = '',
-			needReload = false,
-			routes = [],
-			revRoutes = [],
-			opts;
+		var _rootAlias = '',
+			_needReload = false,
+			_routes = [],
+			_revRoutes = [];
 
 		function init() {
 			if (!historyClick.interval) {
@@ -463,20 +471,20 @@
 		}
 
 		function urlHashCheck() {
-			var mayChangeReload = false; // needReload может обнулиться так как urlHashCheck может еще не закончиться а needReload уже поставили true
+			var mayChangeReload = false; // _needReload может обнулиться так как urlHashCheck может еще не закончиться а _needReload уже поставили true
 			
-			if (needReload) {
+			if (_needReload) {
 				mayChangeReload = true;
 			}
 
-			if (window.location.hash !== historyClick.currentHash || needReload) {
-				historyClick.prevHash = ( needReload ? historyClick.prevHash : historyClick.currentHash );
+			if (window.location.hash !== historyClick.currentHash || _needReload) {
+				historyClick.prevHash = ( _needReload ? historyClick.prevHash : historyClick.currentHash );
 				historyClick.currentHash = window.location.hash.toString();
 
-				go(historyClick.currentHash && historyClick.currentHash != '#' ? historyClick.currentHash : rootAlias);
+				go(historyClick.currentHash && historyClick.currentHash != '#' ? historyClick.currentHash : _rootAlias);
 
 				if (mayChangeReload) {
-					needReload = false;
+					_needReload = false;
 				}
 			}
 		}
@@ -489,13 +497,11 @@
 			var pattern,
 				callback;
 
-			for (var i = 0, len = revRoutes.length; i < len; i++) {
-				pattern = revRoutes[i][0];
-				callback = revRoutes[i][1];
-				console.log('pattern = ' + pattern);
-				console.log('hash = ' + hash);
+			for (var i = 0, len = _revRoutes.length; i < len; i++) {
+				pattern = _revRoutes[i][0];
+				callback = _revRoutes[i][1];
+				
 				if (pattern.test(hash) && typeof callback === 'function') {
-					console.log('true')
 					callback(hash.match(pattern));
 					
 					return;
@@ -512,24 +518,24 @@
 			},
 			rootAlias: function(hash) {
 				if (hash) {
-					rootAlias = hash;
+					_rootAlias = hash;
 				} else {
-					return rootAlias;
+					return _rootAlias;
 				}
 			},
 			addRoute: function(pattern, callback) {
 				if (typeof pattern === 'string') {
 					pattern = [pattern];
 				}
-
+				
 				for (var i = 0; i < pattern.length; i++) {
-					routes.push([new RegExp(pattern[i], 'i'), callback]);
+					_routes.push([new RegExp(pattern[i], 'i'), callback]);
 				}
 
-				revRoutes = routes.slice().reverse(); // клонируем и реверсируем
+				_revRoutes = _routes.slice().reverse(); // клонируем и реверсируем
 			},
 			reload: function() {
-				needReload = true;
+				_needReload = true;
 			},
 			changeHashSilent: function(hash) {
 				historyClick.prevHash = historyClick.currentHash;
@@ -542,239 +548,6 @@
 	
 	
 	#https://github.com/ssteynfaardt/Xhr
-	class Xhr
-		#class methods
-		@readyState =	0
-		@status = null
-		#jsonp callback function
-
-		_parseUrl = (->
-			a = document.createElement("a")
-			(url) ->
-				a.href = url
-				host: a.host
-				hostname: a.hostname
-				pathname: a.pathname
-				port: a.port
-				protocol: a.protocol
-				search: a.search
-				hash: a.hash
-		)()
-
-		_isObject = (obj) ->
-			(obj.ownerDocument not instanceof Object) and (obj not instanceof Date) and (obj not instanceof RegExp) and (obj not instanceof Function) and (obj not instanceof String) and (obj not instanceof Boolean) and (obj not instanceof Number) and obj instanceof Object
-
-		_doJsonP = (url) ->
-			script = document.createElement("script")
-			script.type = 'text/javascript';
-			script.src = url
-			document.body.appendChild script
-
-		jpcb: ->
-		#public methods
-		constructor: () ->
-			
-			_callbackFunctions = {}
-			_setCallbackFor = (callbackFor, callbackFunction) ->
-				if(typeof callbackFor is 'string' and typeof callbackFunction is 'function')
-					_callbackFunctions[callbackFor] = callbackFunction
-
-			_doCallbackFor = (callbackFor) ->
-				if(typeof _callbackFunctions[callbackFor] is 'function')
-					_callbackFunctions[callbackFor](arguments[1],arguments[2],arguments[3])
-			#Instance varialbes, to access it @_.cors
-			@_ =
-				xhr: null
-				cors:	null
-				xhrType: 'form'
-				doCallbackFor: _doCallbackFor
-				setCallbackFor: _setCallbackFor
-
-		createXhrObject: ->
-			_validStatus = [200,201,204,304]
-			@_.cors = false
-			if window.XDomainRequest
-				@_.xhr = new XDomainRequest()
-				@_.cors = true
-			else if window.XMLHttpRequest
-				@_.xhr = new XMLHttpRequest()
-				@_.cors = true	if "withCredentials" of @_.xhr
-			else if window.ActiveXObject
-				try
-					@_.xhr = new ActiveXObject("MSXML2.XMLHTTP.3.0")
-				catch error
-					@_.xhr = null
-					throw Error(error);
-
-			_this = @
-			@_.xhr.onreadystatechange = ->
-				_this.readyState = _this._.xhr.readyState
-				_this._.doCallbackFor('readystatechange',_this._.xhr)
-				switch _this._.xhr.readyState
-					when 0, 1
-						_this._.doCallbackFor('loadstart',_this._.xhr)
-					when 2
-						_this._.doCallbackFor('progress',_this._.xhr)
-					when 3
-						_this._.doCallbackFor('onload',_this._.xhr)
-					when 4
-						try
-							if _this._.xhr.status in _validStatus
-								_this._.doCallbackFor('success',_this._.xhr.responseText,_this._.xhr.status,_this._.xhr)
-							else
-								_this._.doCallbackFor('error',_this._.xhr.responseText,_this._.xhr.status,_this._.xhr)
-						catch error
-							throw Error(error)
-
-						_this._.doCallbackFor('loadend',_this._.xhr.responseText, _this._.xhr.status,_this._.xhr)
-						_this._.xhr = null
-					else
-						throw Error("Unsupported readystate (#{_this._.xhr.readyState}) received.")
-
-			@_.xhr.ontimeout = ->
-				_this._.doCallbackFor('timeout',_this._.xhr)
-			@_.xhr.onabort = ->
-				_this._.doCallbackFor('abort',_this._.xhr)	
-
-			@_.xhr
-
-		_doAjaxCall: (url,method = "GET",data = null)->
-			if (url is undefined)
-				throw Error("URL required");
-			currentUrl = window.location
-
-			urlObj = _parseUrl(url);
-			xhrObj = @createXhrObject()
-
-			getContentType = (type = "form") ->
-				contentType = 'application/x-www-form-urlencoded'
-				switch type.toLowerCase()
-					when 'html'
-						contentType = 'text/html'
-					when 'json'
-						contentType = 'application/json'
-					when 'jsonp'
-						contentType = 'application/javascript'
-					when 'xml'
-						contentType = 'application/xml'
-					else
-						contentType = 'application/x-www-form-urlencoded'
-				contentType
-			
-			#check if we are making a CORS call
-			if (urlObj.host is currentUrl.host and urlObj.protocol is currentUrl.protocol and urlObj.port is currentUrl.port) then crossDomain = false else crossDomain = true
-			if crossDomain is false or @_.cors is true
-				xhrObj.open(method,url,true)
-				if(@_.cors)
-					xhrObj.setRequestHeader('X-Requested-With', 'XMLHttpRequest')
-				if (data)
-					if(typeof data is 'string' and window.JSON)
-						try
-							data = JSON.parse(data)
-							@setType('json');						
-						catch e
-						
-
-					if(@_.xhrType is 'json' and typeof data is "object" and window.JSON)
-						data = JSON.stringify(data)
-						@setType('json');
-					else if(typeof data != "string")
-						xhrObj.setRequestHeader('Content-Type', getContentType('form'))
-						data = @serialize(data)
-						@setType('form');
-				xhrObj.setRequestHeader('Content-Type', getContentType(@_.xhrType))
-				xhrObj.send(data)
-			else
-				data = @serialize(data)
-				_doJsonP("#{data}&callback=")
-				throw Error "crossDomain Error"
-
-		serialize: (obj, keyed, prefix = '') ->
-			return prefix + encodeURIComponent(obj)	unless _isObject(obj)
-			result = ""
-			temp = ""
-			for index of obj
-				continue	unless obj.hasOwnProperty(index)
-				temp = (if keyed then keyed + "[" + encodeURIComponent(index) + "]" else encodeURIComponent(index))
-				result += @serialize(obj[index], temp, "&" + temp + "=")
-			result.substring(1)
-
-		setType: (type)->
-			_validTypes = ['form','html','json','jsonp','xml']
-			type = type.toLowerCase()
-			throw Error("Unsupported type (#{type})") if type not in _validTypes
-			@_.xhrType = type
-
-
-		cors: ->
-			if @_.cors is null
-				@createXhrObject()
-			@_.cors
-
-		abort: ->
-			try
-				@_.xhr.abort();
-				@_.xhr.onreadystatechange = ->
-				@readyState = 0
-			catch error
-				#throw Error(error)
-			@ononabort()
-			@
-
-		call: (url,method,data) ->
-			@_doAjaxCall(url,method,data)
-			@
-		head:(url) ->
-			@_doAjaxCall(url,"HEAD")
-			@
-		options:(url) ->
-			@_doAjaxCall(url,"OPTIONS")
-			@
-		get:(url) ->
-			@_doAjaxCall(url,"GET")
-			@
-		put: ( url, data) ->
-			@_doAjaxCall(url,"PUT",data)
-			@
-		post: ( url, data) ->
-			@_doAjaxCall(url,"POST",data)
-			@
-		delete: (url) ->
-			@_doAjaxCall(url,"DELETE")
-			@
-		jsonp:(url) ->
-			_doJsonP(url)
-			@
-
-		onreadystatechange: (callback) ->
-			@_.setCallbackFor('readystatechange',callback)
-			@
-		onloadstart: (callback) ->
-			@_.setCallbackFor('loadstart',callback)
-			@
-		onprogress: (callback) ->
-			@_.setCallbackFor('progress',callback)
-			@
-		onload: (callback) ->
-			@_.setCallbackFor('load',callback)
-			@
-		onerror: (callback) ->
-			@_.setCallbackFor('error',callback)
-			@
-		onsuccess: (callback) ->
-			@_.setCallbackFor('success',callback)
-			@
-		onloadend: (callback) ->
-			@_.setCallbackFor('loadend',callback)
-			@
-		ontimeout: (callback) ->
-			@_.setCallbackFor('timeout',callback)
-			@
-		onabort: (callback) ->
-			@_.setCallbackFor('abort',callback)
-			@
-	#Set some variables that will be available in the to use
-	P.Xhr = Xhr	
 	
 
 	# https://github.com/IntoMethod/Lightweight-JSONP
@@ -784,7 +557,7 @@
 	P.JSONP = `(function(){
 		var _uid = 1, head, config = {}, _callbacks = [];
 		
-		function load(url, pfnError) {
+		/*function load(url, pfnError) {
 			var script = document.createElement('script'),
 				done = false;
 			script.src = url;
@@ -811,7 +584,7 @@
 				head = document.getElementsByTagName('head')[0];
 			}
 			head.appendChild( script );
-		}
+		}*/
 		
 		function encode(str) {
 			return encodeURIComponent(str);
@@ -823,15 +596,17 @@
 			params = params || {};
 			params.queryId = _uid++;
 			
-			for ( key in params ) {
-				if ( params.hasOwnProperty(key) ) {
-					query += encode(key) + '=' + encode(params[key]) + '&';
+			for (key in params) {
+				if ( !params.hasOwnProperty(key) ) {
+					continue;
 				}
-			}
+				
+				query += encode(key) + '=' + encode(params[key]) + '&'			
+			}			
 			
-			_callbacks[_uid] = callback;
-	 
-			load(url + query);
+			_callbacks[_uid] = callback;	 
+		
+			P.dom.getScript(url + query); //load(url + query);
 		}
 		
 		function setDefaults(obj){
