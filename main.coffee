@@ -211,6 +211,8 @@ DigiSeller-ru-api
 					
 					self.el.innerHTML = self.render(data.category)
 					self.mark()
+					
+					return
 				)
 				
 				return
@@ -287,66 +289,43 @@ DigiSeller-ru-api
 			url: '/articles/([0-9]*)(?:/([0-9]*))?'			
 			action: (params) ->
 				cid = params[1]
-				page = parseInt(params[2]) or 0
-				
+				page = parseInt(params[2]) or 1
+
 				DS.widget.category.mark(cid)
-				
-				@render([
-					id: 980859
-					codepage: 0
-					currency: 'WMZ'
-					title: 'Номер ICQ 121413515'
-					cost: 1500
-				,
-					id: 980859
-					codepage: 0
-					currency: 'WMZ'
-					title: 'Номер ICQ 121413515'
-					cost: 2000
-				], cid, page)
-				
-				@pagerMark(cid, page)
-				
-				return
-				
-			pagerMark: (cid, curPage) ->
-				pager = DS.dom.$("#digiseller-pager-#{cid}")				
-				pages = DS.dom.$('a', pager)				
-				
-				for page, index in pages
-					DS.dom[if curPage is index then 'addClass' else 'removeClass'](page, 'digiseller-page-choosed')
-			
-				return
-				
-			pagerRender: (cid, curPage, total) ->
-				out = ''
-				page = 0
-				
-				pager = DS.dom.$("#digiseller-pager-#{cid}")
-				
-				unless total
-					pager.display = 'none'
+
+				self = @
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp',
+					id_seller: DS.opts.id_seller
+					format: 'json'
+					category_id: cid
+					page: page
+					rows: 5
+					order: '' # name, nameDESC, price, priceDESC
+					currency: 'RUR'
+				, (data) ->
+					off unless data
+					
+					self.render(data, cid, page)
+					
+					self.pagerMark(cid, page)
+					
 					return
-				
-				while page <= total
-					out += DS.tmpl(DS.tmpls.page,
-						page: page + 1
-						url: "#{DS.opts.hashPrefix}/articles/#{cid}/#{page}"
-					)
-					
-					page++
-					
-				pager.innerHTML = DS.tmpl(DS.tmpls.pages,
-					out: out
 				)
 				
 				return
 				
-			render: (articles, cid, page) ->
+			render: (data, cid, page) ->
 				out = ''
+				
+				articles = data.product
+				
+				unless articles
+					DS.widget.main.el.innerHTML = 'Nothing found'
+					return
+				
 				for article in articles
-					article.title = cid + ' - ' + page + ' - ' + article.title
 					article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
+					
 					out += DS.tmpl(DS.tmpls.article, article)
 				
 				container = DS.dom.$("#digiseller-articles-#{cid}")
@@ -360,7 +339,40 @@ DigiSeller-ru-api
 						out: out
 					)
 					
-					@pagerRender(cid, page, 10)
+					@pagerRender(cid, page, data.totalPages)
+				
+				return
+				
+			pagerMark: (cid, curPage) ->
+				pager = DS.dom.$("#digiseller-pager-#{cid}")				
+				pages = DS.dom.$('a', pager)				
+				
+				for page, index in pages
+					DS.dom[if curPage is index + 1 then 'addClass' else 'removeClass'](page, 'digiseller-page-choosed')
+			
+				return
+				
+			pagerRender: (cid, curPage, total) ->
+				out = ''
+				page = 1
+				
+				pager = DS.dom.$("#digiseller-pager-#{cid}")
+				
+				unless total
+					pager.display = 'none'
+					return
+				
+				while page <= total
+					out += DS.tmpl(DS.tmpls.page,
+						page: page
+						url: "#{DS.opts.hashPrefix}/articles/#{cid}/#{page}"
+					)
+					
+					page++
+					
+				pager.innerHTML = DS.tmpl(DS.tmpls.pages,
+					out: out
+				)
 				
 				return
 
@@ -705,30 +717,44 @@ DigiSeller-ru-api
 DigiSeller.opts.id_seller = 18728
 
 
+### @render([
+	id: 980859
+	codepage: 0
+	currency: 'WMZ'
+	title: 'Номер ICQ 121413515'
+	cost: 1500
+,
+	id: 980859
+	codepage: 0
+	currency: 'WMZ'
+	title: 'Номер ICQ 121413515'
+	cost: 2000
+], cid, page) ###
 
-					# alert('sdsd')
-					# categories = [
-						# id: 1
-						# name: '1 category'
-					# ,
-						# id: 2
-						# name: '2 category'
-						# sub: [
-							# id: 4
-							# name: '4 category'
-							# sub: [
-								# id: 6
-								# name: '6 category'
-							# ,
-								# id: 7
-								# name: '7 category'
-							# ]
-						# ]
-					# ,
-						# id: 3
-						# name: '3 category'
-						# sub: [
-							# id: 5
-							# name: '5 category'
-						# ]
-					# ]
+
+# alert('sdsd')
+# categories = [
+	# id: 1
+	# name: '1 category'
+# ,
+	# id: 2
+	# name: '2 category'
+	# sub: [
+		# id: 4
+		# name: '4 category'
+		# sub: [
+			# id: 6
+			# name: '6 category'
+		# ,
+			# id: 7
+			# name: '7 category'
+		# ]
+	# ]
+# ,
+	# id: 3
+	# name: '3 category'
+	# sub: [
+		# id: 5
+		# name: '5 category'
+	# ]
+# ]
