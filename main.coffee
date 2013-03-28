@@ -22,7 +22,7 @@ DigiSeller-ru-api
 		hashPrefix: '#!digiseller'
 
 	DS.util =
-		extend:	(target, source, overwrite) ->
+		extend: (target, source, overwrite) ->
 			for key of source
 				continue	unless source.hasOwnProperty(key)
 				target[key] = source[key] if overwrite or typeof target[key] is 'object'
@@ -95,8 +95,42 @@ DigiSeller-ru-api
 				el.detachEvent("on#{type}", callback)
 			else if el.removeEventListener
 				el.removeEventListener(event, callback, false)
+		attr: (el, attr, val) ->
+			if not el or typeof attr is 'undefined'
+				return false			
+
+			if typeof val isnt 'undefined'
+				el.setAttribute(attr, val)
+			else
+				return el.getAttribute(attr)
+				
+			return
 			
-		addClass: (els, c) ->
+		klass: (action, els, c, multy) ->
+			`if (!els || !action) {
+				return;
+			}
+			
+			if (!multy) {
+				els = [els];
+			}				
+			
+			var el, _i, _len,
+				re = new RegExp('(^|\\s)' + c + '(\\s|$)', 'g');
+			for (_len = els.length, _i = _len-1; _i >= 0; _i--) {
+				el = els[_i];
+				if ( action === 'add' && re.test(el.className) ) {
+					continue;
+				}
+				
+				el.className = action === 'add' ? (el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '') : el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "");
+			}
+			
+			return els;`
+			
+			return
+			
+		### addClass: (els, c) ->
 			return unless els
 			
 			if not els.length
@@ -120,7 +154,7 @@ DigiSeller-ru-api
 			for el in els
 				el.className = el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "")
 			
-			return els
+			return els ###
 		  
 		waitFor: (prop, func, self, count) ->
 			if prop
@@ -197,7 +231,72 @@ DigiSeller-ru-api
 				)
 				
 				return
+		pager: class
+			constructor: (@el, opts) ->
+				opts = opts or {}
+
+				@cur = null
+				@opts =
+					total: opts.total || 0
+					tmpl: opts.tmpl || ''
+					max: opts.max || 3
+					getLink: opts.getLink || (page) -> return page
+					
+				return
 				
+			renew: (cur) ->
+				return @ if @cur == cur
+					
+				if @opts.total < @opts.max * 2 + 3
+					console.log('mark')
+					@mark(cur)
+				else
+					console.log('render')
+					@render(cur)
+					
+				return @
+				
+			mark: (cur) ->
+				@cur = cur
+				pages = DS.dom.$('a', @el)
+				
+				for page, index in pages
+					DS.dom.klass((if cur == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-page-choosed')
+			
+				return @
+				
+			render: (cur) ->				
+				unless cur
+					@el.display = 'none'
+					return
+					
+				left = cur - @opts.max
+				left = (if left < 1 then 1 else left)
+				
+				right = cur + @opts.max
+				right = (if right > @opts.total then @opts.total else right)
+				
+				page = left
+				
+				out = ''
+				while page <= right
+					out += @opts.getLink(page)					
+					page++
+					
+				if left > 1
+					out = @opts.getLink(1) + (if left > 2 then '<li>...</li>' else '') + out
+					
+				if right < @opts.total
+					out = out + (if right < @opts.total - 1 then '<li>...</li>' else '') + @opts.getLink(@opts.total)
+					
+				@el.innerHTML = DS.tmpl(@opts.tmpl,
+					out: out
+				)
+				
+				@mark(cur)
+				
+				return @
+			
 		category:
 			el: null
 			init: (el) ->
@@ -228,7 +327,7 @@ DigiSeller-ru-api
 				
 				subs[0].style.display = ''				
 				
-				DS.dom.removeClass(cats, 'digiseller-category-choosed')
+				DS.dom.klass('remove', cats, 'digiseller-category-choosed', true)
 				
 				return unless cid
 				
@@ -236,7 +335,7 @@ DigiSeller-ru-api
 				
 				return unless cat
 				
-				DS.dom.addClass(cat, 'digiseller-category-choosed')
+				DS.dom.klass('add', cat, 'digiseller-category-choosed')
 				
 				parent = cat
 				while parent.id isnt 'digiseller-category'
@@ -286,7 +385,9 @@ DigiSeller-ru-api
 				return
 
 		articles:
-			url: '/articles/([0-9]*)(?:/([0-9]*))?'			
+			url: '/articles/([0-9]*)(?:/([0-9]*))?'
+			pager: null
+			pagerComments: null
 			action: (params) ->
 				cid = params[1]
 				page = parseInt(params[2]) or 1
@@ -299,16 +400,14 @@ DigiSeller-ru-api
 					format: 'json'
 					category_id: cid
 					page: page
-					rows: 5
+					rows: 2
 					order: '' # name, nameDESC, price, priceDESC
 					currency: 'RUR'
 				, (data) ->
 					off unless data
 					
-					self.render(data, cid, page)
-					
-					self.pagerMark(cid, page)
-					
+					self.render(data, cid, page)						
+
 					return
 				)
 				
@@ -332,6 +431,7 @@ DigiSeller-ru-api
 				
 				if container
 					container.innerHTML = out
+					@pager.renew(page)
 				else
 					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articles,
 						id: "digiseller-articles-#{cid}"
@@ -339,42 +439,20 @@ DigiSeller-ru-api
 						out: out
 					)
 					
-					@pagerRender(cid, page, data.totalPages)
-				
-				return
-				
-			pagerMark: (cid, curPage) ->
-				pager = DS.dom.$("#digiseller-pager-#{cid}")				
-				pages = DS.dom.$('a', pager)				
-				
-				for page, index in pages
-					DS.dom[if curPage is index + 1 then 'addClass' else 'removeClass'](page, 'digiseller-page-choosed')
-			
-				return
-				
-			pagerRender: (cid, curPage, total) ->
-				out = ''
-				page = 1
-				
-				pager = DS.dom.$("#digiseller-pager-#{cid}")
-				
-				unless total
-					pager.display = 'none'
-					return
-				
-				while page <= total
-					out += DS.tmpl(DS.tmpls.page,
-						page: page
-						url: "#{DS.opts.hashPrefix}/articles/#{cid}/#{page}"
-					)
+					@pager = new DS.widget.pager(DS.dom.$("#digiseller-pager-#{cid}"), {
+						total: data.totalPages
+						tmpl: DS.tmpls.pages
+						getLink: (page) ->
+							DS.tmpl(DS.tmpls.page,
+								page: page
+								url: "#{DS.opts.hashPrefix}/articles/#{cid}/#{page}"
+							)
+						
+					}).render(page)
 					
-					page++
-					
-				pager.innerHTML = DS.tmpl(DS.tmpls.pages,
-					out: out
-				)
+					# @pagerRender(cid, page, data.totalPages)
 				
-				return
+				return				
 
 		article:
 			url: '/detail(?:/([0-9]*))'
