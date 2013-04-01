@@ -42,8 +42,51 @@ DigiSeller-ru-api
 			left = parseInt(screenX + ((outerWidth - width) / 2), 10)
 			top = parseInt(screenY + ((outerHeight - height) / 2.5), 10)
 
-			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0";
+			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"		
 
+		cookie:
+			get: (name) ->
+				`var matches = document.cookie.match(new RegExp(
+				  "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+				));
+				
+				return matches ? decodeURIComponent(matches[1]) : undefined;`
+				
+				return
+
+			set: (name, value, props) ->
+				`props = props || {};
+				
+				var exp = props.expires;
+				if (typeof exp == 'number' && exp) {
+					var d = new Date();
+					d.setTime(d.getTime() + exp * 1000);
+					exp = props.expires = d;
+				}
+				
+				if (exp && exp.toUTCString) {
+					props.expires = exp.toUTCString();
+				}
+
+				value = encodeURIComponent(value);
+				
+				var updatedCookie = name + '=' + value;
+				for (var propName in props) {
+					updatedCookie += '; ' + propName;
+					var propValue = props[propName];
+					if (propValue !== true) {
+						updatedCookie += '=' + propValue;
+					}
+				}
+				
+				document.cookie = updatedCookie;`
+				
+				return
+
+			del: (name) ->
+				@set(name, null, {expires: -1})
+				
+				return
 
 	DS.dom =
 		$: (selector, context, tagName) ->
@@ -248,10 +291,10 @@ DigiSeller-ru-api
 				return @ if @cur == cur
 					
 				if @opts.total < @opts.max * 2 + 3
-					console.log('mark')
+					# console.log('mark')
 					@mark(cur)
 				else
-					console.log('render')
+					# console.log('render')
 					@render(cur)
 					
 				return @
@@ -386,34 +429,45 @@ DigiSeller-ru-api
 
 		articles:
 			url: '/articles/([0-9]*)(?:/([0-9]*))?'
+			cid: null
 			pager: null
 			pagerComments: null
 			action: (params) ->
-				cid = params[1]
+				@cid = params[1]
 				page = parseInt(params[2]) or 1
+				
+				@get()
+				
+				return
+				
+			get: (page) ->
+				DS.widget.category.mark(@cid)
 
-				DS.widget.category.mark(cid)
-
+				order = DS.util.cookie.get('digiseller-articles-sort') || 'price' # name, nameDESC, price, priceDESC
+				currency = DS.util.cookie.get('digiseller-articles-currency') || 'RUR'
+				
 				self = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp',
 					id_seller: DS.opts.id_seller
 					format: 'json'
-					category_id: cid
+					category_id: @cid
 					page: page
 					rows: 2
-					order: '' # name, nameDESC, price, priceDESC
-					currency: 'RUR'
+					order: order
+					currency: currency
 				, (data) ->
 					off unless data
 					
-					self.render(data, cid, page)						
+					self.render(data, page)					
+					
+					$order = DS.dom.$('a', DS.dom.$('#digiseller-sorting')
+					
+					DS.dom.$.klass('remove', DS.dom.$('a', DS.dom.$('#digiseller-sorting'))
 
 					return
 				)
 				
-				return
-				
-			render: (data, cid, page) ->
+			render: (data, page) ->
 				out = ''
 				
 				articles = data.product
@@ -427,25 +481,25 @@ DigiSeller-ru-api
 					
 					out += DS.tmpl(DS.tmpls.article, article)
 				
-				container = DS.dom.$("#digiseller-articles-#{cid}")
+				container = DS.dom.$("#digiseller-articles-#{@cid}")
 				
 				if container
 					container.innerHTML = out
 					@pager.renew(page)
 				else
 					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articles,
-						id: "digiseller-articles-#{cid}"
-						idPages: "digiseller-pager-#{cid}"
+						id: "digiseller-articles-#{@cid}"
+						idPages: "digiseller-pager-#{@cid}"
 						out: out
 					)
 					
-					@pager = new DS.widget.pager(DS.dom.$("#digiseller-pager-#{cid}"), {
+					@pager = new DS.widget.pager(DS.dom.$("#digiseller-pager-#{@cid}"), {
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
 							DS.tmpl(DS.tmpls.page,
 								page: page
-								url: "#{DS.opts.hashPrefix}/articles/#{cid}/#{page}"
+								url: "#{DS.opts.hashPrefix}/articles/#{@cid}/#{page}"
 							)
 						
 					}).render(page)
@@ -485,6 +539,23 @@ DigiSeller-ru-api
 				DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, article)
 				
 				return
+				
+	DS.clicks =
+		sort: (el, e) ->
+			type = DS.dom.attr(el, 'data-type')
+			dir = DS.dom.attr(el, 'data-dir')
+			dir = dir is 'DESC' then '' else 'DESC'
+			
+			DS.dom.attr(el, 'data-dir', dir)
+			
+			DS.dom.klass('add', el, 'digiseller-sort-' + dir, true)
+			
+			DS.util.cookie.set('digiseller-articles-sort', type + dir)
+			
+			DS.route.articles.get(DS.route.articles.cid, 1)
+			
+			return
+
 	inited = no
 	DS.init = ->
 		off if inited
@@ -522,6 +593,14 @@ DigiSeller-ru-api
                 DS.historyClick.reload()
 
 			return
+		)
+		
+		DS.dom.addEvent(DS.el.shop, 'click', (e) ->
+			origEl = e.originalTarget or e.srcElement
+			
+			action = DS.dom.attr(origEl, 'data-action')
+			if action and typeof DS.clicks[action] === 'function'
+				DS.clicks[action](origEl, e)
 		)
 
 		return
@@ -576,7 +655,8 @@ DigiSeller-ru-api
 				callback = _revRoutes[i][1];
 				
 				if (pattern.test(hash) && typeof callback === 'function') {
-					callback(hash.match(pattern));
+					historyClick.params = hash.match(pattern)
+					callback(historyClick.params);
 					
 					return;
 				}
@@ -587,6 +667,7 @@ DigiSeller-ru-api
 			interval: null,
 			currentHash: '',
 			prevHash: '',
+			params: [],
 			start: function() {
 				init();
 			},
