@@ -159,7 +159,7 @@ DigiSeller-ru-api
 			}				
 			
 			var el, _i, _len,
-				re = new RegExp('(^|\\s)' + c + '(\\s|$)', 'g');
+				re = new RegExp('(^|\\s)' + ( action === 'add' ? c : c.replace(' ', '|') ) + '(\\s|$)', 'g');
 			for (_len = els.length, _i = _len-1; _i >= 0; _i--) {
 				el = els[_i];
 				if ( action === 'add' && re.test(el.className) ) {
@@ -436,7 +436,7 @@ DigiSeller-ru-api
 				@cid = params[1]
 				page = parseInt(params[2]) or 1
 				
-				@get()
+				@get(page)
 				
 				return
 				
@@ -458,16 +458,12 @@ DigiSeller-ru-api
 				, (data) ->
 					off unless data
 					
-					self.render(data, page)					
-					
-					$order = DS.dom.$('a', DS.dom.$('#digiseller-sorting')
-					
-					DS.dom.$.klass('remove', DS.dom.$('a', DS.dom.$('#digiseller-sorting'))
+					self.render(data, page, order, currency)
 
 					return
 				)
 				
-			render: (data, page) ->
+			render: (data, page, order, currency) ->
 				out = ''
 				
 				articles = data.product
@@ -475,7 +471,7 @@ DigiSeller-ru-api
 				unless articles
 					DS.widget.main.el.innerHTML = 'Nothing found'
 					return
-				
+
 				for article in articles
 					article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
 					
@@ -493,19 +489,31 @@ DigiSeller-ru-api
 						out: out
 					)
 					
+					that = @
 					@pager = new DS.widget.pager(DS.dom.$("#digiseller-pager-#{@cid}"), {
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
 							DS.tmpl(DS.tmpls.page,
 								page: page
-								url: "#{DS.opts.hashPrefix}/articles/#{@cid}/#{page}"
+								url: "#{DS.opts.hashPrefix}/articles/#{that.cid}/#{page}"
 							)
 						
 					}).render(page)
 					
-					# @pagerRender(cid, page, data.totalPages)
+				# sorting
+				type = order.replace('DESC', '')
+				dir = if order.search(/desc/i) > -1 then 'desc' else 'asc'
 				
+				$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))				
+				for $order in $orders
+					DS.dom.klass('remove', $order, 'digiseller-sort-asc digiseller-sort-desc')
+					DS.dom.attr($order, 'data-dir', '')
+					
+					if type and type is DS.dom.attr($order, 'data-type')
+						DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
+						DS.dom.attr($order, 'data-dir', dir)
+
 				return				
 
 		article:
@@ -542,17 +550,15 @@ DigiSeller-ru-api
 				
 	DS.clicks =
 		sort: (el, e) ->
+			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			
 			type = DS.dom.attr(el, 'data-type')
 			dir = DS.dom.attr(el, 'data-dir')
-			dir = dir is 'DESC' then '' else 'DESC'
+			dir = if dir is 'desc' then '' else 'desc'
 			
-			DS.dom.attr(el, 'data-dir', dir)
+			DS.util.cookie.set('digiseller-articles-sort', type + dir.toUpperCase() )
 			
-			DS.dom.klass('add', el, 'digiseller-sort-' + dir, true)
-			
-			DS.util.cookie.set('digiseller-articles-sort', type + dir)
-			
-			DS.route.articles.get(DS.route.articles.cid, 1)
+			DS.route.articles.get(1)
 			
 			return
 
@@ -599,7 +605,7 @@ DigiSeller-ru-api
 			origEl = e.originalTarget or e.srcElement
 			
 			action = DS.dom.attr(origEl, 'data-action')
-			if action and typeof DS.clicks[action] === 'function'
+			if action and typeof DS.clicks[action] is 'function'
 				DS.clicks[action](origEl, e)
 		)
 
