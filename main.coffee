@@ -278,7 +278,7 @@ DigiSeller-ru-api
 			constructor: (@el, opts) ->
 				opts = opts or {}
 
-				@cur = null
+				@cur = 1
 				@opts =
 					total: opts.total || 0
 					tmpl: opts.tmpl || ''
@@ -434,36 +434,39 @@ DigiSeller-ru-api
 			pagerComments: null
 			action: (params) ->
 				@cid = params[1]
-				page = parseInt(params[2]) or 1
-				
-				@get(page)
+				@page = parseInt(params[2]) or 1
+				@order = DS.util.cookie.get('digiseller-articles-sort') or 'price' # name, nameDESC, price, priceDESC
+				@currency = DS.util.cookie.get('digiseller-articles-currency') or 'RUR'
+
+				@get()
 				
 				return
 				
-			get: (page) ->
+			get: (page, order, currency) ->
 				DS.widget.category.mark(@cid)
 
-				order = DS.util.cookie.get('digiseller-articles-sort') || 'price' # name, nameDESC, price, priceDESC
-				currency = DS.util.cookie.get('digiseller-articles-currency') || 'RUR'
+				@page = page or @page
+				@order = order or @order
+				@currency = currency or @currency
 				
 				self = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp',
 					id_seller: DS.opts.id_seller
 					format: 'json'
 					category_id: @cid
-					page: page
+					page: @page
 					rows: 2
-					order: order
-					currency: currency
+					order: @order
+					currency: @currency
 				, (data) ->
 					off unless data
 					
-					self.render(data, page, order, currency)
+					self.render(data)
 
 					return
 				)
 				
-			render: (data, page, order, currency) ->
+			render: (data) ->
 				out = ''
 				
 				articles = data.product
@@ -481,7 +484,7 @@ DigiSeller-ru-api
 				
 				if container
 					container.innerHTML = out
-					@pager.renew(page)
+					@pager.renew(@page)
 				else
 					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articles,
 						id: "digiseller-articles-#{@cid}"
@@ -498,12 +501,22 @@ DigiSeller-ru-api
 								page: page
 								url: "#{DS.opts.hashPrefix}/articles/#{that.cid}/#{page}"
 							)
-						
-					}).render(page)
+					}).render(@page)
 					
+					$select = DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
+					DS.dom.addEvent($select, 'change', (e) ->
+						that.currency = DS.dom.$('option', $select)[$select.selectedIndex].value
+						
+						DS.util.cookie.set('digiseller-articles-currency', that.currency)
+						that.get()
+					)
+				
 				# sorting
-				type = order.replace('DESC', '')
-				dir = if order.search(/desc/i) > -1 then 'desc' else 'asc'
+				type = @order.replace('DESC', '')
+				dir = if @order.search(/desc/i) > -1 then 'desc' else 'asc'
+				
+				console.log('type = ' + type);
+				console.log('dir = ' + dir);
 				
 				$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))				
 				for $order in $orders
@@ -514,8 +527,15 @@ DigiSeller-ru-api
 						DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
 						DS.dom.attr($order, 'data-dir', dir)
 
-				return				
+				
+				# currency
+				$select = $select or DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
+				$options = DS.dom.$('option', $select)
+				for $option, i in $options
+					if $option.value is @currency
+						$select.selectedIndex = i
 
+				return
 		article:
 			url: '/detail(?:/([0-9]*))'
 			action: (params) ->
@@ -554,11 +574,12 @@ DigiSeller-ru-api
 			
 			type = DS.dom.attr(el, 'data-type')
 			dir = DS.dom.attr(el, 'data-dir')
-			dir = if dir is 'desc' then '' else 'desc'
+			dir = if dir is 'asc' then 'desc' else ''
 			
-			DS.util.cookie.set('digiseller-articles-sort', type + dir.toUpperCase() )
+			order = type + dir.toUpperCase()
+			DS.util.cookie.set('digiseller-articles-sort', order)
 			
-			DS.route.articles.get(1)
+			DS.route.articles.get(1, order)
 			
 			return
 
