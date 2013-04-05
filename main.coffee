@@ -20,6 +20,9 @@ DigiSeller-ru-api
 		tmpl: '/test/tmpl/default.js'
 		loader: '/test/img/loader.gif'
 		hashPrefix: '#!digiseller'
+		seller_id: null
+		currency: null
+		sort: null
 
 	DS.util =
 		extend: (target, source, overwrite) ->
@@ -261,11 +264,11 @@ DigiSeller-ru-api
 			init: (el) ->
 				@el = el
 				
+				form = DS.dom.$('.digiseller-search-form', @el, 'form')[0]
 				@input = DS.dom.$('.digiseller-search-input', @el, 'input')[0]
-				go = DS.dom.$('.digiseller-search-go', @el, 'a')[0]
 				
 				self = @
-				DS.dom.addEvent(go, 'click', (e) ->
+				DS.dom.addEvent(form, 'submit', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 					
 					window.location.hash = "#{DS.opts.hashPrefix}/search?s=" + self.input.value
@@ -282,8 +285,8 @@ DigiSeller-ru-api
 				@opts =
 					total: opts.total || 0
 					tmpl: opts.tmpl || ''
-					max: opts.max || 3
-					getLink: opts.getLink || (page) -> return page
+					max: opts.max || 2
+					getLink: opts.getLink || (page) -> return page				
 					
 				return
 				
@@ -317,7 +320,7 @@ DigiSeller-ru-api
 				left = (if left < 1 then 1 else left)
 				
 				right = cur + @opts.max
-				right = (if right > @opts.total then @opts.total else right)
+				right = (if right > @opts.total then @opts.total else right)				
 				
 				page = left
 				
@@ -346,7 +349,7 @@ DigiSeller-ru-api
 				@el = el
 				self = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_sections.asp',
-					id_seller: DS.opts.id_seller
+					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
 					off unless data || data.category
@@ -416,48 +419,103 @@ DigiSeller-ru-api
 				return
 				
 		search:
-			url: '/search\\?s=(.*)'
+			url: '/search(?:/([0-9]*))?\\?s=(.*)'
+			search: null
+			page: null
+			pager: null
 			action: (params) ->
-				search = params[1]
+				@page = parseInt(params[1]) or 1
+				@search = params[2]
 				
-				DS.widget.search.input.value = search				
-				DS.widget.category.mark()
+				DS.widget.search.input.value = @search			
 				
-				DS.widget.main.el.innerHTML = '<h2>Результутаты поиска по запросу "' + search + '"</h2>'
+				that = @
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_search.asp',
+					seller_id: DS.opts.seller_id
+					format: 'json'
+					rows: 2
+					currency: DS.opts.currency
+					page: @page
+					search: @search
+				, (data) ->
+					off unless data
+					
+					that.render(data)
+
+					return
+				)
 				
+				# DS.widget.main.el.innerHTML = '<h2>Результутаты поиска по запросу "' + search + '"</h2>'
+				
+				return
+			render: (data) ->
+				out = ''
+				
+				articles = data.product
+				
+				unless articles and articles.length
+					DS.widget.main.el.innerHTML = 'Nothing found'
+					return
+
+				for article in articles
+					article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
+					out += DS.tmpl(DS.tmpls.searchResult, article)
+				
+				container = DS.dom.$("#digiseller-search-results")
+				
+				if container
+					container.innerHTML = out
+					@pager.renew(@page)
+				else
+					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.searchResults, out: out)
+					
+					that = @
+					@pager = new DS.widget.pager(DS.dom.$("#digiseller-search-pager"), {
+						total: data.totalPages
+						tmpl: DS.tmpls.pages
+						getLink: (page) ->
+							DS.tmpl(DS.tmpls.page,
+								page: page
+								url: "#{DS.opts.hashPrefix}/search/#{page}?s=#{that.search}"
+							)
+					}).render(@page)
+
 				return
 
 		articles:
 			url: '/articles/([0-9]*)(?:/([0-9]*))?'
 			cid: null
+			page: null
 			pager: null
 			pagerComments: null
 			action: (params) ->
-				@cid = params[1]
-				@page = parseInt(params[2]) or 1
-				@order = DS.util.cookie.get('digiseller-articles-sort') or 'price' # name, nameDESC, price, priceDESC
-				@currency = DS.util.cookie.get('digiseller-articles-currency') or 'RUR'
-
-				@get()
+				@get(
+					cid: params[1]
+					page: parseInt(params[2]) or 1
+					order: DS.opts.order
+					currency: DS.opts.currency
+					search: null
+				)
 				
 				return
 				
-			get: (page, order, currency) ->
+			get: (opts) ->
+				opts = opts or {}
+				
+				@cid = if typeof opts.cid isnt 'undefined' then opts.cid else @cid
+				@page = opts.page or @page
+				
 				DS.widget.category.mark(@cid)
-
-				@page = page or @page
-				@order = order or @order
-				@currency = currency or @currency
 				
 				self = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp',
-					id_seller: DS.opts.id_seller
+					seller_id: DS.opts.seller_id
 					format: 'json'
 					category_id: @cid
 					page: @page
 					rows: 2
-					order: @order
-					currency: @currency
+					order: DS.opts.sort
+					currency: DS.opts.currency
 				, (data) ->
 					off unless data
 					
@@ -465,6 +523,8 @@ DigiSeller-ru-api
 
 					return
 				)
+				
+				return
 				
 			render: (data) ->
 				out = ''
@@ -505,18 +565,17 @@ DigiSeller-ru-api
 					
 					$select = DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
 					DS.dom.addEvent($select, 'change', (e) ->
-						that.currency = DS.dom.$('option', $select)[$select.selectedIndex].value
-						
-						DS.util.cookie.set('digiseller-articles-currency', that.currency)
+						DS.opts.currency = DS.dom.$('option', $select)[$select.selectedIndex].value
+						DS.util.cookie.set('digiseller-articles-currency', DS.opts.currency)
 						that.get()
 					)
 				
 				# sorting
-				type = @order.replace('DESC', '')
-				dir = if @order.search(/desc/i) > -1 then 'desc' else 'asc'
+				type = DS.opts.sort.replace('DESC', '')
+				dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
 				
-				console.log('type = ' + type);
-				console.log('dir = ' + dir);
+				# console.log('type = ' + type);
+				# console.log('dir = ' + dir);
 				
 				$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))				
 				for $order in $orders
@@ -532,7 +591,7 @@ DigiSeller-ru-api
 				$select = $select or DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
 				$options = DS.dom.$('option', $select)
 				for $option, i in $options
-					if $option.value is @currency
+					if $option.value is DS.opts.currency
 						$select.selectedIndex = i
 
 				return
@@ -541,7 +600,7 @@ DigiSeller-ru-api
 			action: (params) ->
 				id = params[1] or 0
 				
-				@render(
+				### @render(
 					id: id
 					currency: 'WMZ'
 					header: 'Номер ICQ 121413515'
@@ -558,13 +617,38 @@ DigiSeller-ru-api
 				)
 				
 				DS.widget.category.mark(62)
+
+				###
+				
+				that = @
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_product_info.asp',
+					seller_id: DS.opts.seller_id
+					format: 'json'
+					product_id: id
+					currency: DS.opts.currency
+				, (data) ->
+					off unless data
+					
+					that.render(data)
+
+					return
+				)
 				
 				return
 				
-			render: (article) ->
-				out = ''
-
-				DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, article)
+			render: (data) ->
+				console.log(data.product.category_id)
+				DS.widget.category.mark(data.product.category_id)
+				
+				DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, data.product)
+				
+				DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.el, 'a')[0], 'click', (e) ->
+					if e.preventDefault then e.preventDefault() else e.returnValue = false
+					
+					window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
+					
+					return
+				)
 				
 				return
 				
@@ -576,10 +660,10 @@ DigiSeller-ru-api
 			dir = DS.dom.attr(el, 'data-dir')
 			dir = if dir is 'asc' then 'desc' else ''
 			
-			order = type + dir.toUpperCase()
-			DS.util.cookie.set('digiseller-articles-sort', order)
+			DS.opts.sort = type + dir.toUpperCase()
+			DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
 			
-			DS.route.articles.get(1, order)
+			DS.route.articles.get(page: 1)
 			
 			return
 
@@ -596,6 +680,9 @@ DigiSeller-ru-api
 		
 		DS.dom.getStyle(DS.opts.host + DS.opts.css + '?' + Math.random())
 		DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->			
+			DS.opts.currency = DS.util.cookie.get('digiseller-articles-currency') or DS.opts.currency or 'WMZ'
+			DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort or 'price' # name, nameDESC, price, priceDESC
+		
 			DS.el.shop.innerHTML = DS.tmpl(DS.tmpls.main, {})
 			
 			DS.widget.main.el = DS.dom.$('#digiseller-main')
@@ -900,22 +987,22 @@ DigiSeller-ru-api
 
 ) window, document
 
-DigiSeller.opts.id_seller = 18728
+# DigiSeller.opts.seller_id = 18728
+DigiSeller.opts.seller_id = 83991
 
-
-### @render([
-	id: 980859
-	codepage: 0
-	currency: 'WMZ'
-	title: 'Номер ICQ 121413515'
-	cost: 1500
-,
-	id: 980859
-	codepage: 0
-	currency: 'WMZ'
-	title: 'Номер ICQ 121413515'
-	cost: 2000
-], cid, page) ###
+# @render([
+	# id: 980859
+	# codepage: 0
+	# currency: 'WMZ'
+	# title: 'Номер ICQ 121413515'
+	# cost: 1500
+# ,
+	# id: 980859
+	# codepage: 0
+	# currency: 'WMZ'
+	# title: 'Номер ICQ 121413515'
+	# cost: 2000
+# ], cid, page) 
 
 
 # alert('sdsd')
