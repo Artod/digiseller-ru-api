@@ -15,7 +15,7 @@ DigiSeller-ru-api
 		
 	DS.opts =		
 		host: '//plati.ru'
-		widgetId: 'plati-ru'
+		widgetId: 'digiseller-ru'
 		css: '/test/css/default/main.css'
 		tmpl: '/test/tmpl/default.js'
 		loader: '/test/img/loader.gif'
@@ -407,11 +407,83 @@ DigiSeller-ru-api
 					id: if parent_cid then "digiseller-category-sub-#{parent_cid}" else ''
 					out: out
 				)
-		
+		comments:
+			isInited: false
+			el: null
+			product_id: null
+			type: null
+			page: null
+			pager: null
+			init: (el, product_id) ->
+				@el = el
+				@product_id = product_id
+				@type = ''
+				@page = 1
+				@isInited = false
+				
+				@get()
+				
+				return
+				
+			get: (opts) ->
+				opts = opts or {}
+				
+				@page = opts.page or @page
+				@type = opts.type or @type
+				
+				that = @
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_reviews.asp',
+					seller_id: DS.opts.seller_id
+					product_id: @product_id
+					format: 'json'
+					type: @type
+					page: @page
+					rows: 2				
+				, (data) ->
+					off unless data || data.category
+					
+					that.render(data)
+					
+					return
+				)
+				
+				return
+				
+			render: (data) ->
+				return '' if not data or not data.review
+				
+				comments = data.review
+			
+				out = ''
+				for comment in comments					
+					out += DS.tmpl(DS.tmpls.comment, comment)
+				
+				if @isInited
+					@container.innerHTML = out
+					@pager.renew(@page)
+				else
+					@el.innerHTML = DS.tmpl(DS.tmpls.comments, {out: out})
+					
+					@container = DS.dom.$('.digiseller-comments', @el)[0]
+					
+					that = @
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-comments-pager', @el)[0], {
+						total: data.totalPages
+						tmpl: DS.tmpls.pages
+						getLink: (page) ->
+							DS.tmpl(DS.tmpls.pageComment,
+								page: page
+								url: '#'
+							)
+					}).render(@page)
+					
+					@isInited = true
+				
+				return
 	DS.route =
 		home:
 			url: '/home'
-			action: (params) ->	
+			action: (params) ->
 				DS.widget.category.mark()
 				DS.widget.main.el.innerHTML = 'Выберите категорию'
 				DS.widget.category.el.style.display = ''
@@ -420,6 +492,7 @@ DigiSeller-ru-api
 				
 		search:
 			url: '/search(?:/([0-9]*))?\\?s=(.*)'
+			header: null
 			search: null
 			page: null
 			pager: null
@@ -427,7 +500,9 @@ DigiSeller-ru-api
 				@page = parseInt(params[1]) or 1
 				@search = params[2]
 				
-				DS.widget.search.input.value = @search			
+				DS.widget.category.mark()
+				
+				DS.widget.search.input.value = @search
 				
 				that = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_search.asp',
@@ -445,32 +520,31 @@ DigiSeller-ru-api
 					return
 				)
 				
-				# DS.widget.main.el.innerHTML = '<h2>Результутаты поиска по запросу "' + search + '"</h2>'
-				
 				return
 			render: (data) ->
 				out = ''
 				
 				articles = data.product
 				
-				unless articles and articles.length
-					DS.widget.main.el.innerHTML = 'Nothing found'
-					return
-
-				for article in articles
-					article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
-					out += DS.tmpl(DS.tmpls.searchResult, article)
+				if not articles or not articles.length
+					out = 'Nothing found'
+				else
+					for article in articles
+						article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
+						out += DS.tmpl(DS.tmpls.searchResult, article)
+					
+				container = DS.dom.$('#digiseller-search-results')
 				
-				container = DS.dom.$("#digiseller-search-results")
-				
-				if container
-					container.innerHTML = out
+				if container					
+					container.innerHTML = out					
 					@pager.renew(@page)
 				else
 					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.searchResults, out: out)
 					
+					@header = DS.dom.$('.digiseller-search-header-query', DS.widget.main.el)[0]					
+					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$("#digiseller-search-pager"), {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-search-pager', DS.widget.main.el)[0], {
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
@@ -480,6 +554,8 @@ DigiSeller-ru-api
 							)
 					}).render(@page)
 
+				@header.innerHTML = @search
+					
 				return
 
 		articles:
@@ -529,31 +605,27 @@ DigiSeller-ru-api
 			render: (data) ->
 				out = ''
 				
-				articles = data.product
-				
+				articles = data.product				
 				unless articles
-					DS.widget.main.el.innerHTML = 'Nothing found'
-					return
-
-				for article in articles
-					article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
-					
-					out += DS.tmpl(DS.tmpls.article, article)
+					out = 'Nothing found'					
+				else
+					for article in articles
+						article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
+						
+						out += DS.tmpl(DS.tmpls.article, article)
 				
-				container = DS.dom.$("#digiseller-articles-#{@cid}")
-				
+				container = DS.dom.$("#digiseller-articles-#{@cid}")				
 				if container
 					container.innerHTML = out
 					@pager.renew(@page)
 				else
 					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articles,
 						id: "digiseller-articles-#{@cid}"
-						idPages: "digiseller-pager-#{@cid}"
 						out: out
 					)
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$("#digiseller-pager-#{@cid}"), {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-articles-pager', DS.widget.main.el)[0], {
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
@@ -569,7 +641,7 @@ DigiSeller-ru-api
 						DS.util.cookie.set('digiseller-articles-currency', DS.opts.currency)
 						that.get()
 					)
-				
+					
 				# sorting
 				type = DS.opts.sort.replace('DESC', '')
 				dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
@@ -598,27 +670,7 @@ DigiSeller-ru-api
 		article:
 			url: '/detail(?:/([0-9]*))'
 			action: (params) ->
-				id = params[1] or 0
-				
-				### @render(
-					id: id
-					currency: 'WMZ'
-					header: 'Номер ICQ 121413515'
-					description: 'Описалово крутого товара'
-					cost: 1500
-				)
-				
-				DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.el, 'a')[0], 'click', (e) ->
-					if e.preventDefault then e.preventDefault() else e.returnValue = false
-					
-					window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
-					
-					return
-				)
-				
-				DS.widget.category.mark(62)
-
-				###
+				id = params[1] or 0		
 				
 				that = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_product_info.asp',
@@ -637,10 +689,11 @@ DigiSeller-ru-api
 				return
 				
 			render: (data) ->
-				console.log(data.product.category_id)
 				DS.widget.category.mark(data.product.category_id)
 				
 				DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, data.product)
+				
+				DS.widget.comments.init(DS.dom.$('#digiseller-article-comments-' + data.product.id), data.product.id)
 				
 				DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.el, 'a')[0], 'click', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
@@ -664,6 +717,28 @@ DigiSeller-ru-api
 			DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
 			
 			DS.route.articles.get(page: 1)
+			
+			return
+			
+		commentsSwitch: (el, e) ->
+			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			
+			type = DS.dom.attr(el, 'data-type')
+			DS.widget.comments.get(
+				page: 1
+				type: type
+			)			
+			
+			DS.dom.klass('remove', DS.dom.$('.digiseller-comments-choosed', e.target.parentNode.parentNode), 'digiseller-comments-choosed', true)
+			DS.dom.klass('add', el.parentNode, 'digiseller-comments-choosed')
+			
+			return
+			
+		commentsPage: (el, e) ->
+			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			
+			page = DS.dom.attr(el, 'data-page')
+			DS.widget.comments.get(page: page)
 			
 			return
 
@@ -987,8 +1062,46 @@ DigiSeller-ru-api
 
 ) window, document
 
-# DigiSeller.opts.seller_id = 18728
-DigiSeller.opts.seller_id = 83991
+DigiSeller.opts.seller_id = 18728
+# DigiSeller.opts.seller_id = 83991
+# 88121
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### @render(
+	id: id
+	currency: 'WMZ'
+	header: 'Номер ICQ 121413515'
+	description: 'Описалово крутого товара'
+	cost: 1500
+)
+
+DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.el, 'a')[0], 'click', (e) ->
+	if e.preventDefault then e.preventDefault() else e.returnValue = false
+	
+	window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
+	
+	return
+)
+
+DS.widget.category.mark(62)
+
+###
+				
+				
+				
 
 # @render([
 	# id: 980859
