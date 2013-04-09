@@ -294,10 +294,10 @@ DigiSeller-ru-api
 				return @ if @cur == cur
 					
 				if @opts.total < @opts.max * 2 + 3
-					# console.log('mark')
+					console.log('mark')
 					@mark(cur)
 				else
-					# console.log('render')
+					console.log('render')
 					@render(cur)
 					
 				return @
@@ -428,7 +428,7 @@ DigiSeller-ru-api
 			get: (opts) ->
 				opts = opts or {}
 				
-				@page = opts.page or @page
+				@page = parseInt(opts.page) or @page
 				@type = opts.type or @type
 				
 				that = @
@@ -460,7 +460,12 @@ DigiSeller-ru-api
 				
 				if @isInited
 					@container.innerHTML = out
-					@pager.renew(@page)
+					
+					if @pager.opts.total isnt data.totalPages
+						@pager.opts.total = data.totalPages
+						@pager.render(@page)
+					else
+						@pager.renew(@page)
 				else
 					@el.innerHTML = DS.tmpl(DS.tmpls.comments, {out: out})
 					
@@ -479,7 +484,10 @@ DigiSeller-ru-api
 					
 					@isInited = true
 				
+				console.log(data.totalPages)
+				
 				return
+				
 	DS.route =
 		home:
 			url: '/home'
@@ -579,7 +587,7 @@ DigiSeller-ru-api
 				opts = opts or {}
 				
 				@cid = if typeof opts.cid isnt 'undefined' then opts.cid else @cid
-				@page = opts.page or @page
+				@page = parseInt(opts.page) or @page
 				
 				DS.widget.category.mark(@cid)
 				
@@ -645,9 +653,6 @@ DigiSeller-ru-api
 				# sorting
 				type = DS.opts.sort.replace('DESC', '')
 				dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
-				
-				# console.log('type = ' + type);
-				# console.log('dir = ' + dir);
 				
 				$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))				
 				for $order in $orders
@@ -792,13 +797,9 @@ DigiSeller-ru-api
 				DS.clicks[action](origEl, e)
 		)
 
-		return
-		
+		return		
 
 	# https://github.com/mtrpcic/pathjs
-	`Path={version:"0.8.4",map:function(a){if(Path.routes.defined.hasOwnProperty(a)){return Path.routes.defined[a]}else{return new Path.core.route(a)}},root:function(a){Path.routes.root=a},rescue:function(a){Path.routes.rescue=a},history:{initial:{},pushState:function(a,b,c){if(Path.history.supported){if(Path.dispatch(c)){history.pushState(a,b,c)}}else{if(Path.history.fallback){window.location.hash="#"+c}}},popState:function(a){var b=!Path.history.initial.popped&&location.href==Path.history.initial.URL;Path.history.initial.popped=true;if(b)return;Path.dispatch(document.location.pathname)},listen:function(a){Path.history.supported=!!(window.history&&window.history.pushState);Path.history.fallback=a;if(Path.history.supported){Path.history.initial.popped="state"in window.history,Path.history.initial.URL=location.href;window.onpopstate=Path.history.popState}else{if(Path.history.fallback){for(route in Path.routes.defined){if(route.charAt(0)!="#"){Path.routes.defined["#"+route]=Path.routes.defined[route];Path.routes.defined["#"+route].path="#"+route}}Path.listen()}}}},match:function(a,b){var c={},d=null,e,f,g,h,i;for(d in Path.routes.defined){if(d!==null&&d!==undefined){d=Path.routes.defined[d];e=d.partition();for(h=0;h<e.length;h++){f=e[h];i=a;if(f.search(/:/)>0){for(g=0;g<f.split("/").length;g++){if(g<i.split("/").length&&f.split("/")[g].charAt(0)===":"){c[f.split("/")[g].replace(/:/,"")]=i.split("/")[g];i=i.replace(i.split("/")[g],f.split("/")[g])}}}if(f===i){if(b){d.params=c}return d}}}}return null},dispatch:function(a){var b,c;if(Path.routes.current!==a){Path.routes.previous=Path.routes.current;Path.routes.current=a;c=Path.match(a,true);if(Path.routes.previous){b=Path.match(Path.routes.previous);if(b!==null&&b.do_exit!==null){b.do_exit()}}if(c!==null){c.run();return true}else{if(Path.routes.rescue!==null){Path.routes.rescue()}}}},listen:function(){var a=function(){Path.dispatch(location.hash)};if(location.hash===""){if(Path.routes.root!==null){location.hash=Path.routes.root}}if("onhashchange"in window&&(!document.documentMode||document.documentMode>=8)){window.onhashchange=a}else{setInterval(a,50)}if(location.hash!==""){Path.dispatch(location.hash)}},core:{route:function(a){this.path=a;this.action=null;this.do_enter=[];this.do_exit=null;this.params={};Path.routes.defined[a]=this}},routes:{current:null,root:null,rescue:null,previous:null,defined:{}}};Path.core.route.prototype={to:function(a){this.action=a;return this},enter:function(a){if(a instanceof Array){this.do_enter=this.do_enter.concat(a)}else{this.do_enter.push(a)}return this},exit:function(a){this.do_exit=a;return this},partition:function(){var a=[],b=[],c=/\(([^}]+?)\)/g,d,e;while(d=c.exec(this.path)){a.push(d[1])}b.push(this.path.split("(")[0]);for(e=0;e<a.length;e++){b.push(b[b.length-1]+a[e])}return b},run:function(){var a=false,b,c,d;if(Path.routes.defined[this.path].hasOwnProperty("do_enter")){if(Path.routes.defined[this.path].do_enter.length>0){for(b=0;b<Path.routes.defined[this.path].do_enter.length;b++){c=Path.routes.defined[this.path].do_enter[b]();if(c===false){a=true;break}}}}if(!a){Path.routes.defined[this.path].action()}}}`
-
-	DS.Path = Path
 	
 	DS.historyClick = `(function() {
 		var _rootAlias = '',
@@ -900,35 +901,6 @@ DigiSeller-ru-api
 	# BSD licensed	
 	DS.JSONP = `(function(){
 		var _uid = 0, head, config = {}, _callbacks = [];
-		
-		/*function load(url, pfnError) {
-			var script = document.createElement('script'),
-				done = false;
-			script.src = url;
-			script.async = true;
-	 
-			var errorHandler = pfnError || config.error;
-			if ( typeof errorHandler === 'function' ) {
-				script.onerror = function(ex){
-					errorHandler({url: url, event: ex});
-				};
-			}
-			
-			script.onload = script.onreadystatechange = function() {
-				if ( !done && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") ) {
-					done = true;
-					script.onload = script.onreadystatechange = null;
-					if ( script && script.parentNode ) {
-						script.parentNode.removeChild( script );
-					}
-				}
-			};
-			
-			if ( !head ) {
-				head = document.getElementsByTagName('head')[0];
-			}
-			head.appendChild( script );
-		}*/
 		
 		function encode(str) {
 			return encodeURIComponent(str);
@@ -1064,83 +1036,3 @@ DigiSeller-ru-api
 
 DigiSeller.opts.seller_id = 18728
 # DigiSeller.opts.seller_id = 83991
-# 88121
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### @render(
-	id: id
-	currency: 'WMZ'
-	header: 'Номер ICQ 121413515'
-	description: 'Описалово крутого товара'
-	cost: 1500
-)
-
-DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.el, 'a')[0], 'click', (e) ->
-	if e.preventDefault then e.preventDefault() else e.returnValue = false
-	
-	window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
-	
-	return
-)
-
-DS.widget.category.mark(62)
-
-###
-				
-				
-				
-
-# @render([
-	# id: 980859
-	# codepage: 0
-	# currency: 'WMZ'
-	# title: 'Номер ICQ 121413515'
-	# cost: 1500
-# ,
-	# id: 980859
-	# codepage: 0
-	# currency: 'WMZ'
-	# title: 'Номер ICQ 121413515'
-	# cost: 2000
-# ], cid, page) 
-
-
-# alert('sdsd')
-# categories = [
-	# id: 1
-	# name: '1 category'
-# ,
-	# id: 2
-	# name: '2 category'
-	# sub: [
-		# id: 4
-		# name: '4 category'
-		# sub: [
-			# id: 6
-			# name: '6 category'
-		# ,
-			# id: 7
-			# name: '7 category'
-		# ]
-	# ]
-# ,
-	# id: 3
-	# name: '3 category'
-	# sub: [
-		# id: 5
-		# name: '5 category'
-	# ]
-# ]
