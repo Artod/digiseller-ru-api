@@ -8,7 +8,7 @@ DigiSeller-ru-api
 
 	DS = {}
 
-	DS.el =
+	DS.$el =
 		head: null
 		body: null
 		widget: null
@@ -45,7 +45,18 @@ DigiSeller-ru-api
 			left = parseInt(screenX + ((outerWidth - width) / 2), 10)
 			top = parseInt(screenY + ((outerHeight - height) / 2.5), 10)
 
-			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"		
+			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"
+
+		waitFor: (prop, func, self, count) ->
+			if prop
+				func.apply(self)
+			else
+				count = count or 0
+
+			if count < 1000
+				setTimeout( ->
+					waitFor(prop, func, self, count + 1)
+				, 0)
 
 		cookie:
 			get: (name) ->
@@ -126,29 +137,29 @@ DigiSeller-ru-api
 				else
 					(context || document).getElementsByTagName(selector)
 			
-		addEvent: (el, event, callback) ->
-			return unless el
+		addEvent: ($el, event, callback) ->
+			return unless $el
 
-			if el.attachEvent
-				el.attachEvent('on' + event, callback)
-			else if el.addEventListener
-				el.addEventListener(event, callback, false)
+			if $el.attachEvent
+				$el.attachEvent('on' + event, callback)
+			else if $el.addEventListener
+				$el.addEventListener(event, callback, false)
 
-		removeEvent: (el, event, callback) ->
-			return unless el
+		removeEvent: ($el, event, callback) ->
+			return unless $el
 
-			if el.detachEvent
-				el.detachEvent("on#{type}", callback)
-			else if el.removeEventListener
-				el.removeEventListener(event, callback, false)
-		attr: (el, attr, val) ->
-			if not el or typeof attr is 'undefined'
+			if $el.detachEvent
+				$el.detachEvent("on#{type}", callback)
+			else if $el.removeEventListener
+				$el.removeEventListener(event, callback, false)
+		attr: ($el, attr, val) ->
+			if not $el or typeof attr is 'undefined'
 				return false			
 
 			if typeof val isnt 'undefined'
-				el.setAttribute(attr, val)
+				$el.setAttribute(attr, val)
 			else
-				return el.getAttribute(attr)
+				return $el.getAttribute(attr)
 				
 			return
 			
@@ -161,65 +172,37 @@ DigiSeller-ru-api
 				els = [els];
 			}				
 			
-			var el, _i, _len,
+			var $el, _i, _len,
 				re = new RegExp('(^|\\s)' + ( action === 'add' ? c : c.replace(' ', '|') ) + '(\\s|$)', 'g');
 			for (_len = els.length, _i = _len-1; _i >= 0; _i--) {
-				el = els[_i];
-				if ( action === 'add' && re.test(el.className) ) {
+				$el = els[_i];
+				if ( action === 'add' && re.test($el.className) ) {
 					continue;
 				}
 				
-				el.className = action === 'add' ? (el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '') : el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "");
+				$el.className = action === 'add' ? ($el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '') : $el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "");
 			}
 			
 			return els;`
 			
 			return
-			
-		### addClass: (els, c) ->
-			return unless els
-			
-			if not els.length
-				els = [els]
-			
-			re = new RegExp('(^|\\s)' + c + '(\\s|$)', 'g')
-			
-			for el in els
-				continue if re.test(el.className)
-				el.className = (el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
-			
-			return els
-		
-		removeClass: (els, c) ->
-			return unless els
-			
-			if not els.length
-				els = [els]
-			
-			re = new RegExp("(^|\\s)" + c + "(\\s|$)", "g")
-			for el in els
-				el.className = el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "")
-			
-			return els ###
-		  
-		waitFor: (prop, func, self, count) ->
-			if prop
-				func.apply(self)
-			else
-				count = count or 0
 
-			if count < 1000
-				setTimeout(->
-					waitFor(prop, func, self, count + 1)
-				, 0)
-				
+		select: ($select, val) ->
+			$options = DS.dom.$('option', $select)
+			for $option, i in $options
+				if parseInt($option.value) is val
+					$select.selectedIndex = i					
+					return
+
+			return
+			
 		getStyle: (url) ->
 			link = document.createElement('link')
 			link.type = 'text/css'
 			link.rel = 'stylesheet'
 			link.href = url			
 
-			DS.el.head.appendChild(link)
+			DS.$el.head.appendChild(link)
 			
 			return
 		
@@ -234,7 +217,7 @@ DigiSeller-ru-api
 			onComplite = (e) ->
 				done = yes
 				script.onload = script.onreadystatechange = null;					
-				DS.el.head.removeChild(script) if DS.el.head and script.parentNode
+				DS.$el.head.removeChild(script) if DS.$el.head and script.parentNode
 				
 				return
 			
@@ -251,21 +234,21 @@ DigiSeller-ru-api
 					
 				return			
 
-			DS.el.head.appendChild(script)
+			DS.$el.head.appendChild(script)
 			
 			return
 			
 	DS.widget =
 		main:
-			el: null
+			$el: null
 		search:
-			el: null
+			$el: null
 			input: null
-			init: (el) ->
-				@el = el
+			init: ($el) ->
+				@$el = $el
 				
-				form = DS.dom.$('.digiseller-search-form', @el, 'form')[0]
-				@input = DS.dom.$('.digiseller-search-input', @el, 'input')[0]
+				form = DS.dom.$('.digiseller-search-form', @$el, 'form')[0]
+				@input = DS.dom.$('.digiseller-search-input', @$el, 'input')[0]
 				
 				self = @
 				DS.dom.addEvent(form, 'submit', (e) ->
@@ -278,84 +261,98 @@ DigiSeller-ru-api
 				
 				return
 		pager: class
-			constructor: (@el, opts) ->
+			constructor: (@$el, opts) ->
 				opts = opts or {}
 
 				@cur = 1
+				@total = parseInt(opts.total) || 0
+				@rows = parseInt(opts.rows) || 0
+				
 				@opts =
-					total: opts.total || 0
 					tmpl: opts.tmpl || ''
 					max: opts.max || 2
 					getLink: opts.getLink || (page) -> return page				
+					onChangeRows: opts.onChangeRows || (rows) ->				
 					
 				return
 				
-			renew: (cur) ->
-				return @ if @cur == cur
-					
-				if @opts.total < @opts.max * 2 + 3
-					console.log('mark')
-					@mark(cur)
-				else
-					console.log('render')
-					@render(cur)
-					
-				return @
+			# renew: (cur) ->
+				# return @ if @cur == cur
 				
-			mark: (cur) ->
-				@cur = cur
-				pages = DS.dom.$('a', @el)
+				
+				# if @total < @opts.max * 2 + 3
+					# @mark(cur)
+				# else
+					# @render(cur)
+					
+				# return @
+				
+			mark: () ->
+				pages = DS.dom.$('a', @$el)
 				
 				for page, index in pages
-					DS.dom.klass((if cur == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-page-choosed')
+					DS.dom.klass((if @cur == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-page-choosed')
 			
 				return @
 				
-			render: (cur) ->				
-				unless cur
-					@el.display = 'none'
-					return
-					
-				left = cur - @opts.max
-				left = (if left < 1 then 1 else left)
+			render: (opts) ->
+				@cur = opts.cur || @cur
+				@total = if typeof opts.total isnt 'undefined' then parseInt(opts.total) else @total
+				@rows = opts.rows || @rows
 				
-				right = cur + @opts.max
-				right = (if right > @opts.total then @opts.total else right)				
+				@$el.style.display = if @total then '' else 'none'		
+				
+				left = @cur - @opts.max
+				left = if left < 1 then 1 else left
+				
+				right = @cur + @opts.max
+				right = if right > @total then @total else right			
 				
 				page = left
 				
 				out = ''
 				while page <= right
-					out += @opts.getLink(page)					
+					out += @opts.getLink(page)
 					page++
-					
+				
 				if left > 1
 					out = @opts.getLink(1) + (if left > 2 then '<li>...</li>' else '') + out
-					
-				if right < @opts.total
-					out = out + (if right < @opts.total - 1 then '<li>...</li>' else '') + @opts.getLink(@opts.total)
-					
-				@el.innerHTML = DS.tmpl(@opts.tmpl,
-					out: out
+				
+				if right < @total
+					out = out + (if right < @total - 1 then '<li>...</li>' else '') + @opts.getLink(@total)
+				
+				@$el.innerHTML = DS.tmpl(@opts.tmpl, out: out)
+
+				that = @				
+				$select = DS.dom.$('select', @$el)[0]
+				DS.dom.addEvent($select, 'change', (e) ->
+					that.rows = DS.dom.$('option', $select)[$select.selectedIndex].value
+					that.opts.onChangeRows(that.rows)
 				)
-				
-				@mark(cur)
-				
+
+				DS.dom.select($select, @rows)
+				@mark()
+
 				return @
-			
+
 		category:
-			el: null
-			init: (el) ->
-				@el = el
-				self = @
+			$el: null
+			isInited: false
+			init: ($el) ->
+				@$el = $el
+				@isInited = false
+				
+				that = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_sections.asp',
 					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
 					off unless data || data.category
 					
-					self.el.innerHTML = self.render(data.category)
-					self.mark()
+					that.$el.innerHTML = that.render(data.category)
+					that.mark()
+					
+					that.isInited = true
 					
 					return
 				)
@@ -363,11 +360,11 @@ DigiSeller-ru-api
 				return
 				
 			mark: (cid) ->
-				cats = DS.dom.$('.digiseller-category', @el, 'ul')
+				cats = DS.dom.$('.digiseller-category', @$el, 'ul')
 				
 				return unless cats.length
 				
-				subs = DS.dom.$('.digiseller-categories', @el, 'ul')				
+				subs = DS.dom.$('.digiseller-categories', @$el, 'ul')				
 				for sub in subs
 					sub.style.display = 'none'
 				
@@ -409,16 +406,17 @@ DigiSeller-ru-api
 				)
 		comments:
 			isInited: false
-			el: null
+			$el: null
 			product_id: null
 			type: null
 			page: null
 			pager: null
-			init: (el, product_id) ->
-				@el = el
+			init: ($el, product_id) ->
+				@$el = $el
 				@product_id = product_id
 				@type = ''
 				@page = 1
+				@rows = DS.util.cookie.get('digiseller-comments-rows') || 10
 				@isInited = false
 				
 				@get()
@@ -429,6 +427,8 @@ DigiSeller-ru-api
 				opts = opts or {}
 				
 				@page = parseInt(opts.page) or @page
+				@rows = parseInt(opts.rows) or @rows
+				
 				@type = opts.type or @type
 				
 				that = @
@@ -438,7 +438,7 @@ DigiSeller-ru-api
 					format: 'json'
 					type: @type
 					page: @page
-					rows: 2				
+					rows: @rows
 				, (data) ->
 					off unless data || data.category
 					
@@ -450,41 +450,50 @@ DigiSeller-ru-api
 				return
 				
 			render: (data) ->
-				return '' if not data or not data.review
-				
 				comments = data.review
-			
+				
 				out = ''
-				for comment in comments					
-					out += DS.tmpl(DS.tmpls.comment, comment)
+				unless comments					
+					out = 'Nothing found'
+				else
+					for comment in comments					
+						out += DS.tmpl(DS.tmpls.comment, comment)
 				
 				if @isInited
-					@container.innerHTML = out
+					@container.innerHTML = out				
 					
-					if @pager.opts.total isnt data.totalPages
-						@pager.opts.total = data.totalPages
-						@pager.render(@page)
-					else
-						@pager.renew(@page)
+					@pager.render(
+						cur: @page
+						rows: @rows
+						total: data.totalPages
+					)
 				else
-					@el.innerHTML = DS.tmpl(DS.tmpls.comments, {out: out})
+					@$el.innerHTML = DS.tmpl(DS.tmpls.comments, {out: out})
 					
-					@container = DS.dom.$('.digiseller-comments', @el)[0]
+					@container = DS.dom.$('.digiseller-comments', @$el)[0]
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-comments-pager', @el)[0], {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-comments-pager', @$el)[0], {
 						total: data.totalPages
+						rows: @rows
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
-							DS.tmpl(DS.tmpls.pageComment,
+							return DS.tmpl(DS.tmpls.pageComment,
 								page: page
 								url: '#'
 							)
+						onChangeRows: (rows) ->
+							that.rows = rows
+							DS.util.cookie.set('digiseller-comments-rows', that.rows)
+							that.get(
+								rows: that.rows
+							)
+							
+							return
+							
 					}).render(@page)
 					
 					@isInited = true
-				
-				console.log(data.totalPages)
 				
 				return
 				
@@ -493,8 +502,8 @@ DigiSeller-ru-api
 			url: '/home'
 			action: (params) ->
 				DS.widget.category.mark()
-				DS.widget.main.el.innerHTML = 'Выберите категорию'
-				DS.widget.category.el.style.display = ''
+				DS.widget.main.$el.innerHTML = 'Выберите категорию'
+				DS.widget.category.$el.style.display = ''
 				
 				return
 				
@@ -547,12 +556,12 @@ DigiSeller-ru-api
 					container.innerHTML = out					
 					@pager.renew(@page)
 				else
-					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.searchResults, out: out)
+					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.searchResults, out: out)
 					
-					@header = DS.dom.$('.digiseller-search-header-query', DS.widget.main.el)[0]					
+					@header = DS.dom.$('.digiseller-search-header-query', DS.widget.main.$el)[0]					
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-search-pager', DS.widget.main.el)[0], {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-search-pager', DS.widget.main.$el)[0], {
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
@@ -627,13 +636,13 @@ DigiSeller-ru-api
 					container.innerHTML = out
 					@pager.renew(@page)
 				else
-					DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articles,
+					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articles,
 						id: "digiseller-articles-#{@cid}"
 						out: out
 					)
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-articles-pager', DS.widget.main.el)[0], {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-articles-pager', DS.widget.main.$el)[0], {
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
@@ -658,18 +667,12 @@ DigiSeller-ru-api
 				for $order in $orders
 					DS.dom.klass('remove', $order, 'digiseller-sort-asc digiseller-sort-desc')
 					DS.dom.attr($order, 'data-dir', '')
-					
+
 					if type and type is DS.dom.attr($order, 'data-type')
 						DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
 						DS.dom.attr($order, 'data-dir', dir)
 
-				
-				# currency
-				$select = $select or DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
-				$options = DS.dom.$('option', $select)
-				for $option, i in $options
-					if $option.value is DS.opts.currency
-						$select.selectedIndex = i
+				DS.dom.select($select, DS.opts.currency)
 
 				return
 		article:
@@ -694,13 +697,17 @@ DigiSeller-ru-api
 				return
 				
 			render: (data) ->
+				if not data or not data.product
+					DS.widget.main.$el.innerHTML = 'Nothing found'
+					return
+				
 				DS.widget.category.mark(data.product.category_id)
 				
-				DS.widget.main.el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, data.product)
+				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, data.product)
 				
 				DS.widget.comments.init(DS.dom.$('#digiseller-article-comments-' + data.product.id), data.product.id)
 				
-				DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.el, 'a')[0], 'click', (e) ->
+				DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.$el, 'a')[0], 'click', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 					
 					window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
@@ -711,11 +718,11 @@ DigiSeller-ru-api
 				return
 				
 	DS.clicks =
-		sort: (el, e) ->
+		sort: ($el, e) ->
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 			
-			type = DS.dom.attr(el, 'data-type')
-			dir = DS.dom.attr(el, 'data-dir')
+			type = DS.dom.attr($el, 'data-type')
+			dir = DS.dom.attr($el, 'data-dir')
 			dir = if dir is 'asc' then 'desc' else ''
 			
 			DS.opts.sort = type + dir.toUpperCase()
@@ -725,24 +732,24 @@ DigiSeller-ru-api
 			
 			return
 			
-		commentsSwitch: (el, e) ->
+		commentsSwitch: ($el, e) ->
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 			
-			type = DS.dom.attr(el, 'data-type')
+			type = DS.dom.attr($el, 'data-type')
 			DS.widget.comments.get(
 				page: 1
 				type: type
 			)			
 			
 			DS.dom.klass('remove', DS.dom.$('.digiseller-comments-choosed', e.target.parentNode.parentNode), 'digiseller-comments-choosed', true)
-			DS.dom.klass('add', el.parentNode, 'digiseller-comments-choosed')
+			DS.dom.klass('add', $el.parentNode, 'digiseller-comments-choosed')
 			
 			return
 			
-		commentsPage: (el, e) ->
+		commentsPage: ($el, e) ->
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 			
-			page = DS.dom.attr(el, 'data-page')
+			page = DS.dom.attr($el, 'data-page')
 			DS.widget.comments.get(page: page)
 			
 			return
@@ -752,20 +759,20 @@ DigiSeller-ru-api
 		off if inited
 		inited = yes
 		
-		DS.el.head = DS.dom.$('head')[0] || document.documentElement
-		DS.el.body = DS.dom.$('body')[0] || document.documentElement
-		DS.el.shop = DS.dom.$("##{DS.opts.widgetId}")
+		DS.$el.head = DS.dom.$('head')[0] || document.documentElement
+		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
+		DS.$el.shop = DS.dom.$("##{DS.opts.widgetId}")
 		
-		DS.el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
+		DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
 		
 		DS.dom.getStyle(DS.opts.host + DS.opts.css + '?' + Math.random())
 		DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->			
 			DS.opts.currency = DS.util.cookie.get('digiseller-articles-currency') or DS.opts.currency or 'WMZ'
 			DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort or 'price' # name, nameDESC, price, priceDESC
 		
-			DS.el.shop.innerHTML = DS.tmpl(DS.tmpls.main, {})
+			DS.$el.shop.innerHTML = DS.tmpl(DS.tmpls.main, {})
 			
-			DS.widget.main.el = DS.dom.$('#digiseller-main')
+			DS.widget.main.$el = DS.dom.$('#digiseller-main')
 			DS.widget.category.init(DS.dom.$('#digiseller-category'))
 			DS.widget.search.init(DS.dom.$('#digiseller-search'))
 
@@ -781,15 +788,20 @@ DigiSeller-ru-api
 				)(route)
 			
 			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
-			DS.historyClick.start()
 			
-			if window.location.hash is ''		
-                DS.historyClick.reload()
+			interval = setInterval( ->
+				if DS.widget.category.isInited
+					clearInterval(interval)
+					
+					DS.historyClick.start()
+					if window.location.hash is ''
+						DS.historyClick.reload()
+			, 100)
 
 			return
 		)
 		
-		DS.dom.addEvent(DS.el.shop, 'click', (e) ->
+		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->
 			origEl = e.originalTarget or e.srcElement
 			
 			action = DS.dom.attr(origEl, 'data-action')
@@ -1034,5 +1046,5 @@ DigiSeller-ru-api
 
 ) window, document
 
-DigiSeller.opts.seller_id = 18728
-# DigiSeller.opts.seller_id = 83991
+# DigiSeller.opts.seller_id = 18728
+DigiSeller.opts.seller_id = 83991
