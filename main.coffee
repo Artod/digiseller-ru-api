@@ -243,30 +243,33 @@ DigiSeller-ru-api
 			$el: null
 		search:
 			$el: null
-			input: null
+			$input: null
 			init: ($el) ->
 				@$el = $el
 				
 				form = DS.dom.$('.digiseller-search-form', @$el, 'form')[0]
-				@input = DS.dom.$('.digiseller-search-input', @$el, 'input')[0]
+				@$input = DS.dom.$('.digiseller-search-input', @$el, 'input')[0]
 				
 				self = @
 				DS.dom.addEvent(form, 'submit', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 					
-					window.location.hash = "#{DS.opts.hashPrefix}/search?s=" + self.input.value
+					window.location.hash = "#{DS.opts.hashPrefix}/search?s=" + self.$input.value
 					
 					return
 				)
 				
 				return
+				
 		pager: class
 			constructor: (@$el, opts) ->
 				opts = opts or {}
-
-				@cur = 1
+				
+				@page = parseInt(opts.page) || 1
+				@rows = parseInt(opts.rows) || 10
 				@total = parseInt(opts.total) || 0
-				@rows = parseInt(opts.rows) || 0
+				
+				
 				
 				@opts =
 					tmpl: opts.tmpl || ''
@@ -276,36 +279,25 @@ DigiSeller-ru-api
 					
 				return
 				
-			# renew: (cur) ->
-				# return @ if @cur == cur
-				
-				
-				# if @total < @opts.max * 2 + 3
-					# @mark(cur)
-				# else
-					# @render(cur)
-					
-				# return @
-				
 			mark: () ->
 				pages = DS.dom.$('a', @$el)
 				
 				for page, index in pages
-					DS.dom.klass((if @cur == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-page-choosed')
+					DS.dom.klass((if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-page-choosed')
 			
 				return @
 				
-			render: (opts) ->
-				@cur = opts.cur || @cur
-				@total = if typeof opts.total isnt 'undefined' then parseInt(opts.total) else @total
-				@rows = opts.rows || @rows
+			render: () ->
+				@page = parseInt(@page)
+				@rows = parseInt(@rows)
+				@total = parseInt(@total)				
 				
 				@$el.style.display = if @total then '' else 'none'		
 				
-				left = @cur - @opts.max
+				left = @page - @opts.max
 				left = if left < 1 then 1 else left
 				
-				right = @cur + @opts.max
+				right = @page + @opts.max
 				right = if right > @total then @total else right			
 				
 				page = left
@@ -328,8 +320,8 @@ DigiSeller-ru-api
 				DS.dom.addEvent($select, 'change', (e) ->
 					that.rows = DS.dom.$('option', $select)[$select.selectedIndex].value
 					that.opts.onChangeRows(that.rows)
-				)
-
+				)				
+				
 				DS.dom.select($select, @rows)
 				@mark()
 
@@ -410,27 +402,21 @@ DigiSeller-ru-api
 			product_id: null
 			type: null
 			page: null
+			rows: 10
 			pager: null
 			init: ($el, product_id) ->
 				@$el = $el
 				@product_id = product_id
 				@type = ''
 				@page = 1
-				@rows = DS.util.cookie.get('digiseller-comments-rows') || 10
+				@rows = DS.util.cookie.get('digiseller-comments-rows') || @rows
 				@isInited = false
 				
 				@get()
 				
 				return
 				
-			get: (opts) ->
-				opts = opts or {}
-				
-				@page = parseInt(opts.page) or @page
-				@rows = parseInt(opts.rows) or @rows
-				
-				@type = opts.type or @type
-				
+			get: () ->				
 				that = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_reviews.asp',
 					seller_id: DS.opts.seller_id
@@ -462,11 +448,10 @@ DigiSeller-ru-api
 				if @isInited
 					@container.innerHTML = out				
 					
-					@pager.render(
-						cur: @page
-						rows: @rows
-						total: data.totalPages
-					)
+					@pager.page = @page
+					@pager.rows = @rows
+					@pager.total = data.totalPages
+					@pager.render()
 				else
 					@$el.innerHTML = DS.tmpl(DS.tmpls.comments, {out: out})
 					
@@ -474,24 +459,26 @@ DigiSeller-ru-api
 					
 					that = @
 					@pager = new DS.widget.pager(DS.dom.$('.digiseller-comments-pager', @$el)[0], {
-						total: data.totalPages
+						page: @page
 						rows: @rows
+						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
 							return DS.tmpl(DS.tmpls.pageComment,
 								page: page
 								url: '#'
 							)
+
 						onChangeRows: (rows) ->
-							that.rows = rows
-							DS.util.cookie.set('digiseller-comments-rows', that.rows)
-							that.get(
-								rows: that.rows
-							)
+							DS.util.cookie.set('digiseller-comments-rows', rows)
+							
+							that.page = 1
+							that.rows = rows							
+							that.get()
 							
 							return
 							
-					}).render(@page)
+					}).render()
 					
 					@isInited = true
 				
@@ -512,22 +499,29 @@ DigiSeller-ru-api
 			header: null
 			search: null
 			page: null
+			rows: null
 			pager: null
 			action: (params) ->
-				@page = parseInt(params[1]) or 1
 				@search = params[2]
+				@page = parseInt(params[1]) or 1
+				@rows = DS.util.cookie.get('digiseller-search-rows') || 10
 				
 				DS.widget.category.mark()
 				
-				DS.widget.search.input.value = @search
+				DS.widget.search.$input.value = @search
 				
+				@get()
+				
+				return
+				
+			get: () ->
 				that = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_search.asp',
 					seller_id: DS.opts.seller_id
 					format: 'json'
-					rows: 2
 					currency: DS.opts.currency
 					page: @page
+					rows: @rows
 					search: @search
 				, (data) ->
 					off unless data
@@ -538,6 +532,7 @@ DigiSeller-ru-api
 				)
 				
 				return
+				
 			render: (data) ->
 				out = ''
 				
@@ -552,24 +547,43 @@ DigiSeller-ru-api
 					
 				container = DS.dom.$('#digiseller-search-results')
 				
-				if container					
-					container.innerHTML = out					
-					@pager.renew(@page)
+				if container
+					container.innerHTML = out
+					
+					@pager.page = @page
+					@pager.rows = @rows
+					@pager.total = data.totalPages
+					@pager.render()
 				else
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.searchResults, out: out)
 					
-					@header = DS.dom.$('.digiseller-search-header-query', DS.widget.main.$el)[0]					
+					@header = DS.dom.$('.digiseller-search-header-query', DS.widget.main.$el)[0]
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-search-pager', DS.widget.main.$el)[0], {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-search-pager', DS.widget.main.$el)[0],
+						page: @page
+						rows: @rows
 						total: data.totalPages
+						
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
-							DS.tmpl(DS.tmpls.page,
+							return DS.tmpl(DS.tmpls.page,
 								page: page
 								url: "#{DS.opts.hashPrefix}/search/#{page}?s=#{that.search}"
 							)
-					}).render(@page)
+							
+						onChangeRows: (rows) ->
+							DS.util.cookie.set('digiseller-search-rows', rows)
+							
+							that.page = 1
+							that.rows = rows
+							that.get()
+							
+							DS.historyClick.changeHashSilent("#{DS.opts.hashPrefix}/search/1?s=#{that.search}")							
+							
+							return
+							
+					).render()
 
 				@header.innerHTML = @search
 					
@@ -579,25 +593,19 @@ DigiSeller-ru-api
 			url: '/articles/([0-9]*)(?:/([0-9]*))?'
 			cid: null
 			page: null
+			rows: 10
 			pager: null
 			pagerComments: null
 			action: (params) ->
-				@get(
-					cid: params[1]
-					page: parseInt(params[2]) or 1
-					order: DS.opts.order
-					currency: DS.opts.currency
-					search: null
-				)
+				@cid = params[1]
+				@page = parseInt(params[2]) or 1
+				@rows = DS.util.cookie.get('digiseller-articles-rows') || @rows
+				
+				@get()
 				
 				return
 				
-			get: (opts) ->
-				opts = opts or {}
-				
-				@cid = if typeof opts.cid isnt 'undefined' then opts.cid else @cid
-				@page = parseInt(opts.page) or @page
-				
+			get: () ->				
 				DS.widget.category.mark(@cid)
 				
 				self = @
@@ -606,7 +614,7 @@ DigiSeller-ru-api
 					format: 'json'
 					category_id: @cid
 					page: @page
-					rows: 2
+					rows: @rows
 					order: DS.opts.sort
 					currency: DS.opts.currency
 				, (data) ->
@@ -634,7 +642,11 @@ DigiSeller-ru-api
 				container = DS.dom.$("#digiseller-articles-#{@cid}")				
 				if container
 					container.innerHTML = out
-					@pager.renew(@page)
+					
+					@pager.page = @page
+					@pager.rows = @rows
+					@pager.total = data.totalPages
+					@pager.render()
 				else
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articles,
 						id: "digiseller-articles-#{@cid}"
@@ -643,14 +655,27 @@ DigiSeller-ru-api
 					
 					that = @
 					@pager = new DS.widget.pager(DS.dom.$('.digiseller-articles-pager', DS.widget.main.$el)[0], {
+						page: @page
+						rows: @rows
 						total: data.totalPages
 						tmpl: DS.tmpls.pages
 						getLink: (page) ->
-							DS.tmpl(DS.tmpls.page,
+							return DS.tmpl(DS.tmpls.page,
 								page: page
 								url: "#{DS.opts.hashPrefix}/articles/#{that.cid}/#{page}"
-							)
-					}).render(@page)
+							)							
+						onChangeRows: (rows) ->
+							DS.util.cookie.set('digiseller-articles-rows', rows)
+							
+							that.page = 1
+							that.rows = rows
+							that.get()
+							
+							DS.historyClick.changeHashSilent("#{DS.opts.hashPrefix}/articles/#{that.cid}/1")
+							
+							return
+							
+					}).render()
 					
 					$select = DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
 					DS.dom.addEvent($select, 'change', (e) ->
@@ -728,7 +753,8 @@ DigiSeller-ru-api
 			DS.opts.sort = type + dir.toUpperCase()
 			DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
 			
-			DS.route.articles.get(page: 1)
+			DS.route.articles.page = 1
+			DS.route.articles.get()
 			
 			return
 			
@@ -736,10 +762,10 @@ DigiSeller-ru-api
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 			
 			type = DS.dom.attr($el, 'data-type')
-			DS.widget.comments.get(
-				page: 1
-				type: type
-			)			
+
+			DS.widget.comments.page = 1
+			DS.widget.comments.type = type
+			DS.widget.comments.get()			
 			
 			DS.dom.klass('remove', DS.dom.$('.digiseller-comments-choosed', e.target.parentNode.parentNode), 'digiseller-comments-choosed', true)
 			DS.dom.klass('add', $el.parentNode, 'digiseller-comments-choosed')
@@ -750,7 +776,9 @@ DigiSeller-ru-api
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 			
 			page = DS.dom.attr($el, 'data-page')
-			DS.widget.comments.get(page: page)
+			
+			DS.widget.comments.page = page
+			DS.widget.comments.get()
 			
 			return
 
