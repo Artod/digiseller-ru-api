@@ -47,17 +47,6 @@ DigiSeller-ru-api
 
 			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"
 
-		waitFor: (prop, func, self, count) ->
-			if prop
-				func.apply(self)
-			else
-				count = count or 0
-
-			if count < 1000
-				setTimeout( ->
-					waitFor(prop, func, self, count + 1)
-				, 0)
-
 		cookie:
 			get: (name) ->
 				`var matches = document.cookie.match(new RegExp(
@@ -159,7 +148,10 @@ DigiSeller-ru-api
 			if typeof val isnt 'undefined'
 				$el.setAttribute(attr, val)
 			else
-				return $el.getAttribute(attr)
+				try
+					return $el.getAttribute(attr)
+				catch e
+					return null
 				
 			return
 			
@@ -335,51 +327,74 @@ DigiSeller-ru-api
 				@isInited = false
 				
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_sections.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/!shop_categories.asp',
 					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
 					off unless data || data.category
 					
 					that.$el.innerHTML = that.render(data.category)
-					that.mark()
 					
 					that.isInited = true
+					
+					that.mark()
 					
 					return
 				)
 				
 				return
 				
-			mark: (cid) ->
-				cats = DS.dom.$('.digiseller-category', @$el, 'ul')
-				
-				return unless cats.length
-				
-				subs = DS.dom.$('.digiseller-categories', @$el, 'ul')				
-				for sub in subs
-					sub.style.display = 'none'
-				
-				subs[0].style.display = ''				
-				
-				DS.dom.klass('remove', cats, 'digiseller-category-choosed', true)
-				
-				return unless cid
-				
-				cat = DS.dom.$("#digiseller-category-#{cid}")
-				
-				return unless cat
-				
-				DS.dom.klass('add', cat, 'digiseller-category-choosed')
-				
-				parent = cat
-				while parent.id isnt 'digiseller-category'
-					parent.style.display = ''
-					parent = parent.parentNode					
-				
-				DS.dom.$("#digiseller-category-sub-#{cid}")?.style.display = ''
+			mark: (() ->				
+				go = (cid) ->					
+					cats = DS.dom.$('.digiseller-category', @$el, 'ul')
 					
-				return
+					return unless cats.length
+					
+					subs = DS.dom.$('.digiseller-categories', @$el, 'ul')				
+					for sub in subs
+						sub.style.display = 'none'
+					
+					subs[0].style.display = ''				
+					
+					DS.dom.klass('remove', cats, 'digiseller-category-choosed', true)
+					
+					return unless cid
+					
+					cat = DS.dom.$("#digiseller-category-#{cid}")
+					
+					return unless cat
+					
+					DS.dom.klass('add', cat, 'digiseller-category-choosed')
+					
+					parent = cat
+					while parent.id isnt 'digiseller-category'
+						parent.style.display = ''
+						parent = parent.parentNode					
+					
+					DS.dom.$("#digiseller-category-sub-#{cid}")?.style.display = ''
+						
+					return
+					
+				return (cid) ->
+					if @isInited
+						go.call(@, cid)
+					else
+						that = @
+						count = 0
+						interval = setInterval( ->
+							if that.isInited or count > 1000
+								clearInterval(interval)
+								if that.isInited
+									go.call(that, cid)
+							
+							count++
+							
+							return
+							
+						, 50)
+						
+					return
+			)()
 				
 			render: (categories, parent_cid) ->
 				return '' if not categories
@@ -488,12 +503,46 @@ DigiSeller-ru-api
 		home:
 			url: '/home'
 			action: (params) ->
-				DS.widget.category.mark()
-				DS.widget.main.$el.innerHTML = 'Выберите категорию'
-				DS.widget.category.$el.style.display = ''
+				### DS.widget.main.$el.innerHTML = 'Выберите категорию' DS.widget.category.$el.style.display = '' ###				
+				@get()
 				
 				return
 				
+			get: () ->				
+				DS.widget.category.mark()
+				
+				self = @
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp',
+					seller_id: DS.opts.seller_id
+					category_id: 0
+					rows: 10
+					format: 'json'
+					order: DS.opts.sort
+					currency: DS.opts.currency
+				, (data) ->
+					off unless data
+					
+					self.render(data)
+
+					return
+				)
+				
+				return
+
+			render: (data) ->
+				out = ''
+
+				articles = data.product
+				
+				if articles and articles.length
+					for article in articles
+						article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"						
+						out += DS.tmpl(DS.tmpls.showcaseArticle, article)
+
+				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles,
+					out: out
+				)
+
 		search:
 			url: '/search(?:/([0-9]*))?\\?s=(.*)'
 			header: null
@@ -815,17 +864,13 @@ DigiSeller-ru-api
 					return
 				)(route)
 			
-			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
-			
-			interval = setInterval( ->
-				if DS.widget.category.isInited
-					clearInterval(interval)
+			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');			
 					
-					DS.historyClick.start()
-					if window.location.hash is ''
-						DS.historyClick.reload()
-			, 100)
+			DS.historyClick.start()
 
+			if window.location.hash is ''
+				DS.historyClick.reload()
+			
 			return
 		)
 		
@@ -1074,5 +1119,5 @@ DigiSeller-ru-api
 
 ) window, document
 
-# DigiSeller.opts.seller_id = 18728
-DigiSeller.opts.seller_id = 83991
+DigiSeller.opts.seller_id = 18728
+# DigiSeller.opts.seller_id = 83991
