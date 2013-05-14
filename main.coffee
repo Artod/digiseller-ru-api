@@ -13,21 +13,17 @@ DigiSeller-ru-api
 		body: null
 		widget: null
 		
-	DS.opts =		
+	DS.opts =
 		host: '//plati.ru'
 		widgetId: 'digiseller-ru'
-		css: '/test/css/default/main.css'
-		tmpl: '/test/tmpl/default.js'
+		# css: '/test/css/default/main.css'
 		loader: '/test/img/loader.gif'
 		hashPrefix: '#!digiseller'
-		seller_id: null
-		currency: null
-		sort: null
 
 	DS.util =
 		extend: (target, source, overwrite) ->
 			for key of source
-				continue	unless source.hasOwnProperty(key)
+				continue unless source.hasOwnProperty(key)
 				target[key] = source[key] if overwrite or typeof target[key] is 'object'
 				
 			target
@@ -207,6 +203,7 @@ DigiSeller-ru-api
 			
 			done = no			
 			onComplite = (e) ->
+				DS.widget.loader.hide()
 				done = yes
 				script.onload = script.onreadystatechange = null;					
 				DS.$el.head.removeChild(script) if DS.$el.head and script.parentNode
@@ -226,6 +223,7 @@ DigiSeller-ru-api
 					
 				return			
 
+			DS.widget.loader.show()			
 			DS.$el.head.appendChild(script)
 			
 			return
@@ -233,6 +231,31 @@ DigiSeller-ru-api
 	DS.widget =
 		main:
 			$el: null
+		loader:
+			$el: null
+			timeout: null
+			show: () ->
+				unless @$el
+					return
+					
+				that = @
+				
+				clearTimeout(@timeout)
+				@timeout = setTimeout(() ->
+					that.$el.style.display = ''
+				, 1000)
+				
+				return
+				
+			hide: () ->
+				unless @$el
+					return
+					
+				clearTimeout(@timeout)
+				@$el.style.display = 'none'
+				
+				return
+				
 		search:
 			$el: null
 			$input: null
@@ -261,11 +284,9 @@ DigiSeller-ru-api
 				@rows = parseInt(opts.rows) || 10
 				@total = parseInt(opts.total) || 0
 				
-				
-				
 				@opts =
 					tmpl: opts.tmpl || ''
-					max: opts.max || 2
+					max: opts.max || 1
 					getLink: opts.getLink || (page) -> return page				
 					onChangeRows: opts.onChangeRows || (rows) ->				
 					
@@ -300,10 +321,10 @@ DigiSeller-ru-api
 					page++
 				
 				if left > 1
-					out = @opts.getLink(1) + (if left > 2 then '<li>...</li>' else '') + out
+					out = @opts.getLink(1) + (if left > 2 then '<span>...</span>&nbsp;' else '') + out
 				
 				if right < @total
-					out = out + (if right < @total - 1 then '<li>...</li>' else '') + @opts.getLink(@total)
+					out = out + (if right < @total - 1 then '<span>...</span>&nbsp;' else '') + @opts.getLink(@total)
 				
 				@$el.innerHTML = DS.tmpl(@opts.tmpl, out: out)
 
@@ -327,6 +348,7 @@ DigiSeller-ru-api
 				@isInited = false
 				
 				that = @
+				
 				DS.JSONP.get('http://shop.digiseller.ru/xml/!shop_categories.asp',
 					seller_id: DS.opts.seller_id
 					format: 'json'
@@ -346,17 +368,17 @@ DigiSeller-ru-api
 				
 			mark: (() ->				
 				go = (cid) ->					
-					cats = DS.dom.$('.digiseller-category', @$el, 'ul')
+					cats = DS.dom.$('li', @$el)
 					
 					return unless cats.length
 					
-					subs = DS.dom.$('.digiseller-categories', @$el, 'ul')				
+					subs = DS.dom.$('ul', @$el)				
 					for sub in subs
 						sub.style.display = 'none'
 					
-					subs[0].style.display = ''				
+					subs[0].style.display = ''
 					
-					DS.dom.klass('remove', cats, 'digiseller-category-choosed', true)
+					DS.dom.klass('remove', cats, 'digiseller-activecat', true)
 					
 					return unless cid
 					
@@ -364,7 +386,7 @@ DigiSeller-ru-api
 					
 					return unless cat
 					
-					DS.dom.klass('add', cat, 'digiseller-category-choosed')
+					DS.dom.klass('add', cat, 'digiseller-activecat')
 					
 					parent = cat
 					while parent.id isnt 'digiseller-category'
@@ -840,39 +862,42 @@ DigiSeller-ru-api
 		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
 		DS.$el.shop = DS.dom.$("##{DS.opts.widgetId}")
 		
-		DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
+		DS.dom.getStyle(DS.opts.host + '/test/css/default/main.css?' + Math.random())
+		# DS.dom.getStyle('//shop.digiseller.ru/xml/shop_css.asp?seller_id=?' + DS.opts.seller_id)
 		
-		DS.dom.getStyle(DS.opts.host + DS.opts.css + '?' + Math.random())
-		DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->			
-			DS.opts.currency = DS.util.cookie.get('digiseller-articles-currency') or DS.opts.currency or 'WMZ'
-			DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort or 'price' # name, nameDESC, price, priceDESC
-		
-			DS.$el.shop.innerHTML = DS.tmpl(DS.tmpls.main, {})
-			
-			DS.widget.main.$el = DS.dom.$('#digiseller-main')
-			DS.widget.category.init(DS.dom.$('#digiseller-category'))
-			DS.widget.search.init(DS.dom.$('#digiseller-search'))
+		DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'		
 
-			for name, route of DS.route				
-				continue unless DS.route.hasOwnProperty(name) or route.url or route.action
+		# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
+		DS.opts.currency = DS.util.cookie.get('digiseller-articles-currency') or DS.opts.currency
+		DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort # name, nameDESC, price, priceDESC
+	
+		DS.$el.shop.innerHTML = DS.tmpl(DS.tmpls.main, {})
+		
+		DS.widget.main.$el = DS.dom.$('#digiseller-main')
+		DS.widget.loader.$el = DS.dom.$('#digiseller-loader')
+		DS.widget.category.init(DS.dom.$('#digiseller-category'))
+		DS.widget.search.init(DS.dom.$('#digiseller-search'))
+
+		for name, route of DS.route				
+			continue unless DS.route.hasOwnProperty(name) or route.url or route.action
+			
+			((route) ->					
+				DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
+					route.action(params)
+				)
 				
-				((route) ->					
-					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
-						route.action(params)
-					)
-					
-					return
-				)(route)
-			
-			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');			
-					
-			DS.historyClick.start()
+				return
+			)(route)
+		
+		DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');			
+				
+		DS.historyClick.start()
 
-			if window.location.hash is ''
-				DS.historyClick.reload()
+		if window.location.hash is ''
+			DS.historyClick.reload()
 			
-			return
-		)
+			# return
+		# )
 		
 		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->
 			origEl = e.originalTarget or e.srcElement
@@ -1006,8 +1031,8 @@ DigiSeller-ru-api
 				query += encode(key) + '=' + encode(params[key]) + '&'			
 			}			
 
-			_callbacks[_uid] = callback;	 
-		
+			_callbacks[_uid] = callback;
+			
 			DS.dom.getScript( url + query + '_' + Math.random() );
 		}
 		
@@ -1017,7 +1042,7 @@ DigiSeller-ru-api
 		
 		return {
 			get: jsonp,			
-			callback: function(data) {
+			callback: function(data) {				
 				if (!data || !data.queryId || !_callbacks[data.queryId]) {
 					return;
 				}
@@ -1119,5 +1144,5 @@ DigiSeller-ru-api
 
 ) window, document
 
-DigiSeller.opts.seller_id = 18728
+# DigiSeller.opts.seller_id = 18728
 # DigiSeller.opts.seller_id = 83991
