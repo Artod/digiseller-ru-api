@@ -296,7 +296,7 @@ DigiSeller-ru-api
 				pages = DS.dom.$('a', @$el)
 				
 				for page, index in pages
-					DS.dom.klass((if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-page-choosed')
+					DS.dom.klass((if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-activepage')
 			
 				return @
 				
@@ -349,7 +349,7 @@ DigiSeller-ru-api
 				
 				that = @
 				
-				DS.JSONP.get('http://shop.digiseller.ru/xml/!shop_categories.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_categories.asp',
 					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
@@ -477,7 +477,7 @@ DigiSeller-ru-api
 				
 				out = ''
 				unless comments					
-					out = 'Nothing found'
+					out = 'Ничего не найдено'
 				else
 					for comment in comments					
 						out += DS.tmpl(DS.tmpls.comment, comment)
@@ -495,7 +495,7 @@ DigiSeller-ru-api
 					@container = DS.dom.$('.digiseller-comments', @$el)[0]
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-comments-pager', @$el)[0], {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', @$el)[0], {
 						page: @page
 						rows: @rows
 						total: data.totalPages
@@ -573,7 +573,7 @@ DigiSeller-ru-api
 			rows: null
 			pager: null
 			action: (params) ->
-				@search = params[2]
+				@search = decodeURIComponent(params[2])
 				@page = parseInt(params[1]) or 1
 				@rows = DS.util.cookie.get('digiseller-search-rows') || 10
 				
@@ -610,7 +610,7 @@ DigiSeller-ru-api
 				articles = data.product
 				
 				if not articles or not articles.length
-					out = 'Nothing found'
+					out = 'Ничего не найдено'
 				else
 					for article in articles
 						article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
@@ -628,10 +628,10 @@ DigiSeller-ru-api
 				else
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.searchResults, out: out)
 					
-					@header = DS.dom.$('.digiseller-search-header-query', DS.widget.main.$el)[0]
+					@header = DS.dom.$('.digiseller-search-query', DS.widget.main.$el, 'span')[0]
 					
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-search-pager', DS.widget.main.$el)[0],
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', DS.widget.main.$el)[0],
 						page: @page
 						rows: @rows
 						total: data.totalPages
@@ -656,7 +656,7 @@ DigiSeller-ru-api
 							
 					).render()
 
-				@header.innerHTML = @search
+				@header.innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
 					
 				return
 
@@ -703,7 +703,7 @@ DigiSeller-ru-api
 				
 				articles = data.product				
 				unless articles
-					out = 'Nothing found'					
+					out = 'Ничего не найдено'					
 				else
 					for article in articles
 						article.url = "#{DS.opts.hashPrefix}/detail/#{article.id}"
@@ -794,7 +794,7 @@ DigiSeller-ru-api
 				
 			render: (data) ->
 				if not data or not data.product
-					DS.widget.main.$el.innerHTML = 'Nothing found'
+					DS.widget.main.$el.innerHTML = 'Ничего не найдено'
 					return
 				
 				DS.widget.category.mark(data.product.category_id)
@@ -803,7 +803,7 @@ DigiSeller-ru-api
 				
 				DS.widget.comments.init(DS.dom.$('#digiseller-article-comments-' + data.product.id), data.product.id)
 				
-				DS.dom.addEvent(DS.dom.$('.digiseller-article-buy', DS.widget.main.$el, 'a')[0], 'click', (e) ->
+				DS.dom.addEvent(DS.dom.$('.digiseller-prod-buybtn', DS.widget.main.$el, 'input')[0], 'click', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 					
 					window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
@@ -838,8 +838,8 @@ DigiSeller-ru-api
 			DS.widget.comments.type = type
 			DS.widget.comments.get()			
 			
-			DS.dom.klass('remove', DS.dom.$('.digiseller-comments-choosed', e.target.parentNode.parentNode), 'digiseller-comments-choosed', true)
-			DS.dom.klass('add', $el.parentNode, 'digiseller-comments-choosed')
+			DS.dom.klass('remove', DS.dom.$('.digiseller-activeTab', e.target.parentNode.parentNode), 'digiseller-activeTab', true)
+			DS.dom.klass('add', $el, 'digiseller-activeTab')
 			
 			return
 			
