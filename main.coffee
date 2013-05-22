@@ -14,7 +14,7 @@ DigiSeller-ru-api
 		widget: null
 
 	DS.opts =
-		host: '//plati.ru'
+		host: 'http://plati.ru'
 		widgetId: 'digiseller-ru'
 		# css: '/test/css/default/main.css'
 		loader: '/test/img/loader.gif'
@@ -41,7 +41,7 @@ DigiSeller-ru-api
 			outerHeight = if typeof window.outerHeight isnt 'undefined' then window.outerHeight else (document.body.clientHeight - 22)
 			left = parseInt(screenX + ((outerWidth - width) / 2), 10)
 			top = parseInt(screenY + ((outerHeight - height) / 2.5), 10)
-
+			
 			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"
 
 		cookie:
@@ -99,11 +99,9 @@ DigiSeller-ru-api
 				when '#'
 					document.getElementById(name)
 				when '.'
-					tagName = tagName ? tagName : '*'
+					tagName = if tagName then tagName else '*'
 
-					`if ('function' == typeof document.getElementsByClassName) {
-console.log('!!!!!!!!!!!!')
-						
+					`if ( typeof document.getElementsByClassName !== 'function' ) {						
 						for (
 							var i = -1,
 								results = [ ],
@@ -144,7 +142,7 @@ console.log('!!!!!!!!!!!!')
 			if not $el or typeof attr is 'undefined'
 				return false
 
-			if typeof val isnt 'undefined'
+			if typeof val isnt 'undefined'				
 				$el.setAttribute(attr, val)
 			else
 				try
@@ -187,34 +185,33 @@ console.log('!!!!!!!!!!!!')
 
 			return
 
-		getStyle: (url, onLoad) ->		
+		getStyle: (url, onLoad) ->
+			link = document.createElement('link')
+			link.type = 'text/css'
+			link.rel = 'stylesheet'
+			link.href = url			
+			DS.$el.head.appendChild(link)
+			
 			css = new Image()
-			css.onerror = () ->				
-				link = document.createElement('link')
-				link.type = 'text/css'
-				link.rel = 'stylesheet'
-				link.href = url
-				
-				DS.$el.head.appendChild(link)
-				
+			css.onerror = () ->
 				onLoad() if onLoad
-				
-			css.src = url;
-
+			css.src = url
+			
 			return
 
 		# jQuery.getScript
 		getScript: (url, onLoad, onError) ->
 			script = document.createElement('script')
 			script.type = 'text/javascript'
-			script.src = url
 			script.setAttribute('encoding', 'UTF-8')
+			script.src = url
 
 			done = no
 			onComplite = (e) ->
 				DS.widget.loader.hide()
 				done = yes
 				script.onload = script.onreadystatechange = null;
+
 				DS.$el.head.removeChild(script) if DS.$el.head and script.parentNode
 
 				return
@@ -359,7 +356,7 @@ console.log('!!!!!!!!!!!!')
 
 			get: () ->
 				that = @
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_reviews.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_reviews.asp', @$el,
 					seller_id: DS.opts.seller_id
 					product_id: @product_id
 					format: 'json'
@@ -367,8 +364,8 @@ console.log('!!!!!!!!!!!!')
 					page: @page
 					rows: @rows
 				, (data) ->
-					off unless data
-
+					return off unless data
+					
 					that.render(data)
 
 					return
@@ -403,18 +400,16 @@ console.log('!!!!!!!!!!!!')
 		category:
 			$el: null
 			isInited: false
-			init: ($el) ->
-				@$el = $el
+			init: (@$el) ->
 				@isInited = false
 
 				that = @
-
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_categories.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_categories.asp', @$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
-				, (data) ->
-					off unless data || data.category
-
+				, (data) ->					
+					return off unless data
+					
 					that.$el.innerHTML = that.render(data.category)
 
 					that.isInited = true
@@ -429,7 +424,7 @@ console.log('!!!!!!!!!!!!')
 			mark: (() ->
 				go = (cid) ->
 					cats = DS.dom.$('li', @$el)
-
+					
 					return unless cats.length
 
 					subs = DS.dom.$('ul', @$el)
@@ -457,7 +452,7 @@ console.log('!!!!!!!!!!!!')
 
 					return
 
-				return (cid) ->
+				return (cid) ->					
 					if @isInited
 						go.call(@, cid)
 					else
@@ -506,7 +501,7 @@ console.log('!!!!!!!!!!!!')
 
 			get: () ->
 				that = @
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_products.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					category_id: 0
 					rows: 10
@@ -514,7 +509,7 @@ console.log('!!!!!!!!!!!!')
 					order: DS.opts.sort
 					currency: DS.opts.currency
 				, (data) ->
-					off unless data
+					return off unless data
 
 					that.render(data)
 
@@ -559,7 +554,7 @@ console.log('!!!!!!!!!!!!')
 
 			get: () ->
 				that = @
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_search.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_search.asp', DS.widget.main.$el,
 					seller_id: 83991 #DS.opts.seller_id
 					format: 'json'
 					currency: DS.opts.currency
@@ -567,7 +562,7 @@ console.log('!!!!!!!!!!!!')
 					rows: @rows
 					search: @search
 				, (data) ->
-					off unless data
+					return off unless data
 
 					that.render(data)
 
@@ -626,14 +621,14 @@ console.log('!!!!!!!!!!!!')
 
 					).render()
 
-					@$selectCurrency = DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
-					DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
-						DS.opts.currency = DS.dom.$('option', @)[@.selectedIndex].value
-						DS.util.cookie.set('digiseller-articles-currency', DS.opts.currency)
+					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+					
+					# @$selectCurrency = DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0]
+					### DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
+						DS.opts.currency = DS.dom.$('option', that.$selectCurrency)[that.$selectCurrency.selectedIndex].value
+						DS.util.cookie.set('digiseller-currency', DS.opts.currency)
 						that.get()
-					)
-
-				DS.dom.select(@$selectCurrency, DS.opts.currency)
+					) ###
 
 				@header.innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
 
@@ -646,7 +641,7 @@ console.log('!!!!!!!!!!!!')
 			rows: 10
 			pager: null
 			pagerComments: null
-			$selectCurrency: null
+			# $selectCurrency: null
 			action: (params) ->
 				@cid = params[1]
 				@page = parseInt(params[2]) or 1
@@ -660,7 +655,7 @@ console.log('!!!!!!!!!!!!')
 				DS.widget.category.mark(@cid)
 
 				that = @
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_products.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
 					category_id: @cid
@@ -669,7 +664,7 @@ console.log('!!!!!!!!!!!!')
 					order: DS.opts.sort
 					currency: DS.opts.currency
 				, (data) ->
-					off unless data
+					return off unless data
 
 					that.render(data)
 
@@ -728,52 +723,39 @@ console.log('!!!!!!!!!!!!')
 
 					}).render()
 
-					@$selectCurrency = DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0]
-					DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
-						DS.opts.currency = DS.dom.$('option', @)[@.selectedIndex].value
-						DS.util.cookie.set('digiseller-articles-currency', DS.opts.currency)
+					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+					# @$selectCurrency = DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0]
+					### DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
+						DS.opts.currency = DS.dom.$('option', that.$selectCurrency)[that.$selectCurrency.selectedIndex].value
+						DS.util.cookie.set('digiseller-currency', DS.opts.currency)
 						that.get()
-					)
+					) ###
 
-					@$selectSort = DS.dom.$('select', DS.dom.$('#digiseller-sort'))[0]
-					DS.dom.addEvent(@$selectSort, 'change', (e) ->
-						DS.opts.sort = DS.dom.$('option', @)[@.selectedIndex].value
+					$selectSort = DS.dom.$( 'select', DS.dom.$('#digiseller-sort') )[0]
+					DS.dom.addEvent($selectSort, 'change', (e) ->
+						DS.opts.sort = DS.dom.$('option', $selectSort)[$selectSort.selectedIndex].value
 						DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
 						that.get()
 					)
-
-				DS.dom.select(@$selectCurrency, DS.opts.currency)
-				DS.dom.select(@$selectSort, DS.opts.sort)
-
-				# sorting
-				### type = DS.opts.sort.replace('DESC', '')
-				dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
-
-				$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))
-				for $order in $orders
-					DS.dom.klass('remove', $order, 'digiseller-sort-asc digiseller-sort-desc')
-					DS.dom.attr($order, 'data-dir', '')
-
-					if type and type is DS.dom.attr($order, 'data-type')
-						DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
-						DS.dom.attr($order, 'data-dir', dir) ###
+					DS.dom.select($selectSort, DS.opts.sort)
 
 				return
 		article:
 			url: '/detail(?:/([0-9]*))'
 			comments: null
+			id: null
 			action: (params) ->
-				id = params[1] or 0
+				@id = params[1] or 0
 
 				that = @
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_product_info.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_product_info.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
-					product_id: id
+					product_id: @id
 					currency: DS.opts.currency
 				, (data) ->
-					off unless data
-
+					return off unless data
+					
 					that.render(data)
 
 					return
@@ -789,12 +771,38 @@ console.log('!!!!!!!!!!!!')
 				DS.widget.category.mark(data.product.category_id)
 
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articleDetail, data.product)
-			
+				
+				DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+				
+				DS.dom.addEvent(, 'click', (e) ->
+					href = DS.dom.attr($el.parentNode, 'href')
+					id = DS.dom.attr($el, 'data-id')
+					$preview = DS.dom.$('#digiseller-img-preview')			
+					
+					$preview.href = href
+					DS.dom.$('img', $preview)[0].src = "http://graph.digiseller.ru/img.ashx?w=261&idp=#{id}"
+				)
+				
+				return
+				
+			initComments: () ->
+				$el = DS.dom.$('#digiseller-article-comments-' + @id)
+				
+				if DS.dom.attr($el, 'inited')					
+					return					
+				
 				that = @
-				@comments = new DS.widget.comments(DS.dom.$('#digiseller-article-comments-' + data.product.id), data.product.id, (data, out) ->
+				@comments = new DS.widget.comments($el, @id, (data, out) ->
+					DS.dom.attr($el, 'inited', 1)
+					
 					that.comments.$el.innerHTML = DS.tmpl(DS.tmpls.comments, {})
 					
-					console.log(that.comments.$el.innerHTML)
+					$selectType = DS.dom.$('select', $el)[0]
+					DS.dom.addEvent($selectType, 'change', (e) ->
+						that.comments.page = 1
+						that.comments.type = DS.dom.$('option', $selectType)[$selectType.selectedIndex].value
+						that.comments.get()
+					)
 					
 					that.comments.pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', that.comments.$el)[0], {
 						page: that.comments.page
@@ -805,7 +813,6 @@ console.log('!!!!!!!!!!!!')
 								page: page
 								url: '#'
 							)
-
 						onChangeRows: (rows) ->
 							DS.util.cookie.set('digiseller-comments-rows', rows)
 
@@ -819,8 +826,9 @@ console.log('!!!!!!!!!!!!')
 
 					return
 				)
-				@comments.get()
 
+				@comments.get()
+				
 				return
 
 		reviews:
@@ -866,9 +874,10 @@ console.log('!!!!!!!!!!!!')
 
 				}).render()
 
-				DS.dom.addEvent( DS.dom.$( 'select', DS.dom.$('#digiseller-reviews-type') )[0], 'change', (e) ->
+				$selectType = DS.dom.$( 'select', DS.dom.$('#digiseller-reviews-type') )[0]
+				DS.dom.addEvent($selectType, 'change', (e) ->
 					that.comments.page = 1
-					that.comments.type = DS.dom.$('option', @)[@selectedIndex].value
+					that.comments.type = DS.dom.$('option', $selectType)[$selectType.selectedIndex].value
 					that.comments.get()
 				)
 
@@ -878,7 +887,7 @@ console.log('!!!!!!!!!!!!')
 			url: '/contacts'
 			action: (params) ->
 				that = @
-				DS.JSONP.get('//shop.digiseller.ru/xml/shop_contacts.asp',
+				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_contacts.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
@@ -892,23 +901,8 @@ console.log('!!!!!!!!!!!!')
 				return
 				
 
-	DS.clicks =
-		sort: ($el, e) ->
-			if e.preventDefault then e.preventDefault() else e.returnValue = false
-
-			type = DS.dom.attr($el, 'data-type')
-			dir = DS.dom.attr($el, 'data-dir')
-			dir = if dir is 'asc' then 'desc' else ''
-
-			DS.opts.sort = type + dir.toUpperCase()
-			DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
-
-			DS.route.articles.page = 1
-			DS.route.articles.get()
-
-			return
-
-		commentsSwitch: ($el, e) ->
+	DS.events =
+		### 'click-comments-switch': ($el, e) ->
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 
 			type = DS.dom.attr($el, 'data-type')
@@ -920,42 +914,75 @@ console.log('!!!!!!!!!!!!')
 			DS.dom.klass('remove', DS.dom.$('.digiseller-activeTab', e.target.parentNode.parentNode), 'digiseller-activeTab', true)
 			DS.dom.klass('add', $el, 'digiseller-activeTab')
 
-			return
+			return ###
 
-		commentsPage: ($el, e) ->
+		'click-comments-page': ($el, e) ->
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 
 			page = DS.dom.attr($el, 'data-page')
 
-			obj = DS.route.article.comments
-			obj.page = page
-			obj.get()
+			DS.route.article.comments.page = page
+			DS.route.article.comments.get()
 
 			return
 
-		buy: ($el, e) ->
+		'click-buy': ($el, e) ->
 			if e.preventDefault then e.preventDefault() else e.returnValue = false
 
 			id = DS.dom.attr($el, 'data-id')
 
-			window.open('//plati.ru', 'digiseller', DS.util.getPopupParams(670, 500))
+			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", 'digiseller', DS.util.getPopupParams(885, 600))
+
+			return			
+		
+		### 'click-img-show': ($el, e) ->			
+			if e.preventDefault then e.preventDefault() else e.returnValue = false
+
+			href = DS.dom.attr($el.parentNode, 'href')
+			id = DS.dom.attr($el, 'data-id')
+			$preview = DS.dom.$('#digiseller-img-preview')			
+			
+			$preview.href = href
+			DS.dom.$('img', $preview)[0].src = "http://graph.digiseller.ru/img.ashx?w=261&idp=#{id}"
+
+			return ###
+			
+		'click-article-tab': ($el, e) ->
+			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			
+			index = DS.dom.attr($el, 'data-tab')
+			$panels = $el.parentNode.nextSibling.children
+			
+			DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)				
+			DS.dom.klass('add', $el, 'digiseller-activeTab')
+			
+			for $panel in $panels
+				$panel.style.display = 'none'				
+				
+			$panels[index].style.display = ''
+
+			DS.route.article.initComments() if index is '1'				
 
 			return
+			
+		'change-currency': ($el, e) ->
+			type = DS.dom.attr($el, 'data-type')
+			
+			DS.opts.currency = DS.dom.$('option', $el)[$el.selectedIndex].value
+			DS.util.cookie.set("digiseller-currency", DS.opts.currency)
+			DS.historyClick.reload()
 
 	inited = no
 	DS.init = ->
-		off if inited
+		return off if inited
 		inited = yes
 
 		DS.$el.head = DS.dom.$('head')[0] || document.documentElement
 		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
 		DS.$el.shop = DS.dom.$("##{DS.opts.widgetId}")
-
-		# DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
-		# DS.dom.getStyle('//shop.digiseller.ru/xml/shop_css.asp?seller_id=?' + DS.opts.seller_id)
-		# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
-		DS.dom.getStyle(DS.opts.host + '/test/css/default/main.css?seller_id=?' + DS.opts.seller_id, () -> # + '?' + Math.random()			
-			DS.opts.currency = DS.util.cookie.get('digiseller-articles-currency') or DS.opts.currency
+		
+		DS.dom.getStyle(DS.opts.host + '/test/css/default/main.css?seller_id=' + DS.opts.seller_id, () -> # + '?' + Math.random()			
+			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
 			DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort # name, nameDESC, price, priceDESC
 
 			DS.$el.shop.innerHTML = DS.tmpl(DS.tmpls.main, DS.opts)
@@ -984,19 +1011,25 @@ console.log('!!!!!!!!!!!!')
 				DS.historyClick.reload()
 
 			return
-		)		
+		)
 		
-		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->
-			origEl = e.originalTarget or e.srcElement
-
-			action = DS.dom.attr(origEl, 'data-action')
-			if action and typeof DS.clicks[action] is 'function'
-				DS.clicks[action](origEl, e)
+		callback = (e, type) ->
+			el = e.originalTarget or e.srcElement
+			action = DS.dom.attr(el, 'data-action')
+			
+			if action and typeof DS.events[type + '-' + action] is 'function'
+				DS.events[type + '-' + action](el, e)		
+		
+		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->			
+			callback(e, 'click')
+		)
+		
+		DS.dom.addEvent(DS.$el.shop, 'change', (e) ->
+			callback(e, 'change')
 		)
 
 		return
 
-	# https://github.com/mtrpcic/pathjs
 
 	DS.historyClick = `(function() {
 		var _rootAlias = '',
@@ -1096,14 +1129,14 @@ console.log('!!!!!!!!!!!!')
 	# Lightweight JSONP fetcher
 	# Copyright 2010-2012 Erik Karlsson. All rights reserved.
 	# BSD licensed
-	DS.JSONP = `(function(){
-		var _uid = 0, head, config = {}, _callbacks = [];
+	DS.JSONP = `(function() {
+		var _uid = 0, _callbacks = [];
 
 		function encode(str) {
 			return encodeURIComponent(str);
 		}
 
-		function jsonp(url, params, callback) {
+		function jsonp(url, el, params, callback) {
 			var query = (url || '').indexOf('?') === -1 ? '?' : '&', key;
 
 			params = params || {};
@@ -1116,15 +1149,25 @@ console.log('!!!!!!!!!!!!')
 				}
 
 				query += encode(key) + '=' + encode(params[key]) + '&'
+			}			
+			
+			var needCheck = el ? true : false;
+			
+			if (needCheck) {				
+				DS.dom.attr(el, 'data-qid', _uid);
 			}
-
-			_callbacks[_uid] = callback;
+			
+			_callbacks[_uid] = function(data) {
+				if ( needCheck && ( !el || _uid != DS.dom.attr(el, 'data-qid') ) ) {
+					return;
+				}
+				
+				callback(data);
+			};
 
 			DS.dom.getScript( url + query + '_' + Math.random() );
-		}
-
-		function setDefaults(obj){
-			config = obj;
+			
+			return _uid;
 		}
 
 		return {
@@ -1239,9 +1282,42 @@ console.log('!!!!!!!!!!!!')
 
 
 
+# https://github.com/mtrpcic/pathjs
 
+	# DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
+	# DS.$el.shop.innerHTML = '<div id="digiseller-preloader">Загрузка...</div>'
+	# DS.dom.getStyle('//shop.digiseller.ru/xml/shop_css.asp?seller_id=?' + DS.opts.seller_id)
+	# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
+	
 
+# sorting
+### type = DS.opts.sort.replace('DESC', '')
+dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
 
+$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))
+for $order in $orders
+	DS.dom.klass('remove', $order, 'digiseller-sort-asc digiseller-sort-desc')
+	DS.dom.attr($order, 'data-dir', '')
+
+	if type and type is DS.dom.attr($order, 'data-type')
+		DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
+		DS.dom.attr($order, 'data-dir', dir) ###
+
+### sort: ($el, e) ->
+	if e.preventDefault then e.preventDefault() else e.returnValue = false
+
+	type = DS.dom.attr($el, 'data-type')
+	dir = DS.dom.attr($el, 'data-dir')
+	dir = if dir is 'asc' then 'desc' else ''
+
+	DS.opts.sort = type + dir.toUpperCase()
+	DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
+
+	DS.route.articles.page = 1
+	DS.route.articles.get()
+
+	return
+###
 
 ### DS.dom.addEvent(DS.dom.$('.digiseller-prod-buybtn', DS.widget.main.$el, 'input')[0], 'click', (e) ->
 	if e.preventDefault then e.preventDefault() else e.returnValue = false
