@@ -276,22 +276,39 @@ DigiSeller-ru-api
           this.$el.style.display = 'none';
         }
       },
+      currency: {
+        $el: null,
+        init: function() {
+          var $sel;
+          this.$el = DS.dom.$('#digiseller-currency');
+          this.$el.innerHTML = DS.tmpls.currency;
+          $sel = DS.dom.$('select', this.$el)[0];
+          DS.dom.addEvent($sel, 'change', function(e) {
+            var type;
+            type = DS.dom.attr(this, 'data-type');
+            DS.opts.currency = DS.dom.$('option', this)[this.selectedIndex].value;
+            DS.util.cookie.set("digiseller-currency", DS.opts.currency);
+            DS.historyClick.reload();
+          });
+          DS.dom.select($sel, DS.opts.currency);
+        }
+      },
       search: {
         $el: null,
         $input: null,
         init: function($el) {
-          var form, self;
+          var form, that;
           this.$el = $el;
-          form = DS.dom.$('.digiseller-search-form', this.$el, 'form')[0];
           this.$input = DS.dom.$('.digiseller-search-input', this.$el, 'input')[0];
-          self = this;
+          form = DS.dom.$('.digiseller-search-form', this.$el, 'form')[0];
+          that = this;
           DS.dom.addEvent(form, 'submit', function(e) {
             if (e.preventDefault) {
               e.preventDefault();
             } else {
               e.returnValue = false;
             }
-            window.location.hash = DS.opts.hashPrefix + ("/search?s=" + self.$input.value);
+            window.location.hash = DS.opts.hashPrefix + ("/search?s=" + that.$input.value);
           });
         }
       },
@@ -400,7 +417,7 @@ DigiSeller-ru-api
           comments = data.review;
           out = '';
           if (!comments) {
-            out = DS.tmpl(DS.tmpls.nothing, {});
+            out = DS.tmpls.nothing;
           } else {
             for (_i = 0, _len = comments.length; _i < _len; _i++) {
               comment = comments[_i];
@@ -597,7 +614,7 @@ DigiSeller-ru-api
           out = '';
           articles = data.product;
           if (!articles || !articles.length) {
-            out = DS.tmpl(DS.tmpls.nothing, {});
+            out = DS.tmpls.nothing;
           } else {
             for (_i = 0, _len = articles.length; _i < _len; _i++) {
               article = articles[_i];
@@ -640,7 +657,7 @@ DigiSeller-ru-api
                 DS.historyClick.changeHashSilent(DS.opts.hashPrefix + ("/search/1?s=" + that.search));
               }
             }).render();
-            DS.dom.select(DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0], DS.opts.currency);
+            DS.widget.currency.init();
           }
           DS.dom.$('#digiseller-search-query').innerHTML = this.search.replace('<', '&lt;').replace('>', '&gt;');
           DS.dom.$('#digiseller-search-total').innerHTML = data.totalItems;
@@ -683,7 +700,7 @@ DigiSeller-ru-api
           out = '';
           articles = data.product;
           if (!articles) {
-            out = DS.tmpl(DS.tmpls.nothing, {});
+            out = DS.tmpls.nothing;
           } else {
             for (_i = 0, _len = articles.length; _i < _len; _i++) {
               article = articles[_i];
@@ -727,7 +744,7 @@ DigiSeller-ru-api
                 DS.historyClick.changeHashSilent(DS.opts.hashPrefix + ("/articles/" + that.cid + "/1"));
               }
             }).render();
-            DS.dom.select(DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0], DS.opts.currency);
+            DS.widget.currency.init();
             $selectSort = DS.dom.$('select', DS.dom.$('#digiseller-sort'))[0];
             DS.dom.addEvent($selectSort, 'change', function(e) {
               DS.opts.sort = DS.dom.$('option', this)[this.selectedIndex].value;
@@ -761,7 +778,7 @@ DigiSeller-ru-api
         render: function(data) {
           var $thumb, $thumbs, _i, _len, _ref;
           if (!data || !data.product) {
-            DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.nothing, {});
+            DS.widget.main.$el.innerHTML = DS.tmpls.nothing;
             return;
           }
           DS.widget.category.mark(data.product.category_id);
@@ -769,7 +786,7 @@ DigiSeller-ru-api
             d: data.product,
             imgsize: DS.opts.imgsize_infopage
           });
-          DS.dom.select(DS.dom.$('select', DS.dom.$('#digiseller-currency'))[0], DS.opts.currency);
+          DS.widget.currency.init();
           $thumbs = DS.dom.$('#digiseller-article-thumbs');
           if ($thumbs && $thumbs.children) {
             _ref = $thumbs.children;
@@ -958,13 +975,6 @@ DigiSeller-ru-api
         if (DS.share[type]) {
           return window.open(DS.share[type](title, img), "digisellerShare_" + type, DS.util.getPopupParams(626, 436));
         }
-      },
-      'change-currency': function($el, e) {
-        var type;
-        type = DS.dom.attr($el, 'data-type');
-        DS.opts.currency = DS.dom.$('option', $el)[$el.selectedIndex].value;
-        DS.util.cookie.set("digiseller-currency", DS.opts.currency);
-        return DS.historyClick.reload();
       }
     };
     inited = false;
@@ -1018,9 +1028,6 @@ DigiSeller-ru-api
       };
       DS.dom.addEvent(DS.$el.shop, 'click', function(e) {
         return callback(e, 'click');
-      });
-      DS.dom.addEvent(DS.$el.shop, 'change', function(e) {
-        return callback(e, 'change');
       });
     };
     DS.share = {

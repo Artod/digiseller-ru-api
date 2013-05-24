@@ -4,9 +4,6 @@ position:relative;
 width:100%;
 font-family:Tahoma, Arial;
 background:white;
-}
-
-div#digiseller-ru {
 margin:0;
 padding:0;
 }
@@ -117,6 +114,10 @@ float:left;
 text-align:center;
 margin-top:5px;
 margin-right:7px;
+}
+
+.digiseller-article-img a {
+color:#0B6678;
 }
 
 .digiseller-article-imgs li {
@@ -451,7 +452,9 @@ transition:all .5s ease;
 
 .digiseller-snapprodnamehldr {display:inline-block; padding-bottom:4px; }
 
-.digiseller-snapimgalign a img {text-align:middle;}
+.digiseller-snapimgalign a {display:block;}
+.digiseller-snapimgalign {text-align:center;}
+
 
 .digiseller-productList.digiseller-homepage {
 margin-top:10px!important;
@@ -475,12 +478,14 @@ padding:5px 5px 0 10px;
 text-align:left;
 }
 
+
 .digiseller-snapshot span.digiseller-snapprice {
     color: #D90000;
     display: block;
     float: right;
     font-size: 18px;
     padding-right: 10px;
+	padding-left:10px;
     text-align: right;
 }
 
@@ -493,8 +498,8 @@ font-size:10px;
 line-height:1em;
 padding-bottom:7px;
 padding-right:10px;
+padding-left:10px;
 text-align:right;
-width:100px;
 }
 
 .digiseller-snapshot img {
@@ -545,23 +550,15 @@ a.digiseller-buyButton-empty:hover {
 cursor:default;
 }
 
-
-
-
-
-
 .digiseller-homepage a.digiseller-buyButton {
-left:10px;
-bottom:8px;
-position:absolute;
+margin-left:10px;
+display:inline-block;
 }
 
 .digiseller-homepage a.digiseller-buyButton-empty {
-left:10px;
-bottom:8px;
-position:absolute;
+margin-left:10px;
+display:inline-block;
 }
-
 
 .digiseller-product a.digiseller-buyButton {
 position:absolute;
@@ -574,8 +571,6 @@ position:absolute;
 right:15px;
 bottom:10px;
 }
-
-
 
 .digiseller-product-right a.digiseller-buyButton {
 clear:both;

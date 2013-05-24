@@ -271,19 +271,40 @@ DigiSeller-ru-api
 				@$el.style.display = 'none'
 
 				return
-
+		
+		currency:
+			$el: null
+			init: () ->
+				@$el = DS.dom.$('#digiseller-currency')				
+				@$el.innerHTML = DS.tmpls.currency
+				
+				$sel = DS.dom.$('select', @$el)[0]
+				DS.dom.addEvent($sel, 'change', (e) ->
+					type = DS.dom.attr(@, 'data-type')
+					
+					DS.opts.currency = DS.dom.$('option', @)[@selectedIndex].value
+					DS.util.cookie.set("digiseller-currency", DS.opts.currency)
+					DS.historyClick.reload()
+				
+					return
+				)
+				
+				DS.dom.select($sel, DS.opts.currency)
+						
+				return
+				
 		search:
 			$el: null
 			$input: null
 			init: (@$el) ->
-				form = DS.dom.$('.digiseller-search-form', @$el, 'form')[0]
 				@$input = DS.dom.$('.digiseller-search-input', @$el, 'input')[0]
+				form = DS.dom.$('.digiseller-search-form', @$el, 'form')[0]
 
-				self = @
+				that = @
 				DS.dom.addEvent(form, 'submit', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 
-					window.location.hash = DS.opts.hashPrefix + "/search?s=#{self.$input.value}"
+					window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.value}"
 
 					return
 				)
@@ -388,7 +409,7 @@ DigiSeller-ru-api
 
 				out = ''
 				unless comments
-					out = DS.tmpl(DS.tmpls.nothing, {})
+					out = DS.tmpls.nothing
 				else
 					for comment in comments
 						out += DS.tmpl(DS.tmpls.comment,
@@ -591,7 +612,7 @@ DigiSeller-ru-api
 				articles = data.product
 
 				if not articles or not articles.length
-					out = DS.tmpl(DS.tmpls.nothing, {})
+					out = DS.tmpls.nothing
 				else
 					for article in articles
 						out += DS.tmpl(DS.tmpls.searchResult,
@@ -639,8 +660,8 @@ DigiSeller-ru-api
 							return
 
 					).render()
-
-					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+					
+					DS.widget.currency.init()
 				
 				DS.dom.$('#digiseller-search-query').innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
 				DS.dom.$('#digiseller-search-total').innerHTML = data.totalItems
@@ -690,7 +711,7 @@ DigiSeller-ru-api
 
 				articles = data.product
 				unless articles
-					out = DS.tmpl(DS.tmpls.nothing, {})
+					out = DS.tmpls.nothing
 				else
 					for article in articles
 						out += DS.tmpl(DS.tmpls.article, 
@@ -738,7 +759,7 @@ DigiSeller-ru-api
 
 					}).render()
 
-					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+					DS.widget.currency.init()
 
 					$selectSort = DS.dom.$( 'select', DS.dom.$('#digiseller-sort') )[0]
 					DS.dom.addEvent($selectSort, 'change', (e) ->
@@ -774,7 +795,7 @@ DigiSeller-ru-api
 
 			render: (data) ->
 				if not data or not data.product
-					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.nothing, {})
+					DS.widget.main.$el.innerHTML = DS.tmpls.nothing
 					
 					return
 
@@ -785,7 +806,7 @@ DigiSeller-ru-api
 					imgsize: DS.opts.imgsize_infopage
 				)
 				
-				DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+				DS.widget.currency.init()
 				
 				$thumbs = DS.dom.$('#digiseller-article-thumbs')
 				if $thumbs and $thumbs.children
@@ -982,14 +1003,7 @@ DigiSeller-ru-api
 			img = DS.dom.attr($el, 'data-img')
 			if DS.share[type]
 				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436));
-			
-		'change-currency': ($el, e) ->
-			type = DS.dom.attr($el, 'data-type')
-			
-			DS.opts.currency = DS.dom.$('option', $el)[$el.selectedIndex].value
-			DS.util.cookie.set("digiseller-currency", DS.opts.currency)
-			DS.historyClick.reload()
-			
+
 
 	inited = no
 	DS.init = ->
@@ -1042,13 +1056,13 @@ DigiSeller-ru-api
 			if action and typeof DS.events[type + '-' + action] is 'function'
 				DS.events[type + '-' + action]($el, e)		
 		
-		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->			
+		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->
 			callback(e, 'click')
 		)
 		
-		DS.dom.addEvent(DS.$el.shop, 'change', (e) ->
-			callback(e, 'change')
-		)
+		# DS.dom.addEvent(DS.$el.shop, 'change', (e) ->
+			# callback(e, 'change')
+		# )
 
 		return
 
