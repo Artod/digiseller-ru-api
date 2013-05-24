@@ -1,0 +1,37 @@
+<div class="digiseller-options">
+	<div class="digiseller-sortby" id="digiseller-sort">
+		<span>Сортировать по: </span>
+		<select>
+			<option value="name">названию от А до Я</option>
+			<option value="nameDESC">названию от Я до А</option>
+			<option value="price">цене от низкой до высокой</option>
+			<option value="priceDESC">цене от высокой до низкой</option>
+		</select>
+	</div>
+
+	<div id="digiseller-currency">
+		<span>Валюта: </span>
+		<select data-action="currency">
+			<option value="RUR">RUR</option>
+			<option value="USD">USD</option>
+			<option value="EUR">EUR</option>
+			<option value="UAH">UAH</option>
+		</select>
+	</div>
+</div>
+
+<div class="digiseller-breadcrumbs">
+	<a title="Магазин" href="#!digiseller/home">Магазин</a> &gt;&nbsp;
+	<? if (typeof (breadCrumbs) !== "undefined") {			
+		for (var i = 0, l = breadCrumbs.length; i < l - 1; i++) { ?>
+			<a title="<?= breadCrumbs[i].name ?>" href="#!digiseller/articles/<?= breadCrumbs[i].id ?>"><?= breadCrumbs[i].name ?></a> &gt;&nbsp;
+		<? } ?>
+		<strong><?= breadCrumbs[l - 1].name ?></strong>		
+	<? } ?>
+</div>
+
+<div class="digiseller-productList" id="<?= id ?>">
+	<?= out ?>	
+</div>
+
+<div class="digiseller-articles-pager"></div>

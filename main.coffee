@@ -138,32 +138,28 @@ DigiSeller-ru-api
 				catch e
 					return null
 
-			return
+			return	
 
-		addEvent: (els, event, callback, multy) ->
-			return unless els
-
-			els = [els] unless multy
-			
-			for $el in els
-				if $el.attachEvent
-					$el.attachEvent('on' + event, callback)
-				else if $el.addEventListener
-					$el.addEventListener(event, callback, false)
+		addEvent: ($el, e, callback) ->
+			if $el.attachEvent
+				ieCallback = (e) -> callback.call($el, e)
+				$el.attachEvent('on' + e, ieCallback)
+				
+				return ieCallback
+				
+			else if $el.addEventListener
+				$el.addEventListener(e, callback, false)
+				
+				return callback
 				
 			return
 
-		removeEvent: (els, event, callback, multy) ->
-			return unless els
-
-			els = [els] unless multy
+		removeEvent: ($el, e, callback) ->
+			if $el.detachEvent
+				$el.detachEvent("on#{type}", callback)
+			else if $el.removeEventListener
+				$el.removeEventListener(e, callback, false)
 			
-			for $el in els
-				if $el.detachEvent
-					$el.detachEvent("on#{type}", callback)
-				else if $el.removeEventListener
-					$el.removeEventListener(event, callback, false)
-				
 			return
 			
 		klass: (action, els, c, multy) ->
@@ -287,7 +283,7 @@ DigiSeller-ru-api
 				DS.dom.addEvent(form, 'submit', (e) ->
 					if e.preventDefault then e.preventDefault() else e.returnValue = false
 
-					window.location.hash = "#{DS.opts.hashPrefix}/search?s=" + self.$input.value
+					window.location.hash = DS.opts.hashPrefix + "/search?s=#{self.$input.value}"
 
 					return
 				)
@@ -298,9 +294,9 @@ DigiSeller-ru-api
 			constructor: (@$el, opts) ->				
 				opts = opts or {}
 
-				@page = parseInt(opts.page) || 1
-				@rows = parseInt(opts.rows) || 10
-				@total = parseInt(opts.total) || 0
+				@page = opts.page || 1
+				@rows = opts.rows || 10
+				@total = opts.total || 0
 
 				@opts =
 					tmpl: opts.tmpl || DS.tmpls.pages
@@ -349,7 +345,7 @@ DigiSeller-ru-api
 				that = @
 				$select = DS.dom.$('select', @$el)[0]
 				DS.dom.addEvent($select, 'change', (e) ->
-					that.rows = DS.dom.$('option', $select)[$select.selectedIndex].value
+					that.rows = DS.dom.$('option', @)[@selectedIndex].value
 					that.opts.onChangeRows(that.rows)
 				)
 
@@ -423,11 +419,11 @@ DigiSeller-ru-api
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_categories.asp', @$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
-				, (data) ->					
+				, (data) ->
 					return off unless data
 					
 					that.$el.innerHTML = that.render(data.category)
-
+					
 					that.isInited = true
 
 					that.mark()
@@ -454,7 +450,6 @@ DigiSeller-ru-api
 					return unless cid
 
 					cat = DS.dom.$("#digiseller-category-#{cid}")
-
 					return unless cat
 
 					DS.dom.klass('add', cat, 'digiseller-activecat')
@@ -496,7 +491,7 @@ DigiSeller-ru-api
 				for category in categories
 					out += DS.tmpl(DS.tmpls.category, 
 						d: category
-						url: "#{DS.opts.hashPrefix}/articles/#{category.id}"
+						url: DS.opts.hashPrefix + "/articles/#{category.id}"
 						id: "digiseller-category-#{category.id}"
 						sub: @render(category.sub, category.id)
 					)
@@ -544,7 +539,7 @@ DigiSeller-ru-api
 					for article in articles
 						out += DS.tmpl(DS.tmpls.showcaseArticle,
 							d: article
-							url: "#{DS.opts.hashPrefix}/detail/#{article.id}"
+							url: DS.opts.hashPrefix + "/detail/#{article.id}"
 							imgsize: DS.opts.imgsize_firstpage
 						)
 
@@ -554,7 +549,6 @@ DigiSeller-ru-api
 
 		search:
 			url: '/search(?:/([0-9]*))?\\?s=(.*)'
-			header: null
 			search: null
 			page: null
 			rows: null
@@ -575,7 +569,7 @@ DigiSeller-ru-api
 			get: () ->
 				that = @
 				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_search.asp', DS.widget.main.$el,
-					seller_id: 83991 #DS.opts.seller_id
+					seller_id: DS.opts.seller_id # 83991
 					format: 'json'
 					currency: DS.opts.currency
 					page: @page
@@ -601,7 +595,7 @@ DigiSeller-ru-api
 				else
 					for article in articles
 						out += DS.tmpl(DS.tmpls.searchResult,
-							url: "#{DS.opts.hashPrefix}/detail/#{article.id}"
+							url: DS.opts.hashPrefix + "/detail/#{article.id}"
 							imgsize: DS.opts.imgsize_listpage
 							d: article							
 						)
@@ -617,10 +611,9 @@ DigiSeller-ru-api
 					@pager.render()
 				else
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.searchResults,
+						totalItems: data.totalItems
 						out: out
 					)
-
-					@header = DS.dom.$('.digiseller-search-query', DS.widget.main.$el, 'span')[0]
 
 					that = @
 					@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', DS.widget.main.$el)[0],
@@ -630,7 +623,7 @@ DigiSeller-ru-api
 						getLink: (page) ->
 							return DS.tmpl(DS.tmpls.page,
 								page: page
-								url: "#{DS.opts.hashPrefix}/search/#{page}?s=#{that.search}"
+								url: DS.opts.hashPrefix + "/search/#{page}?s=#{that.search}"
 							)
 
 						onChangeRows: (rows) ->
@@ -641,15 +634,16 @@ DigiSeller-ru-api
 							that.rows = rows
 							that.get()
 
-							DS.historyClick.changeHashSilent("#{DS.opts.hashPrefix}/search/1?s=#{that.search}")
+							DS.historyClick.changeHashSilent(DS.opts.hashPrefix + "/search/1?s=#{that.search}")
 
 							return
 
 					).render()
 
-					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)				
-
-				@header.innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
+					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
+				
+				DS.dom.$('#digiseller-search-query').innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
+				DS.dom.$('#digiseller-search-total').innerHTML = data.totalItems
 
 				return
 
@@ -701,7 +695,7 @@ DigiSeller-ru-api
 					for article in articles
 						out += DS.tmpl(DS.tmpls.article, 
 							d: article
-							url: "#{DS.opts.hashPrefix}/detail/#{article.id}"
+							url: DS.opts.hashPrefix + "/detail/#{article.id}"
 							imgsize: DS.opts.imgsize_listpage
 						)
 
@@ -728,7 +722,7 @@ DigiSeller-ru-api
 						getLink: (page) ->
 							return DS.tmpl(DS.tmpls.page,
 								page: page
-								url: "#{DS.opts.hashPrefix}/articles/#{that.cid}/#{page}"
+								url: DS.opts.hashPrefix + "/articles/#{that.cid}/#{page}"
 							)
 						onChangeRows: (rows) ->
 							DS.opts.rows = rows
@@ -738,23 +732,17 @@ DigiSeller-ru-api
 							that.rows = rows
 							that.get()
 
-							DS.historyClick.changeHashSilent("#{DS.opts.hashPrefix}/articles/#{that.cid}/1")
+							DS.historyClick.changeHashSilent(DS.opts.hashPrefix + "/articles/#{that.cid}/1")
 
 							return
 
 					}).render()
 
 					DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
-					# @$selectCurrency = DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0]
-					### DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
-						DS.opts.currency = DS.dom.$('option', that.$selectCurrency)[that.$selectCurrency.selectedIndex].value
-						DS.util.cookie.set('digiseller-currency', DS.opts.currency)
-						that.get()
-					) ###
 
 					$selectSort = DS.dom.$( 'select', DS.dom.$('#digiseller-sort') )[0]
 					DS.dom.addEvent($selectSort, 'change', (e) ->
-						DS.opts.sort = DS.dom.$('option', $selectSort)[$selectSort.selectedIndex].value
+						DS.opts.sort = DS.dom.$('option', @)[@selectedIndex].value
 						DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
 						that.get()
 					)
@@ -799,33 +787,29 @@ DigiSeller-ru-api
 				
 				DS.dom.select(DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0], DS.opts.currency)
 				
-				$thumbs = DS.dom.$('#digiseller-article-thumbs')				
+				$thumbs = DS.dom.$('#digiseller-article-thumbs')
 				if $thumbs and $thumbs.children
-					DS.dom.addEvent($thumbs.children, 'click', (e) ->
-						$el = @
-						if DS.dom.attr($el, 'class') is 'digiseller-videothumb'
+					for $thumb in $thumbs.children					
+						DS.dom.addEvent($thumb, 'click', (e) ->
+							$el = @
+							if DS.dom.attr($el, 'class') is 'digiseller-videothumb'							
+								return
+						
+							if e.preventDefault then e.preventDefault() else e.returnValue = false						
+							
+							orig = DS.dom.attr($el, 'href')
+							id = DS.dom.attr($el, 'data-id')
+							height = parseInt(DS.dom.attr($el, 'data-height'))
+							width = parseInt(DS.dom.attr($el, 'data-width'))
+							
+							$preview = DS.dom.$('#digiseller-img-preview')
+							$previewImg = DS.dom.$('img', $preview)[0]					
+							
+							$preview.href = orig
+							$previewImg.src = $previewImg.src.replace(/idp=[0-9]+&(h|w)/i, "idp=#{id}&#{if height > width then 'h' else 'w'}")					
+
 							return
-					
-						if e.preventDefault then e.preventDefault() else e.returnValue = false						
-						
-						orig = DS.dom.attr($el, 'href')
-						id = DS.dom.attr($el, 'data-id')
-						height = parseInt(DS.dom.attr($el, 'data-height'))
-						width = parseInt(DS.dom.attr($el, 'data-width'))
-						
-						$preview = DS.dom.$('#digiseller-img-preview')
-						$previewImg = DS.dom.$('img', $preview)[0]
-						
-						console.log(height)
-						console.log(width)
-						console.log(height > width)
-						
-						$preview.href = orig
-						$previewImg.src = $previewImg.src.replace(/idp=[0-9]+&(h|w)/i, "idp=#{id}&#{if height > width then 'h' else 'w'}")
-						
-						return
-						
-					, true)
+						)
 				
 				return
 				
@@ -847,7 +831,7 @@ DigiSeller-ru-api
 					$selectType = DS.dom.$('select', $el)[0]
 					DS.dom.addEvent($selectType, 'change', (e) ->
 						that.comments.page = 1
-						that.comments.type = DS.dom.$('option', $selectType)[$selectType.selectedIndex].value
+						that.comments.type = DS.dom.$('option', @)[@selectedIndex].value
 						that.comments.get()
 					)
 					
@@ -926,10 +910,9 @@ DigiSeller-ru-api
 
 				}).render()
 
-				$selectType = DS.dom.$( 'select', DS.dom.$('#digiseller-reviews-type') )[0]
-				DS.dom.addEvent($selectType, 'change', (e) ->
+				DS.dom.addEvent(DS.dom.$( 'select', DS.dom.$('#digiseller-reviews-type') )[0], 'change', (e) ->
 					that.comments.page = 1
-					that.comments.type = DS.dom.$('option', $selectType)[$selectType.selectedIndex].value
+					that.comments.type = DS.dom.$('option', @)[@selectedIndex].value
 					that.comments.get()
 				)
 
@@ -971,7 +954,7 @@ DigiSeller-ru-api
 
 			id = DS.dom.attr($el, 'data-id')
 
-			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", 'digiseller-buy', DS.util.getPopupParams(885, 600))
+			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", 'digisellerBuy', DS.util.getPopupParams(885, 600))
 
 			return
 			
@@ -997,9 +980,8 @@ DigiSeller-ru-api
 			type = DS.dom.attr($el, 'data-type')
 			title = DS.dom.attr($el, 'data-title')
 			img = DS.dom.attr($el, 'data-img')
-
 			if DS.share[type]
-				window.open( DS.share[type](title, img), "digiseller-share-#{type}", DS.util.getPopupParams(626, 436) );
+				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436));
 			
 		'change-currency': ($el, e) ->
 			type = DS.dom.attr($el, 'data-type')
@@ -1072,7 +1054,7 @@ DigiSeller-ru-api
 
 	# http://habrahabr.ru/post/156185/
 	DS.share = 
-		vk: (title, img) ->
+		vk: (title, img) ->			
 			return "//vkontakte.ru/share.php?
 url=#{DS.util.enc(document.location)}&
 title=#{DS.util.enc(title)}&
@@ -1088,8 +1070,7 @@ url=#{DS.util.enc(document.location)}"
 			return "//www.facebook.com/sharer.php?s=100&
 p[url]=#{DS.util.enc(document.location)}&
 p[title]=#{DS.util.enc(title)}&
-p[images][0]=#{DS.util.enc(img)}&
-p[summary]="
+p[images][0]=#{DS.util.enc(img)}"
 
 		wme: (title, img) ->
 			return "//events.webmoney.ru/sharer.aspx?
@@ -1225,7 +1206,7 @@ noparse=0"
 			}
 			
 			_callbacks[_uid] = function(data) {
-				if ( needCheck && ( !el || _uid != DS.dom.attr(el, 'data-qid') ) ) {
+				if ( needCheck && ( !el || data.queryId != DS.dom.attr(el, 'data-qid') ) ) {
 					return;
 				}
 				
@@ -1243,7 +1224,7 @@ noparse=0"
 				if (!data || !data.queryId || !_callbacks[data.queryId]) {
 					return;
 				}
-
+				
 				_callbacks[data.queryId](data);
 
 				try {
@@ -1253,7 +1234,7 @@ noparse=0"
 				_callbacks[data.queryId] = null;
 			}
 		};
-	})();`
+	})()`
 
 	# http://documentcloud.github.com/underscore/
 	DS.tmpl = `function(text, data) {
@@ -1341,55 +1322,64 @@ noparse=0"
 
 ) window, document
 
+
+
 # DigiSeller.opts.seller_id = 18728
 # DigiSeller.opts.seller_id = 83991
 
 
 
 
+# @$selectCurrency = DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0]
+# DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
+	# DS.opts.currency = DS.dom.$('option', that.$selectCurrency)[that.$selectCurrency.selectedIndex].value
+	# DS.util.cookie.set('digiseller-currency', DS.opts.currency)
+	# that.get()
+# )
 
 
 
+# 'click-comments-switch': ($el, e) ->
+	# if e.preventDefault then e.preventDefault() else e.returnValue = false
 
+	# type = DS.dom.attr($el, 'data-type')
 
+	# DS.route.article.comments.page = 1
+	# DS.route.article.comments.type = type
+	# DS.route.article.comments.get()
 
+	# DS.dom.klass('remove', DS.dom.$('.digiseller-activeTab', e.target.parentNode.parentNode), 'digiseller-activeTab', true)
+	# DS.dom.klass('add', $el, 'digiseller-activeTab')
 
-
-### 'click-comments-switch': ($el, e) ->
-	if e.preventDefault then e.preventDefault() else e.returnValue = false
-
-	type = DS.dom.attr($el, 'data-type')
-
-	DS.route.article.comments.page = 1
-	DS.route.article.comments.type = type
-	DS.route.article.comments.get()
-
-	DS.dom.klass('remove', DS.dom.$('.digiseller-activeTab', e.target.parentNode.parentNode), 'digiseller-activeTab', true)
-	DS.dom.klass('add', $el, 'digiseller-activeTab')
-
-	return ###
+	# return
 	
-
-### 'click-img-show': ($el, e) ->			
-	if e.preventDefault then e.preventDefault() else e.returnValue = false
-
-	href = DS.dom.attr($el.parentNode, 'href')
-	id = DS.dom.attr($el, 'data-id')
-	$preview = DS.dom.$('#digiseller-img-preview')			
 	
-	$preview.href = href
-	DS.dom.$('img', $preview)[0].src = "http://graph.digiseller.ru/img.ashx?w=261&idp=#{id}"
+	
+	
+	
+# 'click-img-show': ($el, e) ->			
+	# if e.preventDefault then e.preventDefault() else e.returnValue = false
 
-	return ###
+	# href = DS.dom.attr($el.parentNode, 'href')
+	# id = DS.dom.attr($el, 'data-id')
+	# $preview = DS.dom.$('#digiseller-img-preview')			
+	
+	# $preview.href = href
+	# DS.dom.$('img', $preview)[0].src = "http://graph.digiseller.ru/img.ashx?w=261&idp=#{id}"
+
+	# return
 			
 			
 			
 # @$selectCurrency = DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0]
-### DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
-	DS.opts.currency = DS.dom.$('option', that.$selectCurrency)[that.$selectCurrency.selectedIndex].value
-	DS.util.cookie.set('digiseller-currency', DS.opts.currency)
-	that.get()
-) ###
+# DS.dom.addEvent(@$selectCurrency, 'change', (e) ->
+	# DS.opts.currency = DS.dom.$('option', that.$selectCurrency)[that.$selectCurrency.selectedIndex].value
+	# DS.util.cookie.set('digiseller-currency', DS.opts.currency)
+	# that.get()
+# )
+
+
+
 					
 # https://github.com/mtrpcic/pathjs
 
@@ -1399,39 +1389,51 @@ noparse=0"
 	# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
 	
 
+	
+	
+	
+	
 # sorting
-### type = DS.opts.sort.replace('DESC', '')
-dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
+# type = DS.opts.sort.replace('DESC', '')
+# dir = if DS.opts.sort.search(/desc/i) > -1 then 'desc' else 'asc'
 
-$orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))
-for $order in $orders
-	DS.dom.klass('remove', $order, 'digiseller-sort-asc digiseller-sort-desc')
-	DS.dom.attr($order, 'data-dir', '')
+# $orders = DS.dom.$('a', DS.dom.$('#digiseller-sort'))
+# for $order in $orders
+	# DS.dom.klass('remove', $order, 'digiseller-sort-asc digiseller-sort-desc')
+	# DS.dom.attr($order, 'data-dir', '')
 
-	if type and type is DS.dom.attr($order, 'data-type')
-		DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
-		DS.dom.attr($order, 'data-dir', dir) ###
+	# if type and type is DS.dom.attr($order, 'data-type')
+		# DS.dom.klass('add', $order, 'digiseller-sort-' + dir)
+		# DS.dom.attr($order, 'data-dir', dir)
 
-### sort: ($el, e) ->
-	if e.preventDefault then e.preventDefault() else e.returnValue = false
+		
+		
+		
+		
+# sort: ($el, e) ->
+	# if e.preventDefault then e.preventDefault() else e.returnValue = false
 
-	type = DS.dom.attr($el, 'data-type')
-	dir = DS.dom.attr($el, 'data-dir')
-	dir = if dir is 'asc' then 'desc' else ''
+	# type = DS.dom.attr($el, 'data-type')
+	# dir = DS.dom.attr($el, 'data-dir')
+	# dir = if dir is 'asc' then 'desc' else ''
 
-	DS.opts.sort = type + dir.toUpperCase()
-	DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
+	# DS.opts.sort = type + dir.toUpperCase()
+	# DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
 
-	DS.route.articles.page = 1
-	DS.route.articles.get()
+	# DS.route.articles.page = 1
+	# DS.route.articles.get()
 
-	return
-###
+	# return
 
-### DS.dom.addEvent(DS.dom.$('.digiseller-prod-buybtn', DS.widget.main.$el, 'input')[0], 'click', (e) ->
-	if e.preventDefault then e.preventDefault() else e.returnValue = false
+	
+	
+	
+	
+	
+# DS.dom.addEvent(DS.dom.$('.digiseller-prod-buybtn', DS.widget.main.$el, 'input')[0], 'click', (e) ->
+	# if e.preventDefault then e.preventDefault() else e.returnValue = false
 
-	window.open('//plati.ru', 'digiseller-buy', DS.util.getPopupParams(670, 500))
+	# window.open('//plati.ru', 'digisellerBuy', DS.util.getPopupParams(670, 500))
 
-	return
-) ###
+	# return
+# )

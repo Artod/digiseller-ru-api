@@ -1,0 +1,28 @@
+<!--h1>Поиск по запросу "<span class="digiseller-search-header-query"></span>"</h1><div id="digiseller-search-results" class="digiseller-search-results"><dl><?= out ?></dl></div><div class="digiseller-search-pager"></div-->
+
+<div class="digiseller-options">					
+	<div class="digiseller-sortby">
+		По запросу&nbsp;"<span class="digiseller-bold" id="digiseller-search-query"></span>"&nbsp;найдено товаров:&nbsp;<span class="digiseller-bold" id="digiseller-search-total"></span>
+	</div>
+
+	<div id="digiseller-currency">
+		<span>Валюта: </span>
+		<select data-action="currency">
+			<option value="RUR">RUR</option>
+			<option value="USD">USD</option>
+			<option value="EUR">EUR</option>
+			<option value="UAH">UAH</option>
+		</select>
+	</div>
+</div>
+
+<div class="digiseller-breadcrumbs">
+	<a title="Магазин" href="#!digiseller/home">Магазин</a> &gt; <strong>Поиск</strong>
+</div>
+
+<div class="digiseller-productList">
+	<div id="digiseller-search-results">
+		<?= out ?>
+	</div>
+	<div class="digiseller-paging"></div>
+</div>

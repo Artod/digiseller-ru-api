@@ -1,0 +1,40 @@
+<div class="digiseller-snapshot">
+	<? if (d.label) { ?>
+		<div>
+			<? switch(d.label) {
+				case 'top': ?>
+					<span class="digiseller-vitrinaicon digiseller-lider">Лидер продаж!</span>
+					<? break;
+				case 'sale': ?>
+					<span class="digiseller-vitrinaicon digiseller-action">Акция!</span>
+					<? break;
+				case 'new': ?>
+					<span class="digiseller-vitrinaicon digiseller-newproduct">Новинка!</span>
+					<? break;
+			} ?>
+			<br />
+		</div>
+	<? } ?>
+	
+	<div>
+		<a href="<?= url ?>" title="digiseller-productName">
+			<a href="<?= url ?>"><img src="http://graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" /></a>
+		</a>
+	</div>
+
+	<div class="digiseller-snapprodnamehldr" style="max-width:<?= imgsize ?>px;">
+		<a href="<?= url ?>" title="<?= d.name ?>">
+			<span class="digiseller-snapname"><?= d.name ?></span>
+		</a>
+	</div>
+	
+	<div>
+		<span class="digiseller-snapprice"><?= d.price ?></span>
+		<span class="digiseller-snapcurrency"><?= d.currency ?></span>
+		<? if (d.is_available) { ?>
+			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>">Купить</a>
+		<? } else { ?>
+			<a class="digiseller-buyButton-empty">Нет в наличии</a>
+		<? } ?>
+	</div>
+</div>
