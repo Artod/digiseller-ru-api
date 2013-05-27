@@ -30,12 +30,17 @@ DigiSeller-ru-api
 		enc: (t) ->			
 			return encodeURIComponent(t)
 		
+		prevent: (e) ->
+			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			
+			return
+		
 		extend: (target, source, overwrite) ->
 			for key of source
 				continue unless source.hasOwnProperty(key)
 				target[key] = source[key] if overwrite or typeof target[key] is 'object'
 
-			target
+			return target
 
 		getPopupParams: (width, height) ->
 			screenX = if typeof window.screenX isnt 'undefined' then window.screenX else window.screenLeft
@@ -301,8 +306,8 @@ DigiSeller-ru-api
 				form = DS.dom.$('.digiseller-search-form', @$el, 'form')[0]
 
 				that = @
-				DS.dom.addEvent(form, 'submit', (e) ->
-					if e.preventDefault then e.preventDefault() else e.returnValue = false
+				DS.dom.addEvent(form, 'submit', (e) ->					
+					DS.util.prevent(e)
 
 					window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.value}"
 
@@ -816,7 +821,7 @@ DigiSeller-ru-api
 							if DS.dom.attr($el, 'class') is 'digiseller-videothumb'							
 								return
 						
-							if e.preventDefault then e.preventDefault() else e.returnValue = false						
+							DS.util.prevent(e)
 							
 							orig = DS.dom.attr($el, 'href')
 							id = DS.dom.attr($el, 'data-id')
@@ -961,7 +966,7 @@ DigiSeller-ru-api
 
 	DS.events =
 		'click-comments-page': ($el, e) ->
-			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			DS.util.prevent(e)			
 
 			page = DS.dom.attr($el, 'data-page')
 
@@ -971,7 +976,7 @@ DigiSeller-ru-api
 			return
 
 		'click-buy': ($el, e) ->
-			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			DS.util.prevent(e)
 
 			id = DS.dom.attr($el, 'data-id')
 
@@ -980,7 +985,7 @@ DigiSeller-ru-api
 			return
 			
 		'click-article-tab': ($el, e) ->
-			if e.preventDefault then e.preventDefault() else e.returnValue = false
+			DS.util.prevent(e)
 			
 			index = DS.dom.attr($el, 'data-tab')
 			$panels = $el.parentNode.nextSibling.children
@@ -1187,22 +1192,15 @@ noparse=0"
 	#https://github.com/ssteynfaardt/Xhr
 
 
-	# https://github.com/IntoMethod/Lightweight-JSONP
-	# Lightweight JSONP fetcher
-	# Copyright 2010-2012 Erik Karlsson. All rights reserved.
-	# BSD licensed
 	DS.JSONP = `(function() {
-		var _uid = 0, _callbacks = [];
-
-		function encode(str) {
-			return encodeURIComponent(str);
-		}
+		var _callbacks = [];
 
 		function jsonp(url, el, params, callback) {
 			var query = (url || '').indexOf('?') === -1 ? '?' : '&', key;
 
 			params = params || {};
-			_uid++;
+
+			var _uid = DS.util.getUID(); 
 			params.queryId = _uid;
 
 			for (key in params) {
@@ -1210,7 +1208,7 @@ noparse=0"
 					continue;
 				}
 
-				query += encode(key) + '=' + encode(params[key]) + '&'
+				query += DS.util.enc(key) + '=' + DS.util.enc(params[key]) + '&'
 			}			
 			
 			var needCheck = el ? true : false;
@@ -1354,7 +1352,7 @@ noparse=0"
 
 
 # 'click-comments-switch': ($el, e) ->
-	# if e.preventDefault then e.preventDefault() else e.returnValue = false
+	# DS.util.prevent(e)
 
 	# type = DS.dom.attr($el, 'data-type')
 
@@ -1372,7 +1370,7 @@ noparse=0"
 	
 	
 # 'click-img-show': ($el, e) ->			
-	# if e.preventDefault then e.preventDefault() else e.returnValue = false
+	# DS.util.prevent(e)
 
 	# href = DS.dom.attr($el.parentNode, 'href')
 	# id = DS.dom.attr($el, 'data-id')
@@ -1425,7 +1423,7 @@ noparse=0"
 		
 		
 # sort: ($el, e) ->
-	# if e.preventDefault then e.preventDefault() else e.returnValue = false
+	# DS.util.prevent(e)
 
 	# type = DS.dom.attr($el, 'data-type')
 	# dir = DS.dom.attr($el, 'data-dir')
@@ -1445,7 +1443,7 @@ noparse=0"
 	
 	
 # DS.dom.addEvent(DS.dom.$('.digiseller-prod-buybtn', DS.widget.main.$el, 'input')[0], 'click', (e) ->
-	# if e.preventDefault then e.preventDefault() else e.returnValue = false
+	# DS.util.prevent(e)
 
 	# window.open('//plati.ru', 'digisellerBuy', DS.util.getPopupParams(670, 500))
 
