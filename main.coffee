@@ -14,10 +14,8 @@ DigiSeller-ru-api
 		widget: null
 
 	DS.opts =
-		host: 'http://plati.ru'
 		widgetId: 'digiseller-ru'
-		# css: '/test/css/default/main.css'
-		loader: '/test/img/loader.gif'
+		host: 'http://shop.digiseller.ru/xml/'
 		hashPrefix: '#!digiseller'
 
 	DS.util =
@@ -392,7 +390,7 @@ DigiSeller-ru-api
 
 			get: () ->
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_reviews.asp', @$el,
+				DS.JSONP.get(DS.opts.host + 'shop_reviews.asp', @$el,
 					seller_id: DS.opts.seller_id
 					product_id: @product_id
 					format: 'json'
@@ -442,7 +440,7 @@ DigiSeller-ru-api
 				@isInited = false
 
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_categories.asp', @$el,
+				DS.JSONP.get(DS.opts.host + 'shop_categories.asp', @$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
@@ -539,7 +537,7 @@ DigiSeller-ru-api
 
 			get: () ->
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp', DS.widget.main.$el,
+				DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					category_id: 0
 					rows: 10
@@ -594,7 +592,7 @@ DigiSeller-ru-api
 
 			get: () ->
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_search.asp', DS.widget.main.$el,
+				DS.JSONP.get(DS.opts.host + 'shop_search.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id # 83991
 					format: 'json'
 					currency: DS.opts.currency
@@ -693,7 +691,7 @@ DigiSeller-ru-api
 				DS.widget.category.mark(@cid)
 
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_products.asp', DS.widget.main.$el,
+				DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
 					category_id: @cid
@@ -783,7 +781,7 @@ DigiSeller-ru-api
 				@id = params[1] or 0
 
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_product_info.asp', DS.widget.main.$el,
+				DS.JSONP.get(DS.opts.host + 'shop_product_info.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
 					product_id: @id
@@ -948,7 +946,7 @@ DigiSeller-ru-api
 			url: '/contacts'
 			action: (params) ->
 				that = @
-				DS.JSONP.get('http://shop.digiseller.ru/xml/shop_contacts.asp', DS.widget.main.$el,
+				DS.JSONP.get(DS.opts.host + 'shop_contacts.asp', DS.widget.main.$el,
 					seller_id: DS.opts.seller_id
 					format: 'json'
 				, (data) ->
@@ -980,7 +978,7 @@ DigiSeller-ru-api
 
 			id = DS.dom.attr($el, 'data-id')
 
-			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", 'digisellerBuy', DS.util.getPopupParams(885, 600))
+			window.open( "https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank') # 'digisellerBuy', DS.util.getPopupParams(885, 600) 
 
 			return
 			
@@ -1019,7 +1017,8 @@ DigiSeller-ru-api
 		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
 		DS.$el.shop = DS.dom.$("##{DS.opts.widgetId}")
 		
-		DS.dom.getStyle(DS.opts.host + '/test/css/default/main.css?seller_id=' + DS.opts.seller_id, () -> # + '?' + Math.random()
+		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+		
 			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
 			DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort # name, nameDESC, price, priceDESC
 			DS.opts.rows = DS.util.cookie.get('digiseller-articles-rows') or DS.opts.rows
@@ -1377,7 +1376,7 @@ noparse=0"
 	# $preview = DS.dom.$('#digiseller-img-preview')			
 	
 	# $preview.href = href
-	# DS.dom.$('img', $preview)[0].src = "http://graph.digiseller.ru/img.ashx?w=261&idp=#{id}"
+	# DS.dom.$('img', $preview)[0].src = "//graph.digiseller.ru/img.ashx?w=261&idp=#{id}"
 
 	# return
 			
@@ -1397,7 +1396,7 @@ noparse=0"
 
 	# DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
 	# DS.$el.shop.innerHTML = '<div id="digiseller-preloader">Загрузка...</div>'
-	# DS.dom.getStyle('//shop.digiseller.ru/xml/shop_css.asp?seller_id=?' + DS.opts.seller_id)
+	# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=?' + DS.opts.seller_id)
 	# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
 	
 
