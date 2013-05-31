@@ -11,7 +11,7 @@
 
 	<div class="digiseller-article-img" style="width:<?= 17 + imgsize ?>px;">
 		<a href="<?= url ?>">
-			<img src="http://graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
+			<img src="http://graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize ?>" alt="" />
 		</a>
 	</div>
 

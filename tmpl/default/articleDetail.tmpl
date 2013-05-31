@@ -27,7 +27,7 @@
 	<div class="digiseller-product-details">		
 		<div class="digiseller-product-left">
 			<? if (mainImg) { ?>
-				<a href="<?= mainImg ?>" target="_blank" id="digiseller-img-preview">
+				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview">
 					<img src="http://graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= imgsize ?>" alt="<?= name ?>" />
 				</a>
 			<? } else { ?>

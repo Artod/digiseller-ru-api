@@ -18,11 +18,13 @@
 	
 	<div>
 		<a href="<?= url ?>" title="digiseller-productName">
-			<a href="<?= url ?>"><img src="http://graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" /></a>
+			<a href="<?= url ?>">				
+				<img src="http://graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize_firstpage ?>" alt="" />		
+			</a>
 		</a>
 	</div>
 
-	<div class="digiseller-snapprodnamehldr" style="max-width:<?= imgsize ?>px;">
+	<div class="digiseller-snapprodnamehldr" style="max-width:<?= imgsize_firstpage ?>px;">
 		<a href="<?= url ?>" title="<?= d.name ?>">
 			<span class="digiseller-snapname"><?= d.name ?></span>
 		</a>

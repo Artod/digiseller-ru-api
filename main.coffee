@@ -7,22 +7,32 @@ DigiSeller-ru-api
 	off if window.DigiSeller?
 
 	DS = {}
-
+	
 	DS.$el =
 		head: null
 		body: null
 		widget: null
-
+		
 	DS.opts =
-		widgetId: 'digiseller-ru'
+		seller_id: null
 		host: 'http://shop.digiseller.ru/xml/'
 		hashPrefix: '#!digiseller'
+		currency: 'RUR'
+		sort: '' # name, nameDESC, price, priceDESC
+		rows: 10
+		logo_img: ''		
+		menu_purchases: true
+		menu_reviews: true
+		menu_contacts: true		
+		imgsize_firstpage: 160
+		imgsize_listpage: 162
+		imgsize_infopage: 163
+		imgsize_category: 200
 
 	DS.util =
 		getUID: ( ->
 			id = 1
-			() ->
-				id++
+			() -> id++
 		)()
 		
 		enc: (t) ->			
@@ -94,6 +104,7 @@ DigiSeller-ru-api
 
 				return
 
+				
 	DS.dom =
 		$: (selector, context, tagName) ->
 			return unless selector
@@ -176,6 +187,7 @@ DigiSeller-ru-api
 
 			var $el, _i, _len,
 				re = new RegExp('(^|\\s)' + ( action === 'add' ? c : c.replace(' ', '|') ) + '(\\s|$)', 'g');
+				
 			for (_len = els.length, _i = _len-1; _i >= 0; _i--) {
 				$el = els[_i];
 				if ( action === 'add' && re.test($el.className) ) {
@@ -247,19 +259,44 @@ DigiSeller-ru-api
 
 			return
 
+			
 	DS.widget =
 		main:
 			$el: null
+			init: () ->
+				@$el = DS.dom.$('#digiseller-main')
+				DS.widget.main.$el.innerHTML = '' # сбрасываем лоадер
+				
+				callback = (e, type) ->
+					$el = e.originalTarget or e.srcElement
+					action = DS.dom.attr($el, 'data-action')
+					
+					if action and typeof DS.events[type + '-' + action] is 'function'
+						DS.events[type + '-' + action]($el, e)		
+				
+				DS.dom.addEvent(DS.widget.main.$el, 'click', (e) ->
+					callback(e, 'click')
+				)
+				
+				return
+			
 		loader:
 			$el: null
 			timeout: null
+			init: () ->
+				div = document.createElement('div')
+				div.id = 'digiseller-loader'
+				
+				DS.$el.body.appendChild(div)
+				
+				@$el = DS.dom.$("##{div.id}")
+				
+				return
+				
 			show: () ->
-				unless @$el
-					return
+				clearTimeout(@timeout)
 
 				that = @
-
-				clearTimeout(@timeout)
 				@timeout = setTimeout(() ->
 					that.$el.style.display = ''
 				, 1000)
@@ -267,18 +304,140 @@ DigiSeller-ru-api
 				return
 
 			hide: () ->
-				unless @$el
-					return
-
 				clearTimeout(@timeout)
+				
 				@$el.style.display = 'none'
 
 				return
-		
+				
+		search:
+			$el: null
+			$input: null
+			prefix: 'digiseller-search'
+			init: () ->
+				@$el = DS.dom.$("##{@prefix}")
+				return unless @$el
+				
+				@$el.innerHTML = DS.tmpls.search
+				
+				@$input = DS.dom.$(".#{@prefix}-input", @$el, 'input')[0]
+				form = DS.dom.$(".#{@prefix}-form", @$el, 'form')[0]
+
+				that = @
+				DS.dom.addEvent(form, 'submit', (e) ->					
+					DS.util.prevent(e)
+
+					window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.value}"
+
+					return
+				)
+
+				return
+				
+		category:
+			$el: null
+			isInited: false
+			prefix: 'digiseller-category'
+			init: () ->
+				@$el = DS.dom.$("##{@prefix}")				
+				return unless @$el
+				
+				@isInited = false
+
+				that = @
+				DS.JSONP.get(DS.opts.host + 'shop_categories.asp', @$el,
+					seller_id: DS.opts.seller_id
+					format: 'json'
+				, (data) ->
+					return off unless data
+					
+					that.$el.innerHTML = that.render(data.category)
+					
+					that.isInited = true
+
+					that.mark()
+
+					return
+				)
+
+				return
+
+			mark: (() ->
+				_go = (cid) ->
+					cats = DS.dom.$('li', @$el)
+					
+					return unless cats.length
+
+					subs = DS.dom.$('ul', @$el)
+					for sub in subs
+						sub.style.display = 'none'
+
+					subs[0].style.display = ''
+
+					DS.dom.klass('remove', cats, @prefix + '-active', true)
+
+					return unless cid
+
+					cat = DS.dom.$("##{@prefix}-#{cid}")
+					return unless cat
+
+					DS.dom.klass('add', cat, @prefix + '-active')
+
+					parent = cat
+					while parent.id isnt @prefix
+						parent.style.display = ''
+						parent = parent.parentNode
+
+					DS.dom.$("##{@prefix}-sub-#{cid}")?.style.display = ''
+
+					return
+
+				return (cid) ->
+					return unless @$el
+					
+					if @isInited
+						_go.call(@, cid)
+					else
+						that = @
+						count = 0
+						interval = setInterval( ->
+							if that.isInited or count > 1000
+								clearInterval(interval)
+								if that.isInited
+									_go.call(that, cid)
+
+							count++
+
+							return
+
+						, 50)
+
+					return
+			)()
+
+			render: (categories, parent_cid) ->
+				return '' if not categories
+
+				out = ''
+				for category in categories
+					out += DS.tmpl(DS.tmpls.category, 
+						d: category
+						url: DS.opts.hashPrefix + "/articles/#{category.id}"
+						id: @prefix + "-#{category.id}"
+						sub: @render(category.sub, category.id)
+					)
+
+				DS.tmpl(DS.tmpls.categories,
+					id: if parent_cid then @prefix + "-sub-#{parent_cid}" else ''
+					out: out
+				)
+
 		currency:
 			$el: null
 			init: () ->
-				@$el = DS.dom.$('#digiseller-currency')				
+				@$el = DS.dom.$('#digiseller-currency')
+				return unless @$el
+				
 				@$el.innerHTML = DS.tmpls.currency
 				
 				$sel = DS.dom.$('select', @$el)[0]
@@ -296,24 +455,6 @@ DigiSeller-ru-api
 						
 				return
 				
-		search:
-			$el: null
-			$input: null
-			init: (@$el) ->
-				@$input = DS.dom.$('.digiseller-search-input', @$el, 'input')[0]
-				form = DS.dom.$('.digiseller-search-form', @$el, 'form')[0]
-
-				that = @
-				DS.dom.addEvent(form, 'submit', (e) ->					
-					DS.util.prevent(e)
-
-					window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.value}"
-
-					return
-				)
-
-				return
-
 		pager: class
 			constructor: (@$el, opts) ->				
 				opts = opts or {}
@@ -334,7 +475,7 @@ DigiSeller-ru-api
 				pages = DS.dom.$('a', @$el)
 
 				for page, index in pages
-					DS.dom.klass((if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-activepage')
+					DS.dom.klass( (if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-activepage' )
 
 				return @
 
@@ -433,98 +574,7 @@ DigiSeller-ru-api
 
 				return
 
-		category:
-			$el: null
-			isInited: false
-			init: (@$el) ->
-				@isInited = false
-
-				that = @
-				DS.JSONP.get(DS.opts.host + 'shop_categories.asp', @$el,
-					seller_id: DS.opts.seller_id
-					format: 'json'
-				, (data) ->
-					return off unless data
-					
-					that.$el.innerHTML = that.render(data.category)
-					
-					that.isInited = true
-
-					that.mark()
-
-					return
-				)
-
-				return
-
-			mark: (() ->
-				go = (cid) ->
-					cats = DS.dom.$('li', @$el)
-					
-					return unless cats.length
-
-					subs = DS.dom.$('ul', @$el)
-					for sub in subs
-						sub.style.display = 'none'
-
-					subs[0].style.display = ''
-
-					DS.dom.klass('remove', cats, 'digiseller-activecat', true)
-
-					return unless cid
-
-					cat = DS.dom.$("#digiseller-category-#{cid}")
-					return unless cat
-
-					DS.dom.klass('add', cat, 'digiseller-activecat')
-
-					parent = cat
-					while parent.id isnt 'digiseller-category'
-						parent.style.display = ''
-						parent = parent.parentNode
-
-					DS.dom.$("#digiseller-category-sub-#{cid}")?.style.display = ''
-
-					return
-
-				return (cid) ->					
-					if @isInited
-						go.call(@, cid)
-					else
-						that = @
-						count = 0
-						interval = setInterval( ->
-							if that.isInited or count > 1000
-								clearInterval(interval)
-								if that.isInited
-									go.call(that, cid)
-
-							count++
-
-							return
-
-						, 50)
-
-					return
-			)()
-
-			render: (categories, parent_cid) ->
-				return '' if not categories
-
-				out = ''
-				for category in categories
-					out += DS.tmpl(DS.tmpls.category, 
-						d: category
-						url: DS.opts.hashPrefix + "/articles/#{category.id}"
-						id: "digiseller-category-#{category.id}"
-						sub: @render(category.sub, category.id)
-					)
-
-				DS.tmpl(DS.tmpls.categories,
-					id: if parent_cid then "digiseller-category-sub-#{parent_cid}" else ''
-					out: out
-				)
-
+				
 	DS.route =
 		home:
 			url: '/home'
@@ -564,11 +614,13 @@ DigiSeller-ru-api
 						out += DS.tmpl(DS.tmpls.showcaseArticle,
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
-							imgsize: DS.opts.imgsize_firstpage
+							imgsize_firstpage: DS.opts.imgsize_firstpage
 						)
 
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles,
 					out: out
+					categories: data.categories
+					opts: DS.opts
 				)
 
 		search:
@@ -577,6 +629,7 @@ DigiSeller-ru-api
 			page: null
 			rows: null
 			pager: null
+			prefix: 'digiseller-search'
 			action: (params) ->
 				@search = decodeURIComponent(params[2])
 				@page = parseInt(params[1]) or 1
@@ -624,7 +677,7 @@ DigiSeller-ru-api
 							d: article							
 						)
 
-				container = DS.dom.$('#digiseller-search-results')
+				container = DS.dom.$("##{@prefix}-results")
 
 				if container
 					container.innerHTML = out
@@ -652,7 +705,7 @@ DigiSeller-ru-api
 
 						onChangeRows: (rows) ->
 							DS.opts.rows = rows
-							DS.util.cookie.set('digiseller-articles-rows', rows)
+							DS.util.cookie.set(DS.route.articles.prefix + '-rows', rows)
 
 							that.page = 1
 							that.rows = rows
@@ -666,8 +719,8 @@ DigiSeller-ru-api
 					
 					DS.widget.currency.init()
 				
-				DS.dom.$('#digiseller-search-query').innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
-				DS.dom.$('#digiseller-search-total').innerHTML = data.totalItems
+				DS.dom.$("##{@prefix}-query").innerHTML = @search.replace('<', '&lt;').replace('>', '&gt;')
+				DS.dom.$("##{@prefix}-total").innerHTML = data.totalItems
 
 				return
 
@@ -678,6 +731,7 @@ DigiSeller-ru-api
 			rows: null
 			pager: null
 			pagerComments: null
+			prefix: 'digiseller-articles'
 			action: (params) ->
 				@cid = params[1]
 				@page = parseInt(params[2]) or 1
@@ -712,8 +766,10 @@ DigiSeller-ru-api
 			render: (data) ->
 				out = ''
 
+				data.totalPages = parseInt(data.totalPages)
+				
 				articles = data.product
-				unless articles
+				if not articles or not articles.length					
 					out = DS.tmpls.nothing
 				else
 					for article in articles
@@ -723,7 +779,7 @@ DigiSeller-ru-api
 							imgsize: DS.opts.imgsize_listpage
 						)
 
-				container = DS.dom.$("#digiseller-articles-#{@cid}")
+				container = DS.dom.$("##{@prefix}-#{@cid}")
 				if container
 					container.innerHTML = out
 
@@ -731,52 +787,58 @@ DigiSeller-ru-api
 					@pager.rows = @rows
 					@pager.total = data.totalPages
 					@pager.render()
+					
 				else
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articles,
-						id: "digiseller-articles-#{@cid}"
-						breadCrumbs: data.breadCrumbs
+						id: @prefix + "-#{@cid}"						
+						opts: DS.opts
+						d: data
+						hasCategories: if not data.categories or not data.categories.length then false else true
+						articlesPanel: if data.totalPages then DS.tmpls.articlesPanel else ''
 						out: out
 					)
+					
+					if data.totalPages
+						that = @
+						@pager = new DS.widget.pager(DS.dom.$(".#{@prefix}-pager", DS.widget.main.$el)[0], {
+							page: @page
+							rows: @rows
+							total: data.totalPages
+							getLink: (page) ->
+								return DS.tmpl(DS.tmpls.page,
+									page: page
+									url: DS.opts.hashPrefix + "/articles/#{that.cid}/#{page}"
+								)
+							onChangeRows: (rows) ->
+								DS.opts.rows = rows
+								DS.util.cookie.set("#{that.prefix}-rows", rows)
 
-					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-articles-pager', DS.widget.main.$el)[0], {
-						page: @page
-						rows: @rows
-						total: data.totalPages
-						getLink: (page) ->
-							return DS.tmpl(DS.tmpls.page,
-								page: page
-								url: DS.opts.hashPrefix + "/articles/#{that.cid}/#{page}"
-							)
-						onChangeRows: (rows) ->
-							DS.opts.rows = rows
-							DS.util.cookie.set('digiseller-articles-rows', rows)
+								that.page = 1
+								that.rows = rows
+								that.get()
 
-							that.page = 1
-							that.rows = rows
+								DS.historyClick.changeHashSilent(DS.opts.hashPrefix + "/articles/#{that.cid}/1")
+
+								return
+
+						}).render()
+
+						DS.widget.currency.init()
+
+						$selectSort = DS.dom.$( 'select', DS.dom.$('#digiseller-sort') )[0]
+						DS.dom.addEvent($selectSort, 'change', (e) ->
+							DS.opts.sort = DS.dom.$('option', @)[@selectedIndex].value
+							DS.util.cookie.set(@prefix + '-sort', DS.opts.sort)
 							that.get()
-
-							DS.historyClick.changeHashSilent(DS.opts.hashPrefix + "/articles/#{that.cid}/1")
-
-							return
-
-					}).render()
-
-					DS.widget.currency.init()
-
-					$selectSort = DS.dom.$( 'select', DS.dom.$('#digiseller-sort') )[0]
-					DS.dom.addEvent($selectSort, 'change', (e) ->
-						DS.opts.sort = DS.dom.$('option', @)[@selectedIndex].value
-						DS.util.cookie.set('digiseller-articles-sort', DS.opts.sort)
-						that.get()
-					)
-					DS.dom.select($selectSort, DS.opts.sort)
+						)
+						DS.dom.select($selectSort, DS.opts.sort)
 
 				return
 		article:
 			url: '/detail(?:/([0-9]*))'
 			comments: null
 			id: null
+			prefix: 'digiseller-article'
 			action: (params) ->
 				@id = params[1] or 0
 
@@ -809,9 +871,10 @@ DigiSeller-ru-api
 					imgsize: DS.opts.imgsize_infopage
 				)
 				
-				DS.widget.currency.init()
+				DS.widget.currency.init()				
 				
-				$thumbs = DS.dom.$('#digiseller-article-thumbs')
+				that = @
+				$thumbs = DS.dom.$("##{@prefix}-thumbs")
 				if $thumbs and $thumbs.children
 					for $thumb in $thumbs.children					
 						DS.dom.addEvent($thumb, 'click', (e) ->
@@ -823,10 +886,10 @@ DigiSeller-ru-api
 							
 							orig = DS.dom.attr($el, 'href')
 							id = DS.dom.attr($el, 'data-id')
-							height = parseInt(DS.dom.attr($el, 'data-height'))
-							width = parseInt(DS.dom.attr($el, 'data-width'))
+							height = parseInt( DS.dom.attr($el, 'data-height') )
+							width = parseInt( DS.dom.attr($el, 'data-width') )
 							
-							$preview = DS.dom.$('#digiseller-img-preview')
+							$preview = DS.dom.$("##{that.prefix}-img-preview")
 							$previewImg = DS.dom.$('img', $preview)[0]					
 							
 							$preview.href = orig
@@ -838,7 +901,7 @@ DigiSeller-ru-api
 				return
 				
 			initComments: () ->
-				$el = DS.dom.$('#digiseller-article-comments-' + @id)
+				$el = DS.dom.$("##{@prefix}-comments-" + @id)
 				
 				if DS.dom.attr($el, 'inited')					
 					return					
@@ -891,16 +954,17 @@ DigiSeller-ru-api
 			url: '/reviews(?:/([0-9]*))?'
 			comments: null
 			id: ""
+			prefix: 'digiseller-reviews'
 			action: (params) ->
 				unless DS.dom.$('#' + @id)
-					@id = "digiseller-reviews-#{DS.util.getUID()}"
+					@id = @prefix + "-#{DS.util.getUID()}"
 					that = @
 					@comments = new DS.widget.comments(DS.widget.main.$el, '', (data) ->
 						that.initComments(data)
 					)
 
 				@comments.page = parseInt(params[1]) or 1
-				@comments.rows = DS.util.cookie.get('digiseller-reviews-rows') || 10
+				@comments.rows = DS.util.cookie.get(@prefix + '-rows') || 10
 				@comments.get()
 
 				return
@@ -924,7 +988,7 @@ DigiSeller-ru-api
 						)
 
 					onChangeRows: (rows) ->
-						DS.util.cookie.set('digiseller-reviews-rows', rows)
+						DS.util.cookie.set(@prefix + '-rows', rows)
 
 						that.comments.page = 1
 						that.comments.rows = rows
@@ -934,7 +998,7 @@ DigiSeller-ru-api
 
 				}).render()
 
-				DS.dom.addEvent(DS.dom.$( 'select', DS.dom.$('#digiseller-reviews-type') )[0], 'change', (e) ->
+				DS.dom.addEvent(DS.dom.$( 'select', DS.dom.$("##{@prefix}-type") )[0], 'change', (e) ->
 					that.comments.page = 1
 					that.comments.type = DS.dom.$('option', @)[@selectedIndex].value
 					that.comments.get()
@@ -1007,69 +1071,7 @@ DigiSeller-ru-api
 			if DS.share[type]
 				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436));
 
-
-	inited = no
-	DS.init = ->
-		return off if inited
-		inited = yes
-
-		DS.$el.head = DS.dom.$('head')[0] || document.documentElement
-		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
-		DS.$el.shop = DS.dom.$("##{DS.opts.widgetId}")
-		
-		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
-		
-			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
-			DS.opts.sort = DS.util.cookie.get('digiseller-articles-sort') or DS.opts.sort # name, nameDESC, price, priceDESC
-			DS.opts.rows = DS.util.cookie.get('digiseller-articles-rows') or DS.opts.rows
-
-			DS.$el.shop.innerHTML = DS.tmpl(DS.tmpls.main,
-				d: DS.opts
-			)
-
-			DS.widget.main.$el = DS.dom.$('#digiseller-main')
-			DS.widget.loader.$el = DS.dom.$('#digiseller-loader')
-			DS.widget.category.init(DS.dom.$('#digiseller-category'))
-			DS.widget.search.init(DS.dom.$('#digiseller-search'))
-			
-			for name, route of DS.route
-				continue unless DS.route.hasOwnProperty(name) or route.url or route.action
-
-				((route) ->
-					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
-						route.action(params)
-					)
-
-					return
-				)(route)
-
-			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
-
-			DS.historyClick.start()
-
-			if window.location.hash is ''
-				DS.historyClick.reload()
-
-			return
-		)
-		
-		callback = (e, type) ->
-			$el = e.originalTarget or e.srcElement
-			action = DS.dom.attr($el, 'data-action')
-			
-			if action and typeof DS.events[type + '-' + action] is 'function'
-				DS.events[type + '-' + action]($el, e)		
-		
-		DS.dom.addEvent(DS.$el.shop, 'click', (e) ->
-			callback(e, 'click')
-		)
-		
-		# DS.dom.addEvent(DS.$el.shop, 'change', (e) ->
-			# callback(e, 'change')
-		# )
-
-		return
-
+				
 	# http://habrahabr.ru/post/156185/
 	DS.share = 
 		vk: (title, img) ->			
@@ -1096,6 +1098,7 @@ url=#{DS.util.enc(document.location)}&
 title=#{DS.util.enc(title)}&
 image=#{DS.util.enc(img)}&
 noparse=0"
+
 
 	DS.historyClick = `(function() {
 		var _rootAlias = '',
@@ -1186,10 +1189,7 @@ noparse=0"
 
 		return historyClick;
 	})();`
-
-
-	#https://github.com/ssteynfaardt/Xhr
-
+	
 
 	DS.JSONP = `(function() {
 		var _callbacks = [];
@@ -1246,6 +1246,7 @@ noparse=0"
 			}
 		};
 	})()`
+	
 
 	# http://documentcloud.github.com/underscore/
 	DS.tmpl = `function(text, data) {
@@ -1322,8 +1323,56 @@ noparse=0"
 		template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
 
 		return template;
-	};`
+	};`	
+	
+	#"
+	inited = no
+	DS.init = ->
+		return off if inited
+		inited = yes
 
+		DS.$el.head = DS.dom.$('head')[0] || document.documentElement
+		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
+		
+		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency			
+			DS.opts.sort = DS.util.cookie.get(DS.route.articles.prefix + '-sort') or DS.opts.sort
+			DS.opts.rows = DS.util.cookie.get(DS.route.articles.prefix + '-rows') or DS.opts.rows			
+			
+			DS.widget.category.init()
+			DS.widget.main.init()
+			DS.widget.loader.init()
+			DS.widget.search.init()
+			DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo, logo_img: DS.opts.logo_img)
+			DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, d: DS.opts)			
+			
+			if not DS.widget.category.$el
+				DS.widget.main.$el.className = 'digiseller-main-nocategory'
+					
+			for name, route of DS.route
+				continue unless DS.route.hasOwnProperty(name) or route.url or route.action
+
+				((route) ->
+					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
+						window.scroll(0, null)
+						route.action(params)
+					)
+
+					return
+				)(route)
+
+			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
+
+			DS.historyClick.start()
+
+			if window.location.hash is ''
+				DS.historyClick.reload()
+
+			return
+		)
+
+		return
+		
 	# alias
 	window.DigiSeller = DS
 
@@ -1335,10 +1384,9 @@ noparse=0"
 
 
 
+
 # DigiSeller.opts.seller_id = 18728
 # DigiSeller.opts.seller_id = 83991
-
-
 
 
 # @$selectCurrency = DS.dom.$( 'select', DS.dom.$('#digiseller-currency') )[0]
@@ -1363,9 +1411,6 @@ noparse=0"
 	# DS.dom.klass('add', $el, 'digiseller-activeTab')
 
 	# return
-	
-	
-	
 	
 	
 # 'click-img-show': ($el, e) ->			

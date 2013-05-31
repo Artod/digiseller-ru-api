@@ -1,30 +1,40 @@
-<div class="digiseller-options">
-	<div class="digiseller-sortby" id="digiseller-sort">
-		<span>Сортировать по: </span>
-		<select>
-			<option value="name">названию от А до Я</option>
-			<option value="nameDESC">названию от Я до А</option>
-			<option value="price">цене от низкой до высокой</option>
-			<option value="priceDESC">цене от высокой до низкой</option>
-		</select>
-	</div>
-
-	<div id="digiseller-currency"></div>
-</div>
+<?= (!hasCategories && d.totalPages ? articlesPanel : '') ?>
 
 <div class="digiseller-breadcrumbs">
 	<a title="Магазин" href="#!digiseller/home">Магазин</a> &gt;&nbsp;
-	<? if (typeof (breadCrumbs) !== "undefined") {			
-		for (var i = 0, l = breadCrumbs.length; i < l - 1; i++) { ?>
-			<a title="<?= breadCrumbs[i].name ?>" href="#!digiseller/articles/<?= breadCrumbs[i].id ?>"><?= breadCrumbs[i].name ?></a> &gt;&nbsp;
+	<? if (d.breadCrumbs) {			
+		for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
+			<a title="<?= d.breadCrumbs[i].name ?>" href="#!digiseller/articles/<?= d.breadCrumbs[i].id ?>"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
 		<? } ?>
-		<strong><?= breadCrumbs[l - 1].name ?></strong>		
+		<strong><?= d.breadCrumbs[l - 1].name ?> (<?= d.totalItems ?>)</strong>		
 	<? } ?>
 </div>
 
-<div class="digiseller-productList" id="<?= id ?>">
-	<?= out ?>	
-</div>
+<? if (hasCategories) { ?>
+	<div class="digiseller-category-blocks">
+		<? for (var i = 0, l = d.categories.length; i < l; i++) { ?>
+			<div>			
+				<a href="<?= opts.hashPrefix ?>/articles/<?= d.categories[i].id ?>">
+					<img src="http://graph.digiseller.ru/img.ashx?idn=<?= d.categories[i].hasImg == 1 ? d.categories[i].id : 1?>&maxlength=<?= opts.imgsize_category ?>" alt="<?= name ?>" />
+				</a>
+				
+				<a style="max-width:<?= opts.imgsize_category ?>px;" href="<?= opts.hashPrefix ?>/articles/<?= d.categories[i].id ?>">
+					<?= d.categories[i].name ?><span>&nbsp;(<?= d.categories[i].cnt ?>)</span>
+				</a>
+			</div>
+		<? } ?>
+	</div>
+	<div class="digiseller-both"></div>
+<? } ?>
 
-<div class="digiseller-articles-pager"></div>
+<?= (hasCategories && d.totalPages ? articlesPanel : '') ?>
+
+<? if (d.totalPages || !d.totalPages && !hasCategories) { ?>
+	<div class="digiseller-productList" id="<?= id ?>">
+		<?= out ?>	
+	</div>
+	
+	<div class="digiseller-articles-pager"></div>	
+<? } ?>
+
 <br />
