@@ -1,7 +1,7 @@
 <div class="digiseller-snapshot">
-	<? if (d.label) { ?>
-		<div>
-			<? switch(d.label) {
+	<div>
+		<? if (d.label) {
+			switch(d.label) {
 				case 'top': ?>
 					<span class="digiseller-vitrinaicon digiseller-lider">Лидер продаж!</span>
 					<? break;
@@ -11,11 +11,12 @@
 				case 'new': ?>
 					<span class="digiseller-vitrinaicon digiseller-newproduct">Новинка!</span>
 					<? break;
-			} ?>
-			<br />
-		</div>
-	<? } ?>
-	
+			}
+		} else { ?>
+			<span class="digiseller-vitrinaicon"></span>
+		<? } ?>
+		<br />
+	</div>	
 	<div>
 		<a href="<?= url ?>" title="digiseller-productName">
 			<a href="<?= url ?>">				

@@ -10,7 +10,7 @@
 		%> -->
 		
 		
-		<script type="text/javascript" src="http://www.digiseller.ru/shop/digiseller-api.js.asp?seller_id=18728" charset="utf-8"></script>
+		<script type="text/javascript" src="http://www.digiseller.ru/shop/digiseller-api.js.asp?seller_id=252575" charset="utf-8"></script>
 		
 		<div id="digiseller-logo" class="digiseller-logo"></div>
 		

@@ -18,7 +18,7 @@ DigiSeller-ru-api
 		host: 'http://shop.digiseller.ru/xml/'
 		hashPrefix: '#!digiseller'
 		currency: 'RUR'
-		sort: '' # name, nameDESC, price, priceDESC
+		sort: 'name' # name, nameDESC, price, priceDESC
 		rows: 10
 		logo_img: ''		
 		menu_purchases: true
@@ -286,24 +286,27 @@ DigiSeller-ru-api
 			init: () ->
 				div = document.createElement('div')
 				div.id = 'digiseller-loader'
+				div.className = div.id
+				div.innerHTML = DS.tmpls.loader	
+				div.style.display = 'none'
 				
-				DS.$el.body.appendChild(div)
+				DS.$el.body.appendChild(div)				
 				
 				@$el = DS.dom.$("##{div.id}")
 				
 				return
 				
-			show: () ->
+			show: () ->				
 				clearTimeout(@timeout)
 
 				that = @
-				@timeout = setTimeout(() ->
+				@timeout = setTimeout(() ->					
 					that.$el.style.display = ''
 				, 1000)
 
 				return
 
-			hide: () ->
+			hide: () ->				
 				clearTimeout(@timeout)
 				
 				@$el.style.display = 'none'
@@ -900,10 +903,11 @@ DigiSeller-ru-api
 				
 				return
 				
-			initComments: () ->
+			initComments: (callback) ->
 				$el = DS.dom.$("##{@prefix}-comments-" + @id)
 				
-				if DS.dom.attr($el, 'inited')					
+				if DS.dom.attr($el, 'inited')
+					callback() if callback
 					return					
 				
 				that = @
@@ -914,6 +918,8 @@ DigiSeller-ru-api
 						totalGood: data.totalGood
 						totalBad: data.totalBad
 					)
+					
+					callback() if callback
 					
 					$selectType = DS.dom.$('select', $el)[0]
 					DS.dom.addEvent($selectType, 'change', (e) ->
@@ -1053,14 +1059,18 @@ DigiSeller-ru-api
 			$panels = $el.parentNode.nextSibling.children
 			
 			DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)				
-			DS.dom.klass('add', $el, 'digiseller-activeTab')
-			
-			for $panel in $panels
-				$panel.style.display = 'none'				
-				
-			$panels[index].style.display = ''
+			DS.dom.klass('add', $el, 'digiseller-activeTab')		
 
-			DS.route.article.initComments() if index is '1'				
+			change = () ->
+				for $panel in $panels
+					$panel.style.display = 'none'
+					
+				$panels[index].style.display = ''
+			
+			if index is '1'
+				DS.route.article.initComments(change)
+			else
+				change()
 
 			return
 			
@@ -1356,6 +1366,8 @@ noparse=0"
 					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
 						window.scroll(0, null)
 						route.action(params)
+						
+						return
 					)
 
 					return

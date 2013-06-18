@@ -20,8 +20,20 @@ DigiSeller-ru-api
       widget: null
     };
     DS.opts = {
+      seller_id: null,
       host: 'http://shop.digiseller.ru/xml/',
-      hashPrefix: '#!digiseller'
+      hashPrefix: '#!digiseller',
+      currency: 'RUR',
+      sort: 'name',
+      rows: 10,
+      logo_img: '',
+      menu_purchases: true,
+      menu_reviews: true,
+      menu_contacts: true,
+      imgsize_firstpage: 160,
+      imgsize_listpage: 162,
+      imgsize_infopage: 163,
+      imgsize_category: 200
     };
     DS.util = {
       getUID: (function() {
@@ -283,6 +295,9 @@ DigiSeller-ru-api
           var div;
           div = document.createElement('div');
           div.id = 'digiseller-loader';
+          div.className = div.id;
+          div.innerHTML = DS.tmpls.loader;
+          div.style.display = 'none';
           DS.$el.body.appendChild(div);
           this.$el = DS.dom.$("#" + div.id);
         },
@@ -857,10 +872,13 @@ DigiSeller-ru-api
             }
           }
         },
-        initComments: function() {
+        initComments: function(callback) {
           var $el, that;
           $el = DS.dom.$(("#" + this.prefix + "-comments-") + this.id);
           if (DS.dom.attr($el, 'inited')) {
+            if (callback) {
+              callback();
+            }
             return;
           }
           that = this;
@@ -871,6 +889,9 @@ DigiSeller-ru-api
               totalGood: data.totalGood,
               totalBad: data.totalBad
             });
+            if (callback) {
+              callback();
+            }
             $selectType = DS.dom.$('select', $el)[0];
             DS.dom.addEvent($selectType, 'change', function(e) {
               that.comments.page = 1;
@@ -983,19 +1004,24 @@ DigiSeller-ru-api
         window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id + "&dsn=limit", '_blank');
       },
       'click-article-tab': function($el, e) {
-        var $panel, $panels, index, _i, _len;
+        var $panels, change, index;
         DS.util.prevent(e);
         index = DS.dom.attr($el, 'data-tab');
         $panels = $el.parentNode.nextSibling.children;
         DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true);
         DS.dom.klass('add', $el, 'digiseller-activeTab');
-        for (_i = 0, _len = $panels.length; _i < _len; _i++) {
-          $panel = $panels[_i];
-          $panel.style.display = 'none';
-        }
-        $panels[index].style.display = '';
+        change = function() {
+          var $panel, _i, _len;
+          for (_i = 0, _len = $panels.length; _i < _len; _i++) {
+            $panel = $panels[_i];
+            $panel.style.display = 'none';
+          }
+          return $panels[index].style.display = '';
+        };
         if (index === '1') {
-          DS.route.article.initComments();
+          DS.route.article.initComments(change);
+        } else {
+          change();
         }
       },
       'click-share': function($el, e) {
@@ -1275,7 +1301,7 @@ DigiSeller-ru-api
         _fn = function(route) {
           DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, function(params) {
             window.scroll(0, null);
-            return route.action(params);
+            route.action(params);
           });
         };
         for (name in _ref2) {
