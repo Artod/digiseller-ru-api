@@ -7,10 +7,16 @@
 		Randomize
 		MyRandomNum = Rnd
 		Response.Write MyRandomNum
-		%> -->
+		%> 18728 -->
 		
+<style>
+.digiseller-snapshot div:nth-child(2) a {
+    padding-bottom: 1px;
+    font-size:1px;
+}
+</style>
 		
-		<script type="text/javascript" src="http://www.digiseller.ru/shop/digiseller-api.js.asp?seller_id=252575" charset="utf-8"></script>
+		<script type="text/javascript" src="http://172.16.101.18/shop_test/digiseller-api.js.asp?seller_id=18728" charset="utf-8"></script>
 		
 		<div id="digiseller-logo" class="digiseller-logo"></div>
 		

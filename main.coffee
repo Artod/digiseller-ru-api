@@ -20,7 +20,7 @@ DigiSeller-ru-api
 		currency: 'RUR'
 		sort: 'name' # name, nameDESC, price, priceDESC
 		rows: 10
-		logo_img: ''		
+		logo_img: ''
 		menu_purchases: true
 		menu_reviews: true
 		menu_contacts: true		
@@ -60,6 +60,11 @@ DigiSeller-ru-api
 			
 			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"
 
+		scrollUp: () ->
+			window.scroll(0, null)
+			
+			return
+			
 		cookie:
 			get: (name) ->
 				`var matches = document.cookie.match(new RegExp(
@@ -600,7 +605,8 @@ DigiSeller-ru-api
 				, (data) ->
 					return off unless data
 
-					that.render(data)
+					that.render(data)					
+					DS.util.scrollUp()
 
 					return
 				)
@@ -659,6 +665,7 @@ DigiSeller-ru-api
 					return off unless data
 
 					that.render(data)
+					DS.util.scrollUp()
 
 					return
 				)
@@ -760,6 +767,7 @@ DigiSeller-ru-api
 					return off unless data
 
 					that.render(data)
+					DS.util.scrollUp()
 
 					return
 				)
@@ -855,6 +863,7 @@ DigiSeller-ru-api
 					return off unless data
 					
 					that.render(data)
+					DS.util.scrollUp()
 
 					return
 				)
@@ -967,6 +976,7 @@ DigiSeller-ru-api
 					that = @
 					@comments = new DS.widget.comments(DS.widget.main.$el, '', (data) ->
 						that.initComments(data)
+						DS.util.scrollUp()
 					)
 
 				@comments.page = parseInt(params[1]) or 1
@@ -1025,6 +1035,8 @@ DigiSeller-ru-api
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.contacts,
 						d: data
 					)
+					
+					DS.util.scrollUp()
 
 					return
 				)
@@ -1048,7 +1060,7 @@ DigiSeller-ru-api
 
 			id = DS.dom.attr($el, 'data-id')
 
-			window.open( "https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank') # 'digisellerBuy', DS.util.getPopupParams(885, 600) 
+			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank')
 
 			return
 			
@@ -1154,7 +1166,7 @@ noparse=0"
 				callback = _revRoutes[i][1];
 
 				if (pattern.test(hash) && typeof callback === 'function') {
-					historyClick.params = hash.match(pattern)
+					historyClick.params = hash.match(pattern);
 					callback(historyClick.params);
 
 					return;
@@ -1363,8 +1375,7 @@ noparse=0"
 				continue unless DS.route.hasOwnProperty(name) or route.url or route.action
 
 				((route) ->
-					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
-						window.scroll(0, null)
+					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->						
 						route.action(params)
 						
 						return

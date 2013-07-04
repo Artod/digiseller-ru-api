@@ -1,12 +1,12 @@
-<?= (!hasCategories && d.totalPages ? articlesPanel : '') ?>
+<h1><?= d.breadCrumbs ? d.breadCrumbs[d.breadCrumbs.length - 1].name : '' ?></h1>
 
 <div class="digiseller-breadcrumbs">
 	<a title="Магазин" href="#!digiseller/home">Магазин</a> &gt;&nbsp;
-	<? if (d.breadCrumbs) {			
+	<? if (d.breadCrumbs) {
 		for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
 			<a title="<?= d.breadCrumbs[i].name ?>" href="#!digiseller/articles/<?= d.breadCrumbs[i].id ?>"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
 		<? } ?>
-		<strong><?= d.breadCrumbs[l - 1].name ?> (<?= d.totalItems ?>)</strong>		
+		<strong><?= d.breadCrumbs[l - 1].name ?> (<?= d.totalItems ?>)</strong>
 	<? } ?>
 </div>
 
@@ -27,7 +27,7 @@
 	<div class="digiseller-both"></div>
 <? } ?>
 
-<?= (hasCategories && d.totalPages ? articlesPanel : '') ?>
+<?= (d.totalPages ? articlesPanel : '') ?>
 
 <? if (d.totalPages || !d.totalPages && !hasCategories) { ?>
 	<div class="digiseller-productList" id="<?= id ?>">

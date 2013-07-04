@@ -553,7 +553,8 @@ margin-bottom:10px
 
 .digiseller-homepage a.digiseller-buyButton-empty {
 margin-left:10px;
-display:inline-block
+display:inline-block;
+margin-bottom:10px
 }
 
 .digiseller-product a.digiseller-buyButton {
