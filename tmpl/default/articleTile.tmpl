@@ -17,13 +17,13 @@
 		<? } ?>
 		<br />
 	</div>	
-	<div style="height:<?= 10 + imgsize_firstpage ?>px;">
+	<div style="height:<?= 10 + imgsize ?>px;">
 		<a onclick="location.hash='<?= url ?>';">				
-			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize_firstpage ?>" alt="" />&nbsp;		
+			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize ?>" alt="" />&nbsp;		
 		</a>
 	</div>
 
-	<div class="digiseller-snapprodnamehldr" style="max-width:<?= imgsize_firstpage ?>px;">
+	<div class="digiseller-snapprodnamehldr" style="max-width:<?= imgsize ?>px;">
 		<a onclick="location.hash='<?= url ?>';" title="<?= d.name ?>">
 			<span class="digiseller-snapname"><?= d.name ?></span>
 		</a>

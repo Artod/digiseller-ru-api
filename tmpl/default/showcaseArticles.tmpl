@@ -2,11 +2,11 @@
 	<div class="digiseller-category-blocks">
 		<? for (var i = 0, l = categories.length; i < l; i++) { ?>
 			<div>			
-				<a href="<?= opts.hashPrefix ?>/articles/<?= categories[i].id ?>">
-					<img src="http://graph.digiseller.ru/img.ashx?idn=<?= categories[i].hasImg == 1 ? categories[i].id : 1?>&maxlength=<?= opts.imgsize_category ?>" alt="<?= name ?>" />
+				<a onclick="location.hash='<?= opts.hashPrefix ?>/articles/<?= categories[i].id ?>';">
+					<img src="//graph.digiseller.ru/img.ashx?idn=<?= categories[i].hasImg == 1 ? categories[i].id : 1?>&maxlength=<?= opts.imgsize_category ?>" alt="<?= name ?>" />
 				</a>
 				
-				<a style="max-width:<?= opts.imgsize_category ?>px;" href="<?= opts.hashPrefix ?>/articles/<?= categories[i].id ?>">
+				<a onclick="location.hash='<?= opts.hashPrefix ?>/articles/<?= categories[i].id ?>';" style="max-width:<?= opts.imgsize_category ?>px;">
 					<?= categories[i].name ?><span>&nbsp;(<?= categories[i].cnt ?>)</span>
 				</a>
 			</div>

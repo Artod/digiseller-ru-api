@@ -207,11 +207,14 @@ DigiSeller-ru-api
 			return
 
 		select: ($select, val) ->
-			$options = DS.dom.$('option', $select)
-			for $option, i in $options
-				if $option.value is val + ''
-					$select.selectedIndex = i
-					return
+			if typeof val is 'undefined'
+				return DS.dom.$('option', $select)[$select.selectedIndex].value
+			else
+				$options = DS.dom.$('option', $select)
+				for $option, i in $options
+					if $option.value is val + ''
+						$select.selectedIndex = i
+						return
 
 			return
 
@@ -452,8 +455,8 @@ DigiSeller-ru-api
 				DS.dom.addEvent($sel, 'change', (e) ->
 					type = DS.dom.attr(@, 'data-type')
 					
-					DS.opts.currency = DS.dom.$('option', @)[@selectedIndex].value
-					DS.util.cookie.set("digiseller-currency", DS.opts.currency)
+					DS.opts.currency = DS.dom.select(@)
+					DS.util.cookie.set('digiseller-currency', DS.opts.currency)
 					DS.historyClick.reload()
 				
 					return
@@ -518,7 +521,7 @@ DigiSeller-ru-api
 				that = @
 				$select = DS.dom.$('select', @$el)[0]
 				DS.dom.addEvent($select, 'change', (e) ->
-					that.rows = DS.dom.$('option', @)[@selectedIndex].value
+					that.rows = DS.dom.select(@)
 					that.opts.onChangeRows(that.rows)
 				)
 
@@ -581,7 +584,72 @@ DigiSeller-ru-api
 				@container.innerHTML = out
 
 				return
+		calc: class
+			_els = ['pay', 'get', 'getSelect', 'method', 'payR', 'getR', 'getRK']
+			_prefix = 'digiseller-calc'
+			
+			constructor: (@id) ->
+				@$ = container: DS.dom.$("##{_prefix}")
+				
+				unless @$.container
+					return
+			
+				for el in _els
+					@$[el] = DS.dom.$("##{_prefix}-#{el}")
+				
+				that = @				
+				
+				if @$.pay
+					if @$.get
+						DS.dom.addEvent( @$.pay, 'keyup', () -> that.get() )
+						DS.dom.addEvent( @$.get, 'keyup', () -> that.get() )
 
+					if @$.getSelect then DS.dom.addEvent( @$.getSelect, 'change', () -> that.get() )
+					DS.dom.addEvent( @$.method, 'change', () -> that.get() )
+				
+				return			
+				
+			get: () ->				
+				that = @
+				
+				console.dir
+					seller_id: DS.opts.seller_id
+					id: @id
+					format: 'json'
+					pay: @$.pay.value
+					get: if @$.get then @$.get.value else ''
+					getSelect: if @$.getSelect then DS.dom.select(@$.getSelect) else ''
+					method: DS.dom.select(@$.method)				
+				
+				DS.JSONP.get(DS.opts.host + '???.asp', @$.container,
+					seller_id: DS.opts.seller_id
+					id: @id
+					format: 'json'
+					pay: @$.pay.value
+					get: if @$.get then @$.get.value else ''
+					getSelect: if @$.getSelect then DS.dom.select(@$.getSelect) else ''
+					method: DS.dom.select(@$.method)
+				, (data) ->
+					return off unless data
+
+					that.render(data)
+
+					return
+				)
+				
+				return
+				
+			render: (data) ->
+				@$.pay.value = data.pay if data.pay
+				@$.get.value = data.get if @$.get && data.get				
+				if @$.getSelect and data.getSelect
+					DS.dom.select(@$.getSelect, data.getSelect)
+				
+				@$.payR.innerHTML = data.payR
+				@$.getR.innerHTML = data.getR
+				@$.getRK.innerHTML = data.getRK
+				
+				return			
 				
 	DS.route =
 		home:
@@ -784,7 +852,7 @@ DigiSeller-ru-api
 					out = DS.tmpls.nothing
 				else
 					for article in articles
-						out += DS.tmpl(DS.tmpls.article, 
+						out += DS.tmpl(DS.tmpls['article' + DS.opts.view.charAt(0).toUpperCase() + DS.opts.view.slice(1)], 
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
 							imgsize: DS.opts.imgsize_listpage
@@ -822,7 +890,7 @@ DigiSeller-ru-api
 								)
 							onChangeRows: (rows) ->
 								DS.opts.rows = rows
-								DS.util.cookie.set("#{that.prefix}-rows", rows)
+								DS.util.cookie.set(that.prefix + '-rows', rows)
 
 								that.page = 1
 								that.rows = rows
@@ -836,13 +904,15 @@ DigiSeller-ru-api
 
 						DS.widget.currency.init()
 
-						$selectSort = DS.dom.$( 'select', DS.dom.$('#digiseller-sort') )[0]
-						DS.dom.addEvent($selectSort, 'change', (e) ->
-							DS.opts.sort = DS.dom.$('option', @)[@selectedIndex].value
-							DS.util.cookie.set(@prefix + '-sort', DS.opts.sort)
-							that.get()
-						)
-						DS.dom.select($selectSort, DS.opts.sort)
+						params = ['sort', 'view']
+						for param in params
+							$selectSort = DS.dom.$( 'select', DS.dom.$("#digiseller-#{param}") )[0]
+							DS.dom.addEvent($selectSort, 'change', (e) ->
+								DS.opts[param] = DS.dom.select(@)
+								DS.util.cookie.set(that.prefix + "-#{param}", DS.opts[param])
+								that.get()
+							)
+							DS.dom.select($selectSort, DS.opts[param])
 
 				return
 		article:
@@ -881,35 +951,56 @@ DigiSeller-ru-api
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articleDetail,
 					d: data.product
 					imgsize: DS.opts.imgsize_infopage
+					buy: DS.tmpl(DS.tmpls.buy,
+						d: data.product
+						types: DigiSeller.opts.types
+					)
 				)
 				
-				DS.widget.currency.init()				
+				new DS.widget.calc(data.product.id)
+				DS.widget.currency.init()
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
 				
 				that = @
 				$thumbs = DS.dom.$("##{@prefix}-thumbs")
 				if $thumbs and $thumbs.children
-					for $thumb in $thumbs.children					
-						DS.dom.addEvent($thumb, 'click', (e) ->
-							$el = @
-							if DS.dom.attr($el, 'class') is 'digiseller-videothumb'							
-								return
+					onClick = ($el) ->
+						# if DS.dom.attr($el, 'class') is 'digiseller-videothumb'							
+							# return
 						
-							DS.util.prevent(e)
-							
-							orig = DS.dom.attr($el, 'href')
-							id = DS.dom.attr($el, 'data-id')
-							height = parseInt( DS.dom.attr($el, 'data-height') )
-							width = parseInt( DS.dom.attr($el, 'data-width') )
-							
-							$preview = DS.dom.$("##{that.prefix}-img-preview")
-							$previewImg = DS.dom.$('img', $preview)[0]					
-							
-							$preview.href = orig
-							$previewImg.src = $previewImg.src.replace(/idp=[0-9]+&(h|w)/i, "idp=#{id}&#{if height > width then 'h' else 'w'}")					
+						orig = DS.dom.attr($el, 'href')
+						id = DS.dom.attr($el, 'data-id')
+						height = parseInt( DS.dom.attr($el, 'data-height') )
+						width = parseInt( DS.dom.attr($el, 'data-width') )
+						
+						# $preview = DS.dom.$("##{that.prefix}-img-preview")
+						# $previewImg = DS.dom.$('img', $preview)[0]					
+						
+						# $preview.href = orig
+						# $previewImg.src = $previewImg.src.replace(/idp=[0-9]+&(h|w)/i, "idp=#{id}&#{if height > width then 'h' else 'w'}")					
 
-							return
+						DS.popup(orig,
+							if $el.previousSibling then () -> onClick($el.previousSibling) else false,
+							if $el.nextSibling then () -> onClick($el.nextSibling) else false
 						)
-				
+						
+						return
+						
+					for $thumb in $thumbs.children
+						DS.dom.addEvent($thumb, 'click', (e) ->
+							DS.util.prevent(e)
+							onClick(this)
+						)
+
 				return
 				
 			initComments: (callback) ->
@@ -1091,8 +1182,7 @@ DigiSeller-ru-api
 			title = DS.dom.attr($el, 'data-title')
 			img = DS.dom.attr($el, 'data-img')
 			if DS.share[type]
-				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436));
-
+				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436))
 				
 	# http://habrahabr.ru/post/156185/
 	DS.share = 
@@ -1345,9 +1435,94 @@ noparse=0"
 		template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
 
 		return template;
-	};`	
+	}` #"
 	
-	#"
+	
+	DS.popup = (() ->
+		setup = {}
+		img = null
+		prefix = 'digiseller-popup-'
+		isCompV = document.compatMode is 'CSS1Compat'
+		
+		close = (e) ->
+			DS.util.prevent(e)
+			setup.$main.style.display = 'none'
+			DS.dom.removeEvent(window, 'resize', resize)
+
+		resize = (h, w) ->			
+			scale0 = h / w
+			wih = window.innerHeight
+			wiw = window.innerWidth
+			hs = ( if typeof wih isnt 'undefined' then wih else (document[if isCompV then 'documentElement' else 'body'].offsetHeight - 22) ) - 100
+			ws = ( if typeof wiw isnt 'undefined' then wiw else document[if isCompV then 'documentElement' else 'body'].offsetWidth ) - 120
+			h1 = hs
+			w1 = ws
+
+			isDec = false
+			h >= hs and (isDec = true) or (h1 = h)
+			w >= ws and (isDec = true) or (w1 = w)
+
+			if isDec
+				if scale0 <= h1/w1
+					h1 = Math.round(scale0 * w1)
+				else
+					w1 = Math.round(h1 / scale0)
+
+			img.style.height = h1 + 'px'
+			img.style.width = w1 + 'px'
+
+			setup.$container.style.width = (w1 + 50) + 'px'
+			setup.$container.style.top = (hs - h1 + 20)/3 + 'px'
+
+		init = () ->
+			container = document.createElement('div')
+			container.innerHTML = DS.tmpl(DS.tmpls.popup,
+				prefix: prefix
+			)
+
+			(document.getElementsByTagName('body')[0] or document.documentElement).appendChild(container.firstChild);
+
+			params = ['main', 'fade', 'loader', 'container', 'close', 'img', 'left', 'right']			
+			for param in params
+				setup['$' + param] = document.getElementById(prefix + param)
+
+			DS.dom.addEvent(setup.$fade, 'click', close)
+			DS.dom.addEvent(setup.$close, 'click', close)
+		return (url, onLeft, onRight) ->
+			not setup.$main and  init()
+
+			setup.$container.style.display = 'none'
+			setup.$main.style.display = ''
+			setup.$loader.style.display = ''
+			
+			setup.$left.style.display = if onLeft then '' else 'none'
+			setup.$right.style.display = if onRight then '' else 'none'
+			
+			onLeft and DS.dom.addEvent(setup.$left, 'click', onLeft)
+			onRight and DS.dom.addEvent(setup.$right, 'click', onRight)
+
+			img = new Image()
+
+			img.onload = () ->
+				h = img.height
+				w = img.width
+
+				DS.dom.addEvent(window, 'resize', () ->
+					resize(h, w)
+				)
+
+				setup.$loader.style.display = 'none'
+				setup.$container.style.display = ''
+
+				resize(h, w)
+
+				setup.$img.innerHTML = ''
+				setup.$img.appendChild(img)
+
+			img.src = url		
+	)()
+	
+	
 	inited = no
 	DS.init = ->
 		return off if inited
@@ -1357,14 +1532,17 @@ noparse=0"
 		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
 		
 		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
-			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency			
-			DS.opts.sort = DS.util.cookie.get(DS.route.articles.prefix + '-sort') or DS.opts.sort
-			DS.opts.rows = DS.util.cookie.get(DS.route.articles.prefix + '-rows') or DS.opts.rows			
+			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
 			
+			params = ['sort', 'rows', 'view']
+			for param in params
+				DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
+
 			DS.widget.category.init()
 			DS.widget.main.init()
 			DS.widget.loader.init()
 			DS.widget.search.init()
+			
 			DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo, logo_img: DS.opts.logo_img)
 			DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, d: DS.opts)			
 			
@@ -1405,6 +1583,17 @@ noparse=0"
 
 ) window, document
 
+
+DigiSeller.opts.types = [
+	{
+		name: 'WebMoney (USD)',
+		cl: 'wmz'
+	},
+	{
+		name: 'WebMoney (RUR)',
+		cl: 'wmr'
+	}
+];
 
 
 

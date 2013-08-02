@@ -1,10 +1,10 @@
 <h1><?= d.breadCrumbs ? d.breadCrumbs[d.breadCrumbs.length - 1].name : '' ?></h1>
 
 <div class="digiseller-breadcrumbs">
-	<a title="Магазин" href="#!digiseller/home">Магазин</a> &gt;&nbsp;
+	<a title="Магазин" onclick="location.hash='#!digiseller/home';">Магазин</a> &gt;&nbsp;
 	<? if (d.breadCrumbs) {
 		for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
-			<a title="<?= d.breadCrumbs[i].name ?>" href="#!digiseller/articles/<?= d.breadCrumbs[i].id ?>"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
+			<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
 		<? } ?>
 		<strong><?= d.breadCrumbs[l - 1].name ?> (<?= d.totalItems ?>)</strong>
 	<? } ?>
@@ -14,11 +14,11 @@
 	<div class="digiseller-category-blocks">
 		<? for (var i = 0, l = d.categories.length; i < l; i++) { ?>
 			<div>			
-				<a href="<?= opts.hashPrefix ?>/articles/<?= d.categories[i].id ?>">
-					<img src="http://graph.digiseller.ru/img.ashx?idn=<?= d.categories[i].hasImg == 1 ? d.categories[i].id : 1?>&maxlength=<?= opts.imgsize_category ?>" alt="<?= name ?>" />
+				<a onclick="location.hash='#!digiseller/articles/<?= d.categories[i].id ?>';">
+					<img src="//graph.digiseller.ru/img.ashx?idn=<?= d.categories[i].hasImg == 1 ? d.categories[i].id : 1?>&maxlength=<?= opts.imgsize_category ?>" alt="<?= name ?>" />
 				</a>
 				
-				<a style="max-width:<?= opts.imgsize_category ?>px;" href="<?= opts.hashPrefix ?>/articles/<?= d.categories[i].id ?>">
+				<a onclick="location.hash='#!digiseller/articles/<?= d.categories[i].id ?>';" style="max-width:<?= opts.imgsize_category ?>px;">
 					<?= d.categories[i].name ?><span>&nbsp;(<?= d.categories[i].cnt ?>)</span>
 				</a>
 			</div>

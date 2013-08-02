@@ -1,0 +1,21 @@
+.digiseller-topmenu a, .digiseller-category a, .digiseller-main a{cursor:pointer;}
+.digiseller-category ul a {color:#0d73a8;} /* цвет категорий в левом меню */
+.digiseller-category-blocks a {color:#0d73a8;} /* цвет названий товара на витрине */
+.digiseller-breadcrumbs a  {color:#0d73a8;} /* цвет "хлебных крошек" */
+.digiseller-search-go {background-color:#000000;} /* цвет кнопки поиска */
+.digiseller-search-go:hover {background-color:#4cb4fd;} /* цвет кнопки поиска при наведении */
+.digiseller-browseProdTitle a.digiseller-product-details  {color:#0d73a8;} /* цвет кнопки "подробнее" */
+.digiseller-paging a {background-color:#0d73a8;} /* цвет номеров страниц */
+.digiseller-paging a.digiseller-activepage {background-color:#4cb4fd;} /* цвет номера активной страницы */
+a.digiseller-buyButton {background-color:#0d73a8;} /* цвет кнопок "купить" */
+a.digiseller-buyButton:hover {background-color:#4cb4fd;} /* цвет кнопок "купить" при наведении */
+
+/* Добавление иконок к верхнему меню */
+/* Рекомендуемый размер иконок 24x24 px */
+.digiseller-topmenu a {border-right: 0 none; margin-left: 10px;} /* - убираем разделители, увеличиваем расстояние */
+/* иконка для "Мои покупки" */
+a.digiseller-myorderslnk {background:url(http://www.digiseller.ru/shop/img/icon3.png) left center no-repeat; padding-left:27px;}
+/* иконка для "Отзывы покупателей" */
+a.digiseller-reviewslnk {background:url(http://www.digiseller.ru/shop/img/icon1.png) left center no-repeat; padding-left:24px;}
+/* иконка для "Контакты" */
+a.digiseller-contactslnk {background:url(http://www.digiseller.ru/shop/img/icon2.png) left center no-repeat; padding-left:27px;}

@@ -5,17 +5,17 @@
 	</div>	
 
 	<div class="digiseller-article-img" style="width:<?= 17 + imgsize ?>px;">
-		<a href="<?= url ?>">
-			<img src="http://graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
+		<a onclick="location.hash='<?= url ?>';">
+			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
 		</a>
 	</div>
 	
 	<div class="digiseller-browseProdTitle">
-		<a href="<?= url ?>" title=""><?= d.snippet_name ?></a>
+		<a onclick="location.hash='<?= url ?>';" title=""><?= d.snippet_name ?></a>
 		<p>
 			<?= d.snippet_info ?>
 			<br /><br />
-			<a title="Подробнее" href="<?= url ?>" class="digiseller-product-details">Подробнее »</a>
+			<a onclick="location.hash='<?= url ?>';" title="Подробнее" class="digiseller-product-details">Подробнее »</a>
 		</p>
 	</div>
 </div>

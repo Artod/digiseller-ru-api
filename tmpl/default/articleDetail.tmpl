@@ -4,28 +4,27 @@
 
 <div class="digiseller-productpge">
 	<h1>
-		<a title="" class="digiseller-prod-name"><?= d.name ?>&nbsp;
-			<? switch(d.label) {
-				case 'top': ?>
-					<span class="digiseller-labellider">Лидер продаж!</span>
-					<? break;
-				case 'sale': ?>
-					<span class="digiseller-labelaction">Акция!</span>
-					<? break;
-				case 'new': ?>
-					<span class="digiseller-labelnew">Новинка!</span>
-					<? break;
-			} ?>
-		</a>			
+		<?= d.name ?>&nbsp;
+		<? switch(d.label) {
+			case 'top': ?>
+				<span class="digiseller-labellider">Лидер продаж!</span>
+				<? break;
+			case 'sale': ?>
+				<span class="digiseller-labelaction">Акция!</span>
+				<? break;
+			case 'new': ?>
+				<span class="digiseller-labelnew">Новинка!</span>
+				<? break;
+		} ?>
 	</h1>
 	
 	<div class="digiseller-breadcrumbs">
-		<a title="Магазин" href="#!digiseller/home">Магазин</a> &gt;&nbsp;
+		<a title="Магазин" onclick="location.hash='#!digiseller/home';">Магазин</a> &gt;&nbsp;
 		<? if (d.breadCrumbs) {			
 			for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
-				<a title="<?= d.breadCrumbs[i].name ?>" href="#!digiseller/articles/<?= d.breadCrumbs[i].id ?>"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
+				<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
 			<? } ?>
-			<a title="<?= d.breadCrumbs[l - 1].name ?>" href="#!digiseller/articles/<?= d.breadCrumbs[l - 1].id ?>"><?= d.breadCrumbs[l - 1].name ?></a>
+			<a title="<?= d.breadCrumbs[l - 1].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[l - 1].id ?>';"><?= d.breadCrumbs[l - 1].name ?></a>
 		<? } ?>
 	</div>
 
@@ -42,27 +41,27 @@
 	
 	<div class="digiseller-product-details">		
 		<div class="digiseller-product-left">
-			<? if (mainImg) { ?>
+			<!--<? if (mainImg) { ?>
 				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview">
-					<img src="http://graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= imgsize ?>" alt="<?= name ?>" />
+					<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= imgsize ?>" alt="<?= name ?>" />
 				</a>
 			<? } else { ?>
-				<img src="http://graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
-			<? } ?>
+				<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
+			<? } ?>-->
 			
 			<? if (d.preview_imgs || d.preview_videos) { ?>
 				<div class="digiseller-left-thumbs" id="digiseller-article-thumbs">
 					<? if (d.preview_imgs && d.preview_imgs.length > 1) { ?>
 						<? for (var i = 0, l = d.preview_imgs.length; i < l; i++) { ?>
-							<a href="<?= d.preview_imgs[i].url ?>" data-id="<?= d.preview_imgs[i].id ?>" data-height="<?= d.preview_imgs[i].height ?>" data-width="<?= d.preview_imgs[i].width ?>">
-								<img src="http://graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[i].id ?>&maxlength=80&crop=1" alt="" />
+							<a data-action="photo" href="<?= d.preview_imgs[i].url ?>" data-id="<?= d.preview_imgs[i].id ?>" data-height="<?= d.preview_imgs[i].height ?>" data-width="<?= d.preview_imgs[i].width ?>">
+								<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[i].id ?>&maxlength=80&crop=1" alt="" />
 							</a>
 						<? } ?>
 					<? } ?>
 
 					<? if (d.preview_videos) { ?>
 						<? for (var i = 0, l = d.preview_videos.length; i < l; i++) { ?>
-							<a class="digiseller-videothumb" href="<?= (d.preview_videos[i].type == "youtube" ? "http://www.youtube.com/watch?v=" + d.preview_videos[i].id : "http://vimeo.com/" + d.preview_videos[i].id) ?>" target="_blank">
+							<a data-action="photo" class="digiseller-videothumb" href="<?= (d.preview_videos[i].type == "youtube" ? "//www.youtube.com/watch?v=" + d.preview_videos[i].id : "//vimeo.com/" + d.preview_videos[i].id) ?>" target="_blank">
 								<img src="<?= d.preview_videos[i].preview ?>" alt="" />
 								<span></span>
 							</a>
@@ -73,16 +72,7 @@
 		</div>
 		
 		<div class="digiseller-product-right">
-			<div class="digiseller-productBuy">
-				<span class="digiseller-prod-cost">
-					<?= price ?>
-				</span>
-				<? if (d.is_available) { ?>
-					<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>">Купить</a>
-				<? } else { ?>
-					<a class="digiseller-buyButton-empty">Нет в наличии</a>
-				<? } ?>
-			</div>		
+			<?= buy ?>
 
 			<div class="digiseller-prod-info">
 				<? if (d.type) { ?>
