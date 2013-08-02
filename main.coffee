@@ -20,6 +20,7 @@ DigiSeller-ru-api
 		currency: 'RUR'
 		sort: 'name' # name, nameDESC, price, priceDESC
 		rows: 10
+		view: 'list'
 		logo_img: ''
 		menu_purchases: true
 		menu_reviews: true
@@ -1488,26 +1489,30 @@ noparse=0"
 
 			DS.dom.addEvent(setup.$fade, 'click', close)
 			DS.dom.addEvent(setup.$close, 'click', close)
+			
 		return (url, onLeft, onRight) ->
 			not setup.$main and  init()
 
 			setup.$container.style.display = 'none'
 			setup.$main.style.display = ''
 			setup.$loader.style.display = ''
-			
+
 			setup.$left.style.display = if onLeft then '' else 'none'
 			setup.$right.style.display = if onRight then '' else 'none'
 			
+			DS.dom.removeEvent(setup.$left, 'click')
+			DS.dom.removeEvent(setup.$right, 'click')
+			
 			onLeft and DS.dom.addEvent(setup.$left, 'click', onLeft)
 			onRight and DS.dom.addEvent(setup.$right, 'click', onRight)
-
+			
 			img = new Image()
-
 			img.onload = () ->
 				h = img.height
 				w = img.width
 
 				DS.dom.addEvent(window, 'resize', () ->
+					console.log('resize')
 					resize(h, w)
 				)
 
@@ -1517,7 +1522,7 @@ noparse=0"
 				resize(h, w)
 
 				setup.$img.innerHTML = ''
-				setup.$img.appendChild(img)
+				setup.$img.appendChild(img)	
 
 			img.src = url		
 	)()
