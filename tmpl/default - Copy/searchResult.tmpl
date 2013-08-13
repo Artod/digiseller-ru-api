@@ -1,0 +1,21 @@
+<div class="digiseller-product">
+	<div class="digiseller-pricelabel">
+		<span class="digiseller-article-cost"><?= d.price ?></span>
+		<span class="digiseller-currency"><?= d.currency ?></span>
+	</div>	
+
+	<div class="digiseller-article-img" style="width:<?= 17 + imgsize ?>px;">
+		<a onclick="location.hash='<?= url ?>';">
+			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
+		</a>
+	</div>
+	
+	<div class="digiseller-browseProdTitle">
+		<a onclick="location.hash='<?= url ?>';" title=""><?= d.snippet_name ?></a>
+		<p>
+			<?= d.snippet_info ?>
+			<br /><br />
+			<a onclick="location.hash='<?= url ?>';" title="Подробнее" class="digiseller-product-details">Подробнее »</a>
+		</p>
+	</div>
+</div>

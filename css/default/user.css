@@ -9,6 +9,8 @@
 .digiseller-paging a.digiseller-activepage {background-color:#4cb4fd;} /* цвет номера активной страницы */
 a.digiseller-buyButton {background-color:#0d73a8;} /* цвет кнопок "купить" */
 a.digiseller-buyButton:hover {background-color:#4cb4fd;} /* цвет кнопок "купить" при наведении */
+.digiseller-calc {background-color:#ebebeb;} /* цвет фона формы оплаты в карточке товара */
+
 
 /* Добавление иконок к верхнему меню */
 /* Рекомендуемый размер иконок 24x24 px */

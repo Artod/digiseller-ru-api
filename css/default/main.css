@@ -709,6 +709,14 @@ margin-top:10px;
 position:relative
 }
 
+#digiseller-popup-main {position:fixed; top:0px; left:0px; width:100%; height:100%; text-align:center; z-index:9999;}
+#digiseller-popup-fade {position:absolute; top:0px; left:0px; width:100%; height:100%; background-color:#000; zoom: 1; opacity: 0.5; -moz-opacity: 0.5; -khtml-opacity: 0.5; -ms-filter:'progid:DXImageTransform.Microsoft.Alpha(Opacity=50)'; filter: alpha(opacity=50);}
+#digiseller-popup-loader {margin:0px auto 0px auto; top:30%; position:relative; background:#fff url(//events.webmoney.ru/images/loading2.gif) center center no-repeat; width:100px; height:50px;}
+#digiseller-popup-container {position: relative; margin: 0px auto; padding: 35px 25px 10px 25px; background:white;}
+#digiseller-popup-close {font-size:0; width:24px; display:block; position:absolute; height:24px; top:5px; right:5px; background:url(../../img/popup_close.png) center no-repeat;}
+#digiseller-popup-container a#digiseller-popup-left {position:absolute; left:50%; margin-left:-30px; top:5px; width:24px; height:24px; background:url(../../img/popup_left.png) center no-repeat;}
+#digiseller-popup-container a#digiseller-popup-right {position:absolute; left:50%; margin-left:6px; top:5px; width:24px; height:24px; background:url(../../img/popup_right.png) center no-repeat;}
+
 .digiseller-browseProdTitle a.digiseller-product-details {
 color:#0B6678;
 display:inline-block;
@@ -1317,11 +1325,13 @@ clear:both
 
 
 .digiseller-calc {
-background:#fff;
+background:#e6e6e6;
+/*background:#d4f4f9; светло-морской-волны */
 font-size:13px;
 width:240px;
 border:1px solid red;
 padding:10px;
+margin-left:10px;
 border: 1px solid #CCCCCC;
 border-radius: 5px 5px 5px 5px;
 color: #373737;
@@ -1371,7 +1381,14 @@ margin-bottom:10px;
     width: 27px;
 }
 .digiseller-calc-quanity > div.digiseller-calc-right-value {vertical-align:bottom; padding-bottom:14px; font-weight:bold; padding-left:10px;}
-.digiseller-calc-quanity > div.digiseller-calc-right {display:table-cell;}
+.digiseller-calc-quanity > div.digiseller-calc-right {display:table-cell;
+    display: block;
+    margin-left: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100px;
+}
 .digiseller-calc select option {border-top:2px solid white; border-bottom:2px solid white; cursor:pointer;}
 
 .digiseller-calc-quanity > div.digiseller-calc-right select {height:28px; border-radius:3px; border:1px #ccc solid;
@@ -1382,51 +1399,66 @@ font-size:18px;
 .digiseller-calc-option {
 background:url(../../img/digiseller-calc-icons.png) no-repeat;
 padding-left:30px;
+background-position: -400px;
 }
 
-.digiseller-calc-wmr, .digiseller-calc-wmz, .digiseller-calc-wmu {
-background-position: 5px -35px;
+.digiseller-calc-wmr, .digiseller-calc-wmz, .digiseller-calc-wmu, .digiseller-calc-wmd, .digiseller-calc-wme {
+background-position: 5px -35px!important;
 }
 
-.digiseller-calc-qiwi {
-background-position: 5px -67px;
-}
-.digiseller-calc-yandex {
-background-position: 5px -95px;
-}
-.digiseller-calc-ccard {
-background-position:  5px -427px;
-}
-.digiseller-calc-tele2 {
-background-position:  5px -217px;
-}
-.digiseller-calc-mts {
-background-position: 5px -127px;
-}
-.digiseller-calc-beline  {
-background-position: 5px -157px;
-}
-.digiseller-calc-megafon {
-background-position: 5px -185px;
-}
-.digiseller-calc-tele2 {
-background-position: 5px -217px;
-}
-.digiseller-calc-terminals {
-background-position: 5px -247px;
-}
-.digiseller-calc-sms {
-background-position: 5px -277px;
-}
-.digiseller-calc-alfa {
-background-position:  5px -305px;
-}
-.digiseller-calc-wmcard {
-background-position:  5px -337px;
-}
-.digiseller-calc-mail {
-background-position:  5px -366px;
-}
-.digiseller-calc-giftcert {
-background-position: 5px -396px;
-}
+
+
+/*
+
+.digiseller-calc-wmz"WebMoney (USD)</option>
+.digiseller-calc-wmd"WebMoney (USD) в кредит</option>
+.digiseller-calc-wmr"WebMoney (RUR)</option>
+.digiseller-calc-wme"WebMoney (EUR)</option>
+.digiseller-calc-wmu"WebMoney (UAH)</option>*/
+.digiseller-calc-qsr {background-position: 5px -67px!important;}
+/*.digiseller-calc-ppl"PayPal (USD)</option>*/
+.digiseller-calc-pcr {background-position: 5px -95px!important;}
+.digiseller-calc-mmr {background-position:  5px -366px;}
+/*.digiseller-calc-mrr Деньги@Mail.Ru (RUR)</option>*/
+.digiseller-calc-mts {background-position: 5px -127px;}
+.digiseller-calc-bln {background-position: 5px -157px;}
+.digiseller-calc-mgf {background-position: 5px -185px;}
+.digiseller-calc-tl2 {background-position:  5px -217px;}
+.digiseller-calc-sms {background-position: 5px -277px;}
+.digiseller-calc-rcc {background-position:  5px -427px!;}
+.digiseller-calc-occ {background-position:  5px -427px!;}
+.digiseller-calc-alf {background-position:  5px -305px;}
+/*.digiseller-calc-sbr"«Спасибо» от Сбербанка</option>*/
+.digiseller-calc-prr {background-position:  5px -366px;}
+.digiseller-calc-atm {background-position: 5px -247px;} 
+.digiseller-calc-ppz {background-position:  5px -337px;}
+.digiseller-calc-ppr {background-position:  5px -337px;}
+.digiseller-calc-ppe {background-position:  5px -337px;}
+.digiseller-calc-ppu {background-position:  5px -337px;}
+.digiseller-calc-gft {background-position: 5px -396px;}
+.digiseller-calc-rbx {}
+
+
+
+
+
+
+
+/*table view*/
+
+
+
+
+
+/*end table view */
+
+
+
+
+
+
+
+
+
+
+

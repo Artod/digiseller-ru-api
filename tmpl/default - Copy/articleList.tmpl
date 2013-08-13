@@ -1,0 +1,38 @@
+<div class="digiseller-product">
+	<div class="digiseller-pricelabel">
+		<span class="digiseller-article-cost"><? if (d.collection == 'unit') { ?> от <? } ?> <?= d.price ?></span>
+		<span class="digiseller-currency"><?= d.currency ?></span>
+		<? if (d.is_available) { ?>
+			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>">Купить</a>
+		<? } else { ?>
+			<a class="digiseller-buyButton-empty">Нет в наличии</a>
+		<? } ?>
+	</div>
+
+	<div class="digiseller-article-img" style="width:<?= 17 + imgsize ?>px;">
+		<a onclick="location.hash='<?= url ?>';">
+			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize ?>" alt="" />
+		</a>
+	</div>
+
+	<div class="digiseller-browseProdTitle">
+		<a onclick="location.hash='<?= url ?>'"><?= d.name ?>&nbsp;
+			<? switch(d.label) {
+				case 'top': ?>
+					<span class="digiseller-labellider">Лидер продаж!</span>
+					<? break;
+				case 'sale': ?>
+					<span class="digiseller-labelaction">Акция!</span>
+					<? break;
+				case 'new': ?>
+					<span class="digiseller-labelnew">Новинка!</span>
+					<? break;
+			} ?>
+		</a>
+		<p>
+			<?= d.info ?>
+			<br /><br />
+			<a onclick="location.hash='<?= url ?>';" class="digiseller-product-details" title="<?= d.name ?>">Подробнее »</a>
+		</p>
+	</div>
+</div>
