@@ -645,7 +645,7 @@ DigiSeller-ru-api
             format: 'json'
           };
           if (type === 'amount') {
-            params.amount = this.$.amount;
+            params.amount = this.$.amount.value;
           } else {
             params.cnt = this.$.cntSelect ? DS.dom.select(this.$.cntSelect) : this.$.cnt.value;
           }
@@ -868,14 +868,14 @@ DigiSeller-ru-api
           }
           container = DS.dom.$("#" + this.prefix + "-" + this.cid);
           if (container) {
-            container.innerHTML = out;
+            container.innerHTML = DS.opts.view === 'table' ? '<table class="digiseller-table">' + out + '</table>' : out;
             this.pager.page = this.page;
             this.pager.rows = this.rows;
             this.pager.total = data.totalPages;
             this.pager.render();
           } else {
             DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articles, {
-              id: this.prefix + ("-" + this.cid),
+              id: this.prefix + '-' + this.cid,
               opts: DS.opts,
               d: data,
               hasCategories: !data.categories || !data.categories.length ? false : true,
@@ -942,7 +942,7 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var $thumb, $thumbs, onClick, that, _i, _len, _ref;
+          var $preview, $thumb, $thumbs, onClick, that, _i, _len, _ref;
           if (!data || !data.product) {
             DS.widget.main.$el.innerHTML = DS.tmpls.nothing;
             return;
@@ -960,21 +960,19 @@ DigiSeller-ru-api
           new DS.widget.calc(data.product.id);
           DS.widget.currency.init();
           that = this;
-          $thumbs = DS.dom.$("#" + this.prefix + "-thumbs");
-          if ($thumbs && $thumbs.children) {
+          $preview = DS.dom.$("#" + this.prefix + "-img-preview");
+          if ($preview) {
             onClick = function($el) {
-              var height, id, orig, width;
-              console.log('onClick');
-              orig = DS.dom.attr($el, 'href');
-              id = DS.dom.attr($el, 'data-id');
-              height = parseInt(DS.dom.attr($el, 'data-height'));
-              width = parseInt(DS.dom.attr($el, 'data-width'));
-              DS.popup(orig, $el.previousSibling ? function() {
+              var id, type;
+              type = DS.dom.attr($el, 'data-type');
+              id = type === 'img' ? DS.dom.attr($el, 'href') : DS.dom.attr($el, 'data-id');
+              DS.popup(type, id, $thumbs.children.length && $el.previousSibling ? function() {
                 return onClick($el.previousSibling);
-              } : false, $el.nextSibling ? function() {
+              } : false, $thumbs.children.length && $el.nextSibling ? function() {
                 return onClick($el.nextSibling);
               } : false);
             };
+            $thumbs = DS.dom.$("#" + this.prefix + "-thumbs");
             _ref = $thumbs.children;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               $thumb = _ref[_i];
@@ -983,6 +981,10 @@ DigiSeller-ru-api
                 return onClick(this);
               });
             }
+            DS.dom.addEvent($preview, 'click', function(e) {
+              DS.util.prevent(e);
+              return onClick($thumbs.children.length ? $thumbs.children[0] : this);
+            });
           }
         },
         initComments: function(callback) {
@@ -1402,6 +1404,7 @@ DigiSeller-ru-api
         setup.$main.style.display = 'none';
         DS.dom.removeEvent(window, 'resize', wrCallback);
         isClosed = true;
+        img = null;
       };
       resize = function(h, w) {
         var h1, hs, isDec, scale0, w1, wih, wiw, ws;
@@ -1422,8 +1425,10 @@ DigiSeller-ru-api
             w1 = Math.round(h1 / scale0);
           }
         }
-        img.style.height = h1 + 'px';
-        img.style.width = w1 + 'px';
+        if (img) {
+          img.style.height = h1 + 'px';
+          img.style.width = w1 + 'px';
+        }
         setup.$container.style.width = (w1 + 50) + 'px';
         setup.$container.style.top = (hs - h1 + 20) / 3 + 'px';
       };
@@ -1442,41 +1447,54 @@ DigiSeller-ru-api
         DS.dom.addEvent(setup.$fade, 'click', close);
         DS.dom.addEvent(setup.$close, 'click', close);
       };
-      return function(url, onLeft, onRight) {
+      return function(type, id, onLeft, onRight) {
         !setup.$main && init();
         isClosed = false;
         setup.$container.style.display = 'none';
         setup.$main.style.display = '';
         setup.$loader.style.display = '';
         setup.$left.style.display = onLeft ? '' : 'none';
-        setup.$right.style.display = onRight ? '' : 'none';
         if (onLeft) {
           DS.dom.removeEvent(setup.$left, 'click', leftCallback);
           leftCallback = DS.dom.addEvent(setup.$left, 'click', onLeft);
         }
+        setup.$right.style.display = onRight ? '' : 'none';
         if (onRight) {
           DS.dom.removeEvent(setup.$right, 'click', rightCallback);
           rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight);
         }
-        img = new Image();
-        img.onload = function() {
-          var h, w;
-          if (isClosed) {
-            return;
-          }
-          h = img.height;
-          w = img.width;
-          wrCallback = DS.dom.addEvent(window, 'resize', function() {
-            console.log('resize');
-            resize(h, w);
-          });
-          setup.$loader.style.display = 'none';
-          setup.$container.style.display = '';
-          resize(h, w);
-          setup.$img.innerHTML = '';
-          return setup.$img.appendChild(img);
-        };
-        img.src = url;
+        switch (type) {
+          case 'img':
+            img = new Image();
+            img.onload = function() {
+              var h, w;
+              if (isClosed) {
+                return;
+              }
+              h = img.height;
+              w = img.width;
+              DS.dom.removeEvent(window, 'resize', wrCallback);
+              wrCallback = DS.dom.addEvent(window, 'resize', function() {
+                console.log('resize');
+                resize(h, w);
+              });
+              setup.$loader.style.display = 'none';
+              setup.$container.style.display = '';
+              resize(h, w);
+              setup.$img.innerHTML = '';
+              return setup.$img.appendChild(img);
+            };
+            img.src = id;
+            break;
+          default:
+            setup.$loader.style.display = 'none';
+            setup.$container.style.display = '';
+            resize(305, 500);
+            setup.$img.innerHTML = DS.tmpl(DS.tmpls.video, {
+              id: id,
+              type: type
+            });
+        }
       };
     })();
     inited = false;
@@ -1534,12 +1552,5 @@ DigiSeller-ru-api
     window.DigiSeller = DS;
     DS.dom.addEvent(window, 'load', DS.init);
   })(window, document);
-
-  DigiSeller.opts.extendedBuy = 1;
-
-  DigiSeller.opts.types = {
-    'wmz': 'WebMoney (USD)',
-    'wmr': 'WebMoney (RUR)'
-  };
 
 }).call(this);

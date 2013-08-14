@@ -326,6 +326,7 @@ background:#ebebeb;
 border-radius:3px;
 border-radius:3px;
 margin-top:2px;
+margin-bottom:10px;
 display:inline-block;
 width:100%
 }
@@ -443,6 +444,8 @@ text-align:left;
 transition:all .5s ease
 }
 
+.digiseller-snapshot div:nth-child(2) {text-align:center;}
+
 .digiseller-snapshot > div {
 width:100%;
 display:block
@@ -505,6 +508,7 @@ line-height:1em;
 padding-bottom:7px;
 padding-right:10px;
 padding-left:10px;
+padding-top:4px;
 text-align:right
 }
 
@@ -554,13 +558,13 @@ a.digiseller-buyButton-empty:hover {
 cursor:default
 }
 
-.digiseller-homepage a.digiseller-buyButton {
+.digiseller-snapshot a.digiseller-buyButton {
 display:inline-block;
 margin-left:10px;
 margin-bottom:10px
 }
 
-.digiseller-homepage a.digiseller-buyButton-empty {
+.digiseller-snapshot a.digiseller-buyButton-empty {
 margin-left:10px;
 display:inline-block;
 margin-bottom:10px
@@ -716,6 +720,8 @@ position:relative
 #digiseller-popup-close {font-size:0; width:24px; display:block; position:absolute; height:24px; top:5px; right:5px; background:url(../../img/popup_close.png) center no-repeat;}
 #digiseller-popup-container a#digiseller-popup-left {position:absolute; left:50%; margin-left:-30px; top:5px; width:24px; height:24px; background:url(../../img/popup_left.png) center no-repeat;}
 #digiseller-popup-container a#digiseller-popup-right {position:absolute; left:50%; margin-left:6px; top:5px; width:24px; height:24px; background:url(../../img/popup_right.png) center no-repeat;}
+#digiseller-popup-container a {cursor:pointer;}
+
 
 .digiseller-browseProdTitle a.digiseller-product-details {
 color:#0B6678;
@@ -841,7 +847,7 @@ margin-top:30px
 }
 
 div.digiseller-productpage div.digiseller-options {
-margin-top:10px
+margin-top:10px;
 }
 
 .digiseller-productdetails-tabs a {
@@ -1321,6 +1327,14 @@ display:none!important
 clear:both
 }
 
+#digiseller-view
+{   display: inline-block;
+    float: left;
+    padding: 5px;
+    vertical-align: middle;}
+    
+    #digiseller-view span {color:#373737; font-size:13px; line-height:27px;}
+
 /*__________________________________ Calculator ___________________________________*/
 
 
@@ -1336,7 +1350,7 @@ border: 1px solid #CCCCCC;
 border-radius: 5px 5px 5px 5px;
 color: #373737;
 position: relative;
-right: 0;
+right: -10px;
 top: 40px;
 }
 .digiseller-calc  select {width:100%; margin-top:4px;}
@@ -1369,6 +1383,11 @@ color:#d90000;
 text-align:right;
 margin-bottom:10px;
 }
+
+div.digiseller-calc-quanity div.digiseller-calc-left span {text-overflow:ellipsis; overflow:hidden; white-space:nowrap}
+
+
+
 .digiseller-calc-right input {color:#000;}
 .digiseller-calc-quanity input:focus {border-color:#0B6678;}
 .digiseller-calc-quanity > div {display:table-cell;}
@@ -1387,8 +1406,8 @@ margin-bottom:10px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: 100px;
 }
+
 .digiseller-calc select option {border-top:2px solid white; border-bottom:2px solid white; cursor:pointer;}
 
 .digiseller-calc-quanity > div.digiseller-calc-right select {height:28px; border-radius:3px; border:1px #ccc solid;
@@ -1403,7 +1422,7 @@ background-position: -400px;
 }
 
 .digiseller-calc-wmr, .digiseller-calc-wmz, .digiseller-calc-wmu, .digiseller-calc-wmd, .digiseller-calc-wme {
-background-position: 5px -35px!important;
+background-position: 5px -36px!important;
 }
 
 
@@ -1425,8 +1444,8 @@ background-position: 5px -35px!important;
 .digiseller-calc-mgf {background-position: 5px -185px;}
 .digiseller-calc-tl2 {background-position:  5px -217px;}
 .digiseller-calc-sms {background-position: 5px -277px;}
-.digiseller-calc-rcc {background-position:  5px -427px!;}
-.digiseller-calc-occ {background-position:  5px -427px!;}
+.digiseller-calc-rcc {background-position:  5px -428px;}
+.digiseller-calc-occ {background-position:  5px -428px;}
 .digiseller-calc-alf {background-position:  5px -305px;}
 /*.digiseller-calc-sbr"«Спасибо» от Сбербанка</option>*/
 .digiseller-calc-prr {background-position:  5px -366px;}
@@ -1446,8 +1465,21 @@ background-position: 5px -35px!important;
 
 /*table view*/
 
-
-
+.digiseller-tableHolder {width:100%; margin-top:15px;}
+.digiseller-table {width:100%; border-collapse:collapse; }
+.digiseller-table .digiseller-browseProdTitle a {font-size:14px;}
+.digiseller-table .digiseller-buyButton {float:right; background:none transparent; color:#0b6678; text-decoration:none; padding:0 10px;}
+.digiseller-table .digiseller-buyButton-empty {float:right; background:none transparent; font-weight:normal; color:#b7b7b7; text-shadow:0px 1px 0px #fff; text-decoration:none; padding:0 10px;}
+.digiseller-table .digiseller-buyButton:hover {background:none transparent; color:#0A91C0; text-decoration:underline;}
+.digiseller-table tr:nth-child(2n) {background:#f1f1f1;}
+.digiseller-table-left,.digiseller-table-right {padding-top:4px; padding-bottom:4px;}
+.digiseller-table-left {padding-left:10px;}   
+.digiseller-table-left a {text-decoration:none; color:#0B6678 ;}
+.digiseller-table-left a:hover {text-decoration:underline;}
+.digiseller-table-right {text-align:right;}
+.digiseller-table-right div {min-width:240px; width:240px; float:right;}
+.digiseller-table-right span {display:inline-block; color:#d90000; padding-right:15px;}
+.digiseller-table-right a {display:inline-block; font-weight:bold; min-width:95px;}
 
 
 /*end table view */

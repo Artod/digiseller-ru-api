@@ -41,19 +41,19 @@
 	
 	<div class="digiseller-product-details">		
 		<div class="digiseller-product-left">
-			<!--<? if (mainImg) { ?>
-				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview">
+			<? if (mainImg) { ?>
+				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img">
 					<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= imgsize ?>" alt="<?= name ?>" />
 				</a>
 			<? } else { ?>
 				<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
-			<? } ?>-->
+			<? } ?>
 			
 			<? if (d.preview_imgs || d.preview_videos) { ?>
 				<div class="digiseller-left-thumbs" id="digiseller-article-thumbs">
 					<? if (d.preview_imgs && d.preview_imgs.length > 1) { ?>
 						<? for (var i = 0, l = d.preview_imgs.length; i < l; i++) { ?>
-							<a data-action="photo" href="<?= d.preview_imgs[i].url ?>" data-id="<?= d.preview_imgs[i].id ?>" data-height="<?= d.preview_imgs[i].height ?>" data-width="<?= d.preview_imgs[i].width ?>">
+							<a href="<?= d.preview_imgs[i].url ?>" data-type="img">
 								<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[i].id ?>&maxlength=80&crop=1" alt="" />
 							</a>
 						<? } ?>
@@ -61,7 +61,7 @@
 
 					<? if (d.preview_videos) { ?>
 						<? for (var i = 0, l = d.preview_videos.length; i < l; i++) { ?>
-							<a data-action="photo" class="digiseller-videothumb" href="<?= (d.preview_videos[i].type == "youtube" ? "//www.youtube.com/watch?v=" + d.preview_videos[i].id : "//vimeo.com/" + d.preview_videos[i].id) ?>" target="_blank">
+							<a class="digiseller-videothumb" data-id="<?= d.preview_videos[i].id ?>" data-type="<?= d.preview_videos[i].type ?>">
 								<img src="<?= d.preview_videos[i].preview ?>" alt="" />
 								<span></span>
 							</a>
@@ -75,15 +75,8 @@
 			<?= buy ?>
 
 			<div class="digiseller-prod-info">
-				<? if (d.type) { ?>
-					<? switch (d.type) {
-						case "file": ?>
-							<span class="digiseller-bold">Товар загружен:&nbsp;</span> <?= d.file.date ?>
-					<?		break;
-						case "text": ?>
-							<span class="digiseller-bold">Товар загружен:&nbsp;</span> <?= d.text.date ?>
-					<? 		break;
-					} ?>
+				<? if (d.type && d[d.type]) { ?>
+					<span class="digiseller-bold">Товар загружен:&nbsp;</span> <?= d[d.type].date ?>
 					<div class="digiseller-prodinfoseparator"></div>
 				<? } ?>
 					
