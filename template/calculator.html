@@ -5,6 +5,8 @@
 <link href="../css/default/main.css" media="screen" rel="stylesheet" type="text/css" />
 
 
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
 </head>
 <body>
 
@@ -161,21 +163,34 @@
 					
 					<div class="digiseller-product-right">
 
-                    
-                    		
-                    
+
 							
-							<div class="digiseller-productBuy">
-								<span class="digiseller-prod-cost">19'995 Рублей</span>	
-								<!--a class="digiseller-buyButton">Заполучить</a--> 
+<div class="digiseller-productBuy">
+								
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
+                                
                                 
                                 		 <!-- CALCULATOR FORM -->		
 <div class="digiseller-calc">
 
 
-    
+    <span class="digiseller-prod-cost">19'995 Рублей</span>	 <!-- убираем если калькулятор -->
 
-    <div class="digiseller-calc-quanity">
+    <div class="digiseller-calc-quanity">  <!-- убираем если выводится цена-->
         <div class="digiseller-calc-left">
                  <span>заплачу <b>руб</b>.</span><br />
                  <input type="text" id="abcde" value="10000" />   
@@ -198,41 +213,23 @@
                  </select>
         </div>
         
-        
-        
-        
-        <div class="digiseller-calc-right-value">k</div>
-        
+        <div class="digiseller-calc-right-value">100k</div>
+    </div>
+    
+    <div class="digiseller-calc-limit"> <!-- убираем если выводится цена--> <!-- если косяк,   addClass('digiseller-calc-limit-error')   --> 
+        <span>Минимум 2000000</span>
     </div>
 
-
-    
+   
     <div class="digiseller-calc-method">
         <span>оплата через:</span><br />
         <select>
              <option class="digiseller-calc-option digiseller-calc-wmr">WebMoney (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-wmz">WebMoney (USD)</option>
-             <option class="digiseller-calc-option digiseller-calc-wmu">WebMoney (UAH)</option>
-             <option class="digiseller-calc-option digiseller-calc-qiwi">QIWI</option>
-             <option class="digiseller-calc-option digiseller-calc-yandex">Яндекс.Деньги (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-ccard">Кредитная карта (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-mts">МТС (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-bln">Билайн (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-mgf">Мегафон (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-tele2">TELE2 (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-atm">Терминалы (наличные)</option>
-             <option class="digiseller-calc-option digiseller-calc-sms">SMS-оплата</option>
-             <option class="digiseller-calc-option digiseller-calc-alf">Альфа-Клик (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-wmcard">WM-карта (RUR)</option>
-             <option class="digiseller-calc-option digiseller-calc-mail">Почта России (наличные)</option>
-             <option class="digiseller-calc-option digiseller-calc-giftcert">Подарочный сертификат</option>
-             <option class="digiseller-calc-option">другой способ...</option>
         </select>
      </div>
 
-
-
-     <div class="digiseller-calc-confirmation">
+     
+      <div class="digiseller-calc-confirmation"> <!-- если косяк,   addClass('digiseller-calc-confirmation-error')   -->
         <input type="checkbox" id="abcdefg" />
         с «<a href="#">Правилами покупки товаров</a>» ознакомлен и согласен.
      </div>
@@ -242,11 +239,21 @@
              <!-- или digiseller-buyButton-empty -->
      </div>
 
-     
-     
 
 </div>
 <!-- end ... -->
+
+
+
+
+
+
+
+<br />
+
+
+
+
 			
                                 
                              </div>   

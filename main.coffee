@@ -109,8 +109,17 @@ DigiSeller-ru-api
 				@set(name, null, {expires: -1})
 
 				return
-
 				
+		agree: (flag, onAgree) ->
+			$rules = DS.dom.$('#digiseller-calc-rules')
+			$rules.checked = flag if $rules				
+			
+			DS.opts.agree = if flag then 1 else 0
+			DS.util.cookie.set('digiseller-agree', DS.opts.agree)
+			DS.popup.close()
+			
+			onAgree() if onAgree
+
 	DS.dom =
 		$: (selector, context, tagName) ->
 			return unless selector
@@ -274,7 +283,7 @@ DigiSeller-ru-api
 			$el: null
 			init: () ->
 				@$el = DS.dom.$('#digiseller-main')
-				DS.widget.main.$el.innerHTML = '' # СЃР±СЂР°СЃС‹РІР°РµРј Р»РѕР°РґРµСЂ
+				DS.widget.main.$el.innerHTML = '' # сбрасываем лоадер
 				
 				callback = (e, type) ->
 					$el = e.originalTarget or e.srcElement
@@ -586,8 +595,7 @@ DigiSeller-ru-api
 
 				return
 		calc: class
-			_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR']
-			### , 'cntR', 'cntRK' ###
+			_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules']
 			_prefix = 'digiseller-calc'
 			
 			constructor: (@id) ->
@@ -599,7 +607,7 @@ DigiSeller-ru-api
 				for el in _els
 					@$[el] = DS.dom.$("##{_prefix}-#{el}")
 				
-				that = @				
+				that = @
 				
 				if @$.amount
 					if @$.cnt
@@ -607,7 +615,20 @@ DigiSeller-ru-api
 						DS.dom.addEvent( @$.cnt, 'keyup', () -> that.get('cnt') )
 
 					if @$.cntSelect then DS.dom.addEvent( @$.cntSelect, 'change', () -> that.get('cnt') )
-					DS.dom.addEvent( @$.currency, 'change', () -> that.get() )
+				
+				DS.dom.addEvent(@$.currency, 'change', () ->
+					if that.$.amount
+						that.get()
+					else if that.$.price
+						that.$.price.innerHTML = DS.dom.attr(DS.dom.$('option', that.$.currency)[that.$.currency.selectedIndex], 'data-price')
+				)
+
+				rules = (flag) ->
+					if that.$.rules
+						DS.dom.klass( (if flag and not that.$.rules.checked then 'add' else 'remove'), that.$.rules.parentNode, 'digiseller-calc-confirmation-error' )
+				
+				DS.dom.addEvent( @$.buy, 'mouseover', () -> rules(true) )
+				DS.dom.addEvent( @$.buy, 'mouseout', () -> rules(false) )
 				
 				return
 				
@@ -616,11 +637,13 @@ DigiSeller-ru-api
 				params = 
 					product_id: @id
 					format: 'json'
-
+				
 				if type is 'amount'
 					params.amount = @$.amount.value
 				else
-					params.cnt = if @$.cntSelect then DS.dom.select(@$.cntSelect) else @$.cnt.value
+					params.cnt = if @$.cntSelect then DS.dom.select(@$.cntSelect) else @$.cnt.value					
+					
+					@checkMinMax(params.cnt)
 
 				params.currency = DS.dom.select(@$.currency)
 
@@ -636,18 +659,47 @@ DigiSeller-ru-api
 				
 				return
 				
+			checkMinMax: (cnt) ->
+				that = @
+				max = parseInt(DS.dom.attr(@$.buy, 'data-max'))
+				min = parseInt(DS.dom.attr(@$.buy, 'data-min'))
+
+				minmax = (val, flag) ->
+					that.$.limit.style.display = ''
+					DS.dom.attr(that.$.buy, 'data-action', '')
+					
+					that.$.limit.innerHTML = DS.tmpl(DS.tmpls.minmax,
+						val: val
+						flag: flag
+					)						
+					
+				if max and cnt > max
+					minmax(max, true)
+					
+					return						
+				else if min and cnt < min
+					minmax(min, false)
+					
+					return
+					
+				DS.dom.attr(@$.buy, 'data-action', 'buy')
+				@$.limit.style.display = 'none'
+				
+				return
+					
 			render: (data) ->
 				return off unless data	
 				
 				@$.amount.value = data.unit_Amount if data.unit_Amount
-				@$.cnt.value = data.unit_Cnt if @$.cnt && data.unit_Cnt				
+				
+				if @$.cnt && data.unit_Cnt
+					@checkMinMax(data.unit_Cnt)
+					@$.cnt.value = data.unit_Cnt
+					
 				if @$.cntSelect and data.unit_Currency
 					DS.dom.select(@$.cntSelect, data.unit_Currency)
 				
-				@$.amountR.innerHTML = data.unit_AmountDesc				
-				
-				### @$.cntR.innerHTML = data.cntR
-				@$.cntRK.innerHTML = data.cntRK ###
+				@$.amountR.innerHTML = data.unit_AmountDesc
 				
 				return			
 				
@@ -865,8 +917,7 @@ DigiSeller-ru-api
 					@pager.page = @page
 					@pager.rows = @rows
 					@pager.total = data.totalPages
-					@pager.render()
-					
+					@pager.render()					
 				else
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articles,
 						id: @prefix + '-' + @cid				
@@ -875,7 +926,7 @@ DigiSeller-ru-api
 						hasCategories: if not data.categories or not data.categories.length then false else true
 						articlesPanel: if data.totalPages then DS.tmpls.articlesPanel else ''
 						out: out
-					)
+					)			
 					
 					if data.totalPages
 						that = @
@@ -904,8 +955,7 @@ DigiSeller-ru-api
 
 						DS.widget.currency.init()
 
-						params = ['sort', 'view']
-						for param in params
+						set = (param) ->
 							$selectSort = DS.dom.$( 'select', DS.dom.$("#digiseller-#{param}") )[0]
 							DS.dom.addEvent($selectSort, 'change', (e) ->
 								DS.opts[param] = DS.dom.select(@)
@@ -913,6 +963,10 @@ DigiSeller-ru-api
 								that.get()
 							)
 							DS.dom.select($selectSort, DS.opts[param])
+							
+						params = ['sort', 'view']
+						for param in params
+							set(param)
 
 				return
 		article:
@@ -947,7 +1001,7 @@ DigiSeller-ru-api
 					return
 
 				DS.widget.category.mark(data.product.category_id)
-
+				
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articleDetail,
 					d: data.product
 					imgsize: DS.opts.imgsize_infopage
@@ -955,10 +1009,12 @@ DigiSeller-ru-api
 						d: data.product
 						opts: DigiSeller.opts
 						failPage: window.location
+						agree: DS.opts.agree
 					)
 				)
 				
-				new DS.widget.calc(data.product.id)
+				new DS.widget.calc(data.product.id, data.product.prices_unit)
+				
 				DS.widget.currency.init()				
 				
 				that = @
@@ -969,7 +1025,10 @@ DigiSeller-ru-api
 						type = DS.dom.attr($el, 'data-type')
 						id = if type is 'img' then DS.dom.attr($el, 'href') else DS.dom.attr($el, 'data-id')
 
-						DS.popup(type, id,
+						DS.popup.open(type, (if type is 'img' then id else DS.tmpl(DS.tmpls.video,
+							id: id
+							type: type
+						)),
 							if $thumbs.children.length and $el.previousSibling then () -> onClick($el.previousSibling) else false,
 							if $thumbs.children.length and $el.nextSibling then () -> onClick($el.nextSibling) else false
 						)
@@ -1141,9 +1200,28 @@ DigiSeller-ru-api
 			form = DS.dom.attr($el, 'data-form')
 
 			if form
+				$rules = DS.dom.$('#digiseller-calc-rules')					
+				if $rules
+					DS.opts.agree = if $rules.checked then 1 else 0			
+					DS.util.cookie.set('digiseller-agree', DS.opts.agree)
+					
+					if !$rules.checked
+						return						
+
 				DS.dom.$("#digiseller-buy-form-#{id}").submit()
+				
 			else	
-				window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank')
+				DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,
+					text: DS.opts.agreement_text
+				))
+				
+				DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->
+					DS.util.agree( true, ()-> window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank') )
+				)
+				
+				DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', () ->
+					DS.util.agree(false)
+				)
 
 			return
 			
@@ -1153,8 +1231,8 @@ DigiSeller-ru-api
 			index = DS.dom.attr($el, 'data-tab')
 			$panels = $el.parentNode.nextSibling.children
 			
-			DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)				
-			DS.dom.klass('add', $el, 'digiseller-activeTab')		
+			DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)
+			DS.dom.klass('add', $el, 'digiseller-activeTab')
 
 			change = () ->
 				for $panel in $panels
@@ -1162,7 +1240,7 @@ DigiSeller-ru-api
 					
 				$panels[index].style.display = ''
 			
-			if index is '1'
+			if index is '2'
 				DS.route.article.initComments(change)
 			else
 				change()
@@ -1174,8 +1252,20 @@ DigiSeller-ru-api
 			title = DS.dom.attr($el, 'data-title')
 			img = DS.dom.attr($el, 'data-img')
 			if DS.share[type]
-				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436))
-				
+				window.open(DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436))				
+			
+			return
+			
+		'click-agreement': ($el, e) ->
+			DS.util.prevent(e)
+			DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,
+				text: DS.opts.agreement_text
+			))	
+			
+			DS.dom.addEvent( DS.dom.$('#digiseller-agree'), 'click', () -> DS.util.agree(true) )
+			DS.dom.addEvent( DS.dom.$('#digiseller-disagree'), 'click', () -> DS.util.agree(false) )
+		
+		
 	# http://habrahabr.ru/post/156185/
 	DS.share = 
 		vk: (title, img) ->			
@@ -1217,7 +1307,7 @@ noparse=0"
 		}
 
 		function urlHashCheck() {
-			var mayChangeReload = false; // _needReload РјРѕР¶РµС‚ РѕР±РЅСѓР»РёС‚СЊСЃСЏ С‚Р°Рє РєР°Рє urlHashCheck РјРѕР¶РµС‚ РµС‰Рµ РЅРµ Р·Р°РєРѕРЅС‡РёС‚СЊСЃСЏ Р° _needReload СѓР¶Рµ РїРѕСЃС‚Р°РІРёР»Рё true
+			var mayChangeReload = false; // _needReload может обнулиться так как urlHashCheck может еще не закончиться а _needReload уже поставили true
 
 			if (_needReload) {
 				mayChangeReload = true;
@@ -1280,7 +1370,7 @@ noparse=0"
 					_routes.push([new RegExp(pattern[i], 'i'), callback]);
 				}
 
-				_revRoutes = _routes.slice().reverse(); // РєР»РѕРЅРёСЂСѓРµРј Рё СЂРµРІРµСЂСЃРёСЂСѓРµРј
+				_revRoutes = _routes.slice().reverse(); // клонируем и реверсируем
 			},
 			reload: function() {
 				_needReload = true;
@@ -1381,14 +1471,14 @@ noparse=0"
 				'\u2028': 'u2028',
 				'\u2029': 'u2029'
 			};
-
+		console.dir(data)
 		text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
 			source += text.slice(index, offset)
 				.replace(escaper, function(match) {
 					return '\\' + escapes[match];
 				});
 
-			/* todo: _.escape РїРµСЂРµРґРµР»Р°С‚СЊ */
+			/* todo: _.escape переделать */
 			source +=
 				escape ? "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'" :
 				interpolate ? "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'" :
@@ -1440,8 +1530,18 @@ noparse=0"
 		rightCallback = null
 		isClosed = true
 		
+		show = (onResize) ->		
+			setup.$loader.style.display = 'none'
+			setup.$container.style.display = ''
+			
+			wrCallback = DS.dom.addEvent(window, 'resize', onResize)
+			onResize()
+			
+			return
+			
 		close = (e) ->
-			DS.util.prevent(e)
+			DS.util.prevent(e) if e
+			setup.$img.innerHTML = ''
 			setup.$main.style.display = 'none'
 			DS.dom.removeEvent(window, 'resize', wrCallback)
 			isClosed = true
@@ -1449,31 +1549,37 @@ noparse=0"
 			
 			return
 
-		resize = (h, w) ->			
-			scale0 = h / w
+		resize = (h, w, isHard) ->
 			wih = window.innerHeight
-			wiw = window.innerWidth
 			hs = ( if typeof wih isnt 'undefined' then wih else (document[if isCompV then 'documentElement' else 'body'].offsetHeight - 22) ) - 100
-			ws = ( if typeof wiw isnt 'undefined' then wiw else document[if isCompV then 'documentElement' else 'body'].offsetWidth ) - 120
-			h1 = hs
-			w1 = ws
-
-			isDec = false
-			h >= hs and (isDec = true) or (h1 = h)
-			w >= ws and (isDec = true) or (w1 = w)
-
-			if isDec
-				if scale0 <= h1/w1
-					h1 = Math.round(scale0 * w1)
-				else
-					w1 = Math.round(h1 / scale0)
-			if img
-				img.style.height = h1 + 'px'
-				img.style.width = w1 + 'px'
-
-			setup.$container.style.width = (w1 + 50) + 'px'
-			setup.$container.style.top = (hs - h1 + 20)/3 + 'px'
 			
+			if not isHard
+				scale0 = h / w			
+				wiw = window.innerWidth
+				ws = ( if typeof wiw isnt 'undefined' then wiw else document[if isCompV then 'documentElement' else 'body'].offsetWidth ) - 120
+				h1 = hs
+				w1 = ws
+
+				isDec = false
+				h >= hs and (isDec = true) or (h1 = h)
+				w >= ws and (isDec = true) or (w1 = w)
+
+				if isDec
+					if scale0 <= h1/w1
+						h1 = Math.round(scale0 * w1)
+					else
+						w1 = Math.round(h1 / scale0)
+						
+				img.style.height = h1 + 'px'
+				img.style.width = w1 + 'px'				
+			
+			setup.$container.style.width = ( (if isHard then w else w1) + 50) + 'px'
+			
+			doc = document.documentElement
+			body = document.body
+			topScroll = (doc && doc.scrollTop or body && body.scrollTop or 0)			
+			setup.$container.style.top = (hs - (if isHard then h else h1) + 20)/3 + topScroll + 'px'		
+
 			return
 
 		init = () ->
@@ -1493,63 +1599,63 @@ noparse=0"
 			
 			return
 			
-		return (type, id, onLeft, onRight) ->
-			not setup.$main and  init()
-			
-			isClosed = false
-			
-			setup.$container.style.display = 'none'
-			setup.$main.style.display = ''
-			setup.$loader.style.display = ''		
-			
-			setup.$left.style.display = if onLeft then '' else 'none'
-			if onLeft
-				DS.dom.removeEvent(setup.$left, 'click', leftCallback)
-				leftCallback = DS.dom.addEvent(setup.$left, 'click', onLeft)
-			
-			setup.$right.style.display = if onRight then '' else 'none'
-			if onRight
-				DS.dom.removeEvent(setup.$right, 'click', rightCallback)
-				rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight)
-			
-			switch type
-				when 'img'
-					img = new Image()
-					img.onload = () ->
-						return if isClosed
+		return {
+			open: (type, id, onLeft, onRight) ->
+				not setup.$main and  init()
+				
+				isClosed = false
+				
+				setup.$container.style.display = 'none'
+				setup.$main.style.display = ''
+				setup.$loader.style.display = ''		
+				
+				setup.$left.style.display = if onLeft then '' else 'none'
+				if onLeft
+					DS.dom.removeEvent(setup.$left, 'click', leftCallback)
+					leftCallback = DS.dom.addEvent(setup.$left, 'click', onLeft)
+				
+				setup.$right.style.display = if onRight then '' else 'none'
+				if onRight
+					DS.dom.removeEvent(setup.$right, 'click', rightCallback)
+					rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight)
+				
+				switch type
+					when 'img'
+						DS.dom.klass('remove', setup.$img, 'digiseller-popup-video')
 						
-						h = img.height
-						w = img.width
-
-						DS.dom.removeEvent(window, 'resize', wrCallback)
-						wrCallback = DS.dom.addEvent(window, 'resize', () ->
-							console.log('resize')
-							resize(h, w)
+						img = new Image()
+						img.onload = () ->
+							return if isClosed
 							
+							h = img.height
+							w = img.width
+
+							DS.dom.removeEvent(window, 'resize', wrCallback)
+							
+							show(() ->
+								resize(h, w)
+								return
+							)
+
+							setup.$img.innerHTML = ''
+							setup.$img.appendChild(img)	
+
+						img.src = id
+						
+					else
+						DS.dom.klass('add', setup.$img, 'digiseller-popup-video')
+						
+						show(() ->
+							resize(200, 500, true)
 							return
 						)
 						
-						setup.$loader.style.display = 'none'
-						setup.$container.style.display = ''
-
-						resize(h, w)
-
-						setup.$img.innerHTML = ''
-						setup.$img.appendChild(img)	
-
-					img.src = id
-					
-				else
-					setup.$loader.style.display = 'none'
-					setup.$container.style.display = ''
-					
-					resize(305, 500)
-					setup.$img.innerHTML = DS.tmpl(DS.tmpls.video,
-						id: id,
-						type: type
-					)
-					
-			return
+						setup.$img.innerHTML = id
+						
+				return
+				
+			close: close
+		}
 	)()
 	
 	inited = no
@@ -1567,6 +1673,8 @@ noparse=0"
 		for param in params
 			DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
 
+		DS.opts.agree = DS.util.cookie.get('digiseller-agree') or DS.opts.agree		
+			
 		DS.widget.category.init()
 		DS.widget.main.init()
 		DS.widget.loader.init()
@@ -1597,7 +1705,7 @@ noparse=0"
 
 		if window.location.hash is ''
 			DS.historyClick.reload()
-
+			
 		return
 		# )
 
@@ -1680,7 +1788,7 @@ noparse=0"
 # https://github.com/mtrpcic/pathjs
 
 	# DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
-	# DS.$el.shop.innerHTML = '<div id="digiseller-preloader">Р—Р°РіСЂСѓР·РєР°...</div>'
+	# DS.$el.shop.innerHTML = '<div id="digiseller-preloader">Загрузка...</div>'
 	# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=?' + DS.opts.seller_id)
 	# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
 	

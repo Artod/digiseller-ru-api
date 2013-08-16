@@ -164,6 +164,8 @@ float:left;
 font-family:tahoma, arial
 }
 
+.digiseller-logo a {cursor:pointer;}
+
 .digiseller-topmenu {
 font-size:0;
 float:right;
@@ -453,11 +455,12 @@ display:block
 
 .digiseller-snapprodnamehldr {
 display:inline-block;
-padding-bottom:4px
+padding-bottom:4px;
 }
 
 .digiseller-snapimgalign a {
-display:block
+display:block;
+
 }
 
 .digiseller-snapimgalign {
@@ -481,7 +484,8 @@ display:block;
 min-width:130px;
 font-family:Tahoma,Arial;
 font-size:14px;
-height:34px;
+height:38px;
+line-height:1.3em;
 overflow:hidden;
 padding:5px 5px 0 10px;
 text-align:left
@@ -529,6 +533,7 @@ border-radius:3px;
 background:#0b6678;
 font-size:14px;
 cursor:pointer;
+line-height:1.3em;
 border:0 none;
 color:#fff;
 font-family:Tahoma, Arial
@@ -547,6 +552,7 @@ background:#ccc;
 font-size:14px;
 cursor:pointer;
 border:0 none;
+line-height:1.3em;
 color:#fff
 }
 
@@ -663,8 +669,12 @@ color:#d90000;
 display:block;
 float:right;
 font-size:24px;
-padding-bottom:7px;
-white-space:nowrap
+width:100%;
+text-align:right;
+padding-bottom:15px;
+white-space:nowrap;
+border-bottom:1px solid #cccccc;
+margin-bottom:10px;
 }
 
 div.digiseller-productBuy {
@@ -713,14 +723,91 @@ margin-top:10px;
 position:relative
 }
 
-#digiseller-popup-main {position:fixed; top:0px; left:0px; width:100%; height:100%; text-align:center; z-index:9999;}
-#digiseller-popup-fade {position:absolute; top:0px; left:0px; width:100%; height:100%; background-color:#000; zoom: 1; opacity: 0.5; -moz-opacity: 0.5; -khtml-opacity: 0.5; -ms-filter:'progid:DXImageTransform.Microsoft.Alpha(Opacity=50)'; filter: alpha(opacity=50);}
+#digiseller-popup-main {position:absolute; top:0px; left:0px; width:100%; height:100%; text-align:center; z-index:9999;}
+#digiseller-popup-fade {position:fixed; top:0px; left:0px; width:100%; height:100%; background-color:#000; zoom: 1; opacity: 0.5; -moz-opacity: 0.5; -khtml-opacity: 0.5; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; filter: alpha(opacity=50);}
 #digiseller-popup-loader {margin:0px auto 0px auto; top:30%; position:relative; background:#fff url(//events.webmoney.ru/images/loading2.gif) center center no-repeat; width:100px; height:50px;}
 #digiseller-popup-container {position: relative; margin: 0px auto; padding: 35px 25px 10px 25px; background:white;}
-#digiseller-popup-close {font-size:0; width:24px; display:block; position:absolute; height:24px; top:5px; right:5px; background:url(../../img/popup_close.png) center no-repeat;}
-#digiseller-popup-container a#digiseller-popup-left {position:absolute; left:50%; margin-left:-30px; top:5px; width:24px; height:24px; background:url(../../img/popup_left.png) center no-repeat;}
-#digiseller-popup-container a#digiseller-popup-right {position:absolute; left:50%; margin-left:6px; top:5px; width:24px; height:24px; background:url(../../img/popup_right.png) center no-repeat;}
+#digiseller-popup-close {font-size:0; width:24px; display:block; z-index:99; position:absolute; height:24px; top:5px; right:5px; background:url(../../img/popup_close.png) center no-repeat;}
+
+
+#digiseller-popup-container a#digiseller-popup-left {
+position:absolute;
+left:0;
+top:0;
+height:100%;
+width:40%;
+background:url(../../img/popup_left.png) left center no-repeat;
+}
+
+#digiseller-popup-container a#digiseller-popup-right {
+position:absolute;
+right:0;
+top:0;
+height:100%;
+width:40%;
+background:url(../../img/popup_right.png) right center no-repeat;
+}
+
+div.digiseller-popup-video + br + div.digiseller-calc-center a#digiseller-popup-left {width:48px!important;}
+div.digiseller-popup-video + br + div.digiseller-calc-center a#digiseller-popup-right {width:48px!important;}
+
 #digiseller-popup-container a {cursor:pointer;}
+#digiseller-popup-img {font-size:14px; font-family:Thaoma, Verdana; color:#373737!; margin-bottom:-30px; margin-top:-20px;}
+#digiseller-popup-img  img {padding-top:25px;}
+#digiseller-agree {
+    -webkit-transition:All .4s ease;
+    -moz-transition:All .4s ease;
+    -o-transition:All .4s ease;
+    padding:5px 7px;
+    display:inline-block;
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    border-radius:3px;
+    background:#0b6678;
+    font-size:14px;
+    cursor:pointer;
+    line-height:1.3em;
+    border:0 none;
+    color:#fff;
+    font-family:Tahoma, Arial
+    }
+    
+    #digiseller-agree:hover {
+    -webkit-transition:All .4s ease;
+    -moz-transition:All .4s ease;
+    -o-transition:All .4s ease;
+    padding:5px 7px;
+    display:inline-block;
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    border-radius:3px;
+    background:#0b6678;
+    font-size:14px;
+    cursor:pointer;
+    line-height:1.3em;
+    border:0 none;
+    color:#fff;
+    font-family:Tahoma, Arial;
+    background:#0a91c0
+    }
+    
+#digiseller-disagree {
+    -webkit-transition:All .4s ease;
+    -moz-transition:All .4s ease;
+    -o-transition:All .4s ease;
+    padding:5px 7px;
+    display:inline-block;
+    -moz-border-radius:3px;
+    -webkit-border-radius:3px;
+    border-radius:3px;
+    background:#ccc;
+    font-size:14px;
+    cursor:pointer;
+    border:0 none;
+    line-height:1.3em;
+    color:#fff
+}
+
 
 
 .digiseller-browseProdTitle a.digiseller-product-details {
@@ -1351,8 +1438,11 @@ border-radius: 5px 5px 5px 5px;
 color: #373737;
 position: relative;
 right: -10px;
-top: 40px;
 }
+
+/*.digiseller-calc > div {border:1px solid green;}
+.digiseller-calc > div  > div {border:1px solid pink;}*/
+
 .digiseller-calc  select {width:100%; margin-top:4px;}
 .digiseller-calc input[type="checkbox"] {margin:0; vertical-align:middle; dispay:inline-block; margin-right:5px;}
 .digiseller-calc a.digiseller-buyButton {width:48px; display:inline-block; padding-left: 20px; padding-right: 20px;}
@@ -1368,11 +1458,22 @@ top: 40px;
 .digiseller-calc-center .digiseller-calc-arrowLeftRight {vertical-align:middle; display:inline-block; background:url(../../img/digiseller-calc-arrowIcon.png) top left no-repeat; width:20px; height:11px;}
 .digiseller-calc-method {padding-top:5px;}
 .digiseller-calc-footer, .digiseller-calc-footer a {font-size:11px;}
+.digiseller-calc-limit {
+  display:inline-block;
+  float: right;
+  background:#fdbfbf; border-radius:4px; padding:3px;
+  line-height: 1em;
+  margin-right: 3px;
+  margin-top: -4px;
+  text-align: right;
+ }
+.digiseller-calc-confirmation {padding:7px;}
 .digiseller-calc-confirmation a {color:#0B6678;}
 .digiseller-calc-footer a:hover, .digiseller-calc-confirmation a:hover {text-decoration:none;}
 .digiseller-calc-method {vertical-align:bottom;}
 .digiseller-calc-quanity {display:table;}
 .digiseller-calc-quanity span, .digiseller-calc-quanity input {width:100%;}
+
 .digiseller-calc-quanity input {
 margin-top:5px;
 border:1px solid #cccccc;
@@ -1400,13 +1501,15 @@ div.digiseller-calc-quanity div.digiseller-calc-left span {text-overflow:ellipsi
     width: 27px;
 }
 .digiseller-calc-quanity > div.digiseller-calc-right-value {vertical-align:bottom; padding-bottom:14px; font-weight:bold; padding-left:10px;}
-.digiseller-calc-quanity > div.digiseller-calc-right {display:table-cell;
+.digiseller-calc-quanity > div.digiseller-calc-right {
     display: block;
     margin-left: 5px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+
 }
+.digiseller-calc-quanity > div.digiseller-calc-right span {white-space: nowrap;}
+    
 
 .digiseller-calc select option {border-top:2px solid white; border-bottom:2px solid white; cursor:pointer;}
 
@@ -1425,10 +1528,11 @@ background-position: -400px;
 background-position: 5px -36px!important;
 }
 
-
+.digiseller-calc-confirmation-error {
+    background:#fdbfbf; border-radius:4px; padding:7px;
+}
 
 /*
-
 .digiseller-calc-wmz"WebMoney (USD)</option>
 .digiseller-calc-wmd"WebMoney (USD) в кредит</option>
 .digiseller-calc-wmr"WebMoney (RUR)</option>
@@ -1457,14 +1561,7 @@ background-position: 5px -36px!important;
 .digiseller-calc-gft {background-position: 5px -396px;}
 .digiseller-calc-rbx {}
 
-
-
-
-
-
-
 /*table view*/
-
 .digiseller-tableHolder {width:100%; margin-top:15px;}
 .digiseller-table {width:100%; border-collapse:collapse; }
 .digiseller-table .digiseller-browseProdTitle a {font-size:14px;}
@@ -1477,20 +1574,7 @@ background-position: 5px -36px!important;
 .digiseller-table-left a {text-decoration:none; color:#0B6678 ;}
 .digiseller-table-left a:hover {text-decoration:underline;}
 .digiseller-table-right {text-align:right;}
-.digiseller-table-right div {min-width:240px; width:240px; float:right;}
+.digiseller-table-right div {min-width:240px; float:right;}
 .digiseller-table-right span {display:inline-block; color:#d90000; padding-right:15px;}
 .digiseller-table-right a {display:inline-block; font-weight:bold; min-width:95px;}
-
-
 /*end table view */
-
-
-
-
-
-
-
-
-
-
-

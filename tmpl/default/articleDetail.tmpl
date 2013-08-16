@@ -84,39 +84,8 @@
 				<div class="digiseller-prodinfoseparator"></div>
 			</div>
 			
-			<? if (d.units && d.units.discounts) { ?>
-				<table class="digiseller-discounttable1">							
-					<thead>
-						<tr class="digiseller-discounttabbe-head">	
-							<td>при покупке</td>
-							<td>скидка</td>
-							<td>цена за <?= d.units.desc ?></td>
-						</tr>
-					</thead>
-					<tbody>
-						<? for (var i = 0, l = d.units.discounts.length; i < l; i++) { ?>
-							<tr>	
-								<td>от <?= d.units.discounts[i].desc ?></td>
-								<td><?= d.units.discounts[i].percent ?>%</td>
-								<td><?= d.units.discounts[i].price ?> <?= d.currency ?></td>
-							</tr>
-						<? } ?>
-					</tbody>
-				</table>
-			<? } else if (d.units.price && d.units.desc) { ?>
+			<? if (d.units.price && d.units.desc) { ?>
 				<span class="digiseller-bold">Цена:</span> <?= d.units.price ?> <?= d.currency ?> за <?= d.units.desc ?><br />
-			<? } ?>			
-			
-			<? if (d.discounts && d.discounts.length) { ?>
-				<div class="digiseller-discounttable2">
-					<span>Cкидка постоянным покупателям.</span>
-					Если общая сумма покупок больше чем:
-					<ul>
-						<? for (var i = 0, l = d.discounts.length; i < l; i++) { ?>								
-							<li><?= d.discounts[i].summa ?> <?= d.currency ?> &mdash; скидка <?= d.discounts[i].percent ?>%</li>
-						<? } ?>
-					</ul>
-				</div>
 			<? } ?>
 		</div>
 	</div>
@@ -125,24 +94,75 @@
 
 	<div>		
 		<div class="digiseller-productdetails-tabs">
-			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0">Описание</a>			
+			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0">Описание</a>	
+			<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
+				<a data-action="article-tab" data-tab="1">Скидки</a>	
+			<? } ?>
 			<? if (reviewsCount) { ?>
-				<a data-action="article-tab" data-tab="1">Отзывы (<?= reviewsCount ?>)</a>
+				<a data-action="article-tab" data-tab="2">Отзывы (<?= reviewsCount ?>)</a>
 			<? } ?>
 		</div>
 		<div>
 			<div class="digiseller-description_content">
-			<div class="digiseller-prod-info">
-				<?= d.info ?>
-			</div>
-
-			<? if (d.add_info !== "") { ?>
 				<div class="digiseller-prod-info">
-					<h3>Дополнительная информация:</h3>
-					<?= d.add_info ?>
+					<?= d.info ?>
 				</div>
-			<? } ?>
-		</div>
+
+				<? if (d.add_info !== "") { ?>
+					<div class="digiseller-prod-info">
+						<h3>Дополнительная информация:</h3>
+						<?= d.add_info ?>
+					</div>
+				<? } ?>
+			</div>
+			
+			<div class="digiseller-reviews_content digiseller-discounttable2" style="display:none;">
+				<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
+				
+					<? if (d.units && d.units.discounts) { ?>
+						<h3>Скидки от количества приобретаемого товара</h3>
+						<table class="digiseller-discounttable1">
+							<thead>
+								<tr class="digiseller-discounttabbe-head">	
+									<td>при покупке от</td>
+									<td>скидка</td>
+									<td>цена за <?= d.units.desc ?></td>
+								</tr>
+							</thead>
+							<tbody>
+								<? for (var i = 0, l = d.units.discounts.length; i < l; i++) { ?>
+									<tr>
+										<td><?= d.units.discounts[i].desc ?></td>
+										<td><?= d.units.discounts[i].percent ?>%</td>
+										<td><?= d.units.discounts[i].price ?> <?= d.currency ?></td>
+									</tr>
+								<? } ?>
+							</tbody>
+						</table><br />
+					<? } ?> 
+				
+					<? if (d.discounts && d.discounts.length) { ?>
+						<h3>Cкидка постоянным покупателям</h3>
+						<table class="digiseller-discounttable1">
+							<thead>
+								<tr class="digiseller-discounttabbe-head">	
+									<td>сумма покупок от</td>
+									<td>скидка</td>
+								</tr>
+							</thead>
+							<tbody>
+								<? for (var i = 0, l = d.discounts.length; i < l; i++) { ?>
+									<tr>
+										<td><?= d.discounts[i].summa ?> <?= d.currency ?></td>
+										<td><?= d.discounts[i].percent ?>%</td>
+									</tr>
+								<? } ?>
+							</tbody>
+						</table><br />
+					<? } ?> 
+				<? } ?>
+			</div>
+			
 			<div class="digiseller-reviews_content" id="digiseller-article-comments-<?= d.id ?>" style="display:none;"></div>
 		</div>
 	</div>

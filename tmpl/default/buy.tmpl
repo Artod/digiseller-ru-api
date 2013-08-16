@@ -1,16 +1,14 @@
 <?
-	var button = (d.is_available ? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '"' + (opts.extendedBuy ? ' data-form="1"' : '') + '>Купить</a>' : '<a class="digiseller-buyButton-empty">Нет в наличии</a>');
+	var button = (d.is_available ? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1"' + (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '') + (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '') + ' id="digiseller-calc-buy">Купить</a>' : '<a class="digiseller-buyButton-empty">Нет в наличии</a>');
 ?>
-		
-<div class="digiseller-productBuy">
-	<? if (!d.prices_unit) { ?>
-		<span class="digiseller-prod-cost"><?= d.price ?> <?= d.currency ?></span>
-	<? } ?>
 
-	<? if (d.is_available && opts.extendedBuy) { ?>
-		<div id="digiseller-calc" class="digiseller-calc">
+<div class="digiseller-productBuy">
+	<? if (d.is_available) { ?>
+		<div id="digiseller-calc" class="digiseller-calc">		
 			<form method="POST" action="https://www.oplata.info/asp/pay.asp" id="digiseller-buy-form-<?= d.id ?>">			
-				<? if (d.prices_unit) { ?>	
+				<? if (!d.prices_unit) { ?>	
+					<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.price ?> <?= d.currency ?></span>
+				<? } else { ?>
 					<div class="digiseller-calc-quanity">
 						<div class="digiseller-calc-left">
 							<span>заплачу <b id="digiseller-calc-amountR"><?= d.prices_unit.unit_Currency ?></b></span><br />
@@ -19,9 +17,9 @@
 
 						<div class="digiseller-calc-center">
 							<span class="digiseller-calc-<?= d.prices_unit.unit_Fixed ? 'arrowLeft' : 'arrowLeftRight' ?>"></span>
-						</div>					
+						</div>
 						
-						<div class="digiseller-calc-right">
+						<div class="digiseller-calc-right" >
 							<span>получу <b><?= d.prices_unit.unit_Name ?></b></span><br />
 							<? if (d.prices_unit.unit_Fixed) { ?>
 								<select id="digiseller-calc-cntSelect" style="width:100%" name="Unit_Cnt">
@@ -36,8 +34,9 @@
 						
 						<div class="digiseller-calc-right-value"><?= d.prices_unit.unit_CntDesc ?></div>				
 					</div>
+					<div class="digiseller-calc-limit" id="digiseller-calc-limit" style="display:none;"></div>
 				<? } ?>
-				
+
 				<div class="digiseller-calc-method">
 					<span>оплата через:</span><br />
 					<select id="digiseller-calc-currency" name="TypeCurr">
@@ -50,15 +49,15 @@
 						for (type in opts.types) {
 							if ( !opts.types.hasOwnProperty(type) || !d.prices[type] || d.prices[type] == 0)
 								continue; ?>						
-							<option class="digiseller-calc-option digiseller-calc-<?= type ?>" value="<?= type ?>"<?= currency[type] === opts.currency ? ' selected="selected"' : '' ?>><?= opts.types[type] ?></option>
+							<option class="digiseller-calc-option digiseller-calc-<?= type ?>" value="<?= type ?>" data-price="<?= d.prices[type] ?>"<?= currency[type] === opts.currency ? ' selected="selected"' : '' ?>><?= opts.types[type] ?></option>
 						<? } ?>
 					</select>
 				</div>
 				
 				<? if (opts.agreement_text) { ?>
 					<div class="digiseller-calc-confirmation">
-						<input type="checkbox" id="digiseller-calc-rules" checked="checked" />
-						с «<a href="#">Правилами покупки товаров</a>» ознакомлен и согласен.
+						<input type="checkbox" id="digiseller-calc-rules"<?= agree == 1 ? ' checked="checked"' : '' ?> />
+						с «<a data-action="agreement" href="#">Правилами покупки товаров</a>» ознакомлен и согласен.
 					</div>
 				<? } ?>
 	 

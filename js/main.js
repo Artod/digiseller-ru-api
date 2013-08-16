@@ -119,6 +119,19 @@ DigiSeller-ru-api
             expires: -1
           });
         }
+      },
+      agree: function(flag, onAgree) {
+        var $rules;
+        $rules = DS.dom.$('#digiseller-calc-rules');
+        if ($rules) {
+          $rules.checked = flag;
+        }
+        DS.opts.agree = flag ? 1 : 0;
+        DS.util.cookie.set('digiseller-agree', DS.opts.agree);
+        DS.popup.close();
+        if (onAgree) {
+          return onAgree();
+        }
       }
     };
     DS.dom = {
@@ -594,16 +607,12 @@ DigiSeller-ru-api
       calc: (function() {
         var _els, _prefix;
 
-        _els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR'];
-
-        /* , 'cntR', 'cntRK'
-        */
-
+        _els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules'];
 
         _prefix = 'digiseller-calc';
 
         function _Class(id) {
-          var el, that, _i, _len;
+          var el, rules, that, _i, _len;
           this.id = id;
           this.$ = {
             container: DS.dom.$("#" + _prefix)
@@ -630,10 +639,25 @@ DigiSeller-ru-api
                 return that.get('cnt');
               });
             }
-            DS.dom.addEvent(this.$.currency, 'change', function() {
-              return that.get();
-            });
           }
+          DS.dom.addEvent(this.$.currency, 'change', function() {
+            if (that.$.amount) {
+              return that.get();
+            } else if (that.$.price) {
+              return that.$.price.innerHTML = DS.dom.attr(DS.dom.$('option', that.$.currency)[that.$.currency.selectedIndex], 'data-price');
+            }
+          });
+          rules = function(flag) {
+            if (that.$.rules) {
+              return DS.dom.klass((flag && !that.$.rules.checked ? 'add' : 'remove'), that.$.rules.parentNode, 'digiseller-calc-confirmation-error');
+            }
+          };
+          DS.dom.addEvent(this.$.buy, 'mouseover', function() {
+            return rules(true);
+          });
+          DS.dom.addEvent(this.$.buy, 'mouseout', function() {
+            return rules(false);
+          });
           return;
         }
 
@@ -648,6 +672,7 @@ DigiSeller-ru-api
             params.amount = this.$.amount.value;
           } else {
             params.cnt = this.$.cntSelect ? DS.dom.select(this.$.cntSelect) : this.$.cnt.value;
+            this.checkMinMax(params.cnt);
           }
           params.currency = DS.dom.select(this.$.currency);
           DS.JSONP.get(DS.opts.host + 'shop_unit.asp', this.$.container, params, function(data) {
@@ -658,6 +683,30 @@ DigiSeller-ru-api
           });
         };
 
+        _Class.prototype.checkMinMax = function(cnt) {
+          var max, min, minmax, that;
+          that = this;
+          max = parseInt(DS.dom.attr(this.$.buy, 'data-max'));
+          min = parseInt(DS.dom.attr(this.$.buy, 'data-min'));
+          minmax = function(val, flag) {
+            that.$.limit.style.display = '';
+            DS.dom.attr(that.$.buy, 'data-action', '');
+            return that.$.limit.innerHTML = DS.tmpl(DS.tmpls.minmax, {
+              val: val,
+              flag: flag
+            });
+          };
+          if (max && cnt > max) {
+            minmax(max, true);
+            return;
+          } else if (min && cnt < min) {
+            minmax(min, false);
+            return;
+          }
+          DS.dom.attr(this.$.buy, 'data-action', 'buy');
+          this.$.limit.style.display = 'none';
+        };
+
         _Class.prototype.render = function(data) {
           if (!data) {
             return false;
@@ -666,16 +715,13 @@ DigiSeller-ru-api
             this.$.amount.value = data.unit_Amount;
           }
           if (this.$.cnt && data.unit_Cnt) {
+            this.checkMinMax(data.unit_Cnt);
             this.$.cnt.value = data.unit_Cnt;
           }
           if (this.$.cntSelect && data.unit_Currency) {
             DS.dom.select(this.$.cntSelect, data.unit_Currency);
           }
           this.$.amountR.innerHTML = data.unit_AmountDesc;
-          /* @$.cntR.innerHTML = data.cntR
-          				@$.cntRK.innerHTML = data.cntRK
-          */
-
         };
 
         return _Class;
@@ -954,10 +1000,11 @@ DigiSeller-ru-api
             buy: DS.tmpl(DS.tmpls.buy, {
               d: data.product,
               opts: DigiSeller.opts,
-              failPage: window.location
+              failPage: window.location,
+              agree: DS.opts.agree
             })
           });
-          new DS.widget.calc(data.product.id);
+          new DS.widget.calc(data.product.id, data.product.prices_unit);
           DS.widget.currency.init();
           that = this;
           $preview = DS.dom.$("#" + this.prefix + "-img-preview");
@@ -966,7 +1013,10 @@ DigiSeller-ru-api
               var id, type;
               type = DS.dom.attr($el, 'data-type');
               id = type === 'img' ? DS.dom.attr($el, 'href') : DS.dom.attr($el, 'data-id');
-              DS.popup(type, id, $thumbs.children.length && $el.previousSibling ? function() {
+              DS.popup.open(type, (type === 'img' ? id : DS.tmpl(DS.tmpls.video, {
+                id: id,
+                type: type
+              })), $thumbs.children.length && $el.previousSibling ? function() {
                 return onClick($el.previousSibling);
               } : false, $thumbs.children.length && $el.nextSibling ? function() {
                 return onClick($el.nextSibling);
@@ -1115,14 +1165,32 @@ DigiSeller-ru-api
         DS.route.article.comments.get();
       },
       'click-buy': function($el, e) {
-        var form, id;
+        var $rules, form, id;
         DS.util.prevent(e);
         id = DS.dom.attr($el, 'data-id');
         form = DS.dom.attr($el, 'data-form');
         if (form) {
+          $rules = DS.dom.$('#digiseller-calc-rules');
+          if ($rules) {
+            DS.opts.agree = $rules.checked ? 1 : 0;
+            DS.util.cookie.set('digiseller-agree', DS.opts.agree);
+            if (!$rules.checked) {
+              return;
+            }
+          }
           DS.dom.$("#digiseller-buy-form-" + id).submit();
         } else {
-          window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id + "&dsn=limit", '_blank');
+          DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {
+            text: DS.opts.agreement_text
+          }));
+          DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', function() {
+            return DS.util.agree(true, function() {
+              return window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id + "&dsn=limit", '_blank');
+            });
+          });
+          DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', function() {
+            return DS.util.agree(false);
+          });
         }
       },
       'click-article-tab': function($el, e) {
@@ -1140,7 +1208,7 @@ DigiSeller-ru-api
           }
           return $panels[index].style.display = '';
         };
-        if (index === '1') {
+        if (index === '2') {
           DS.route.article.initComments(change);
         } else {
           change();
@@ -1152,8 +1220,20 @@ DigiSeller-ru-api
         title = DS.dom.attr($el, 'data-title');
         img = DS.dom.attr($el, 'data-img');
         if (DS.share[type]) {
-          return window.open(DS.share[type](title, img), "digisellerShare_" + type, DS.util.getPopupParams(626, 436));
+          window.open(DS.share[type](title, img), "digisellerShare_" + type, DS.util.getPopupParams(626, 436));
         }
+      },
+      'click-agreement': function($el, e) {
+        DS.util.prevent(e);
+        DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {
+          text: DS.opts.agreement_text
+        }));
+        DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', function() {
+          return DS.util.agree(true);
+        });
+        return DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', function() {
+          return DS.util.agree(false);
+        });
       }
     };
     DS.share = {
@@ -1183,7 +1263,7 @@ DigiSeller-ru-api
 		}
 
 		function urlHashCheck() {
-			var mayChangeReload = false; // _needReload может обнулиться так как urlHashCheck может еще не закончиться а _needReload уже поставили true
+			var mayChangeReload = false; // _needReload ����� ���������� ��� ��� urlHashCheck ����� ��� �� ����������� � _needReload ��� ��������� true
 
 			if (_needReload) {
 				mayChangeReload = true;
@@ -1246,7 +1326,7 @@ DigiSeller-ru-api
 					_routes.push([new RegExp(pattern[i], 'i'), callback]);
 				}
 
-				_revRoutes = _routes.slice().reverse(); // клонируем и реверсируем
+				_revRoutes = _routes.slice().reverse(); // ��������� � �����������
 			},
 			reload: function() {
 				_needReload = true;
@@ -1349,7 +1429,7 @@ DigiSeller-ru-api
 					return '\\' + escapes[match];
 				});
 
-			/* todo: _.escape переделать */
+			/* todo: _.escape ���������� */
 			source +=
 				escape ? "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'" :
 				interpolate ? "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'" :
@@ -1390,7 +1470,7 @@ DigiSeller-ru-api
 		return template;
 	};
     DS.popup = (function() {
-      var close, img, init, isClosed, isCompV, leftCallback, prefix, resize, rightCallback, setup, wrCallback;
+      var close, img, init, isClosed, isCompV, leftCallback, prefix, resize, rightCallback, setup, show, wrCallback;
       setup = {};
       img = null;
       prefix = 'digiseller-popup-';
@@ -1399,38 +1479,50 @@ DigiSeller-ru-api
       leftCallback = null;
       rightCallback = null;
       isClosed = true;
+      show = function(onResize) {
+        setup.$loader.style.display = 'none';
+        setup.$container.style.display = '';
+        wrCallback = DS.dom.addEvent(window, 'resize', onResize);
+        onResize();
+      };
       close = function(e) {
-        DS.util.prevent(e);
+        if (e) {
+          DS.util.prevent(e);
+        }
+        setup.$img.innerHTML = '';
         setup.$main.style.display = 'none';
         DS.dom.removeEvent(window, 'resize', wrCallback);
         isClosed = true;
         img = null;
       };
-      resize = function(h, w) {
-        var h1, hs, isDec, scale0, w1, wih, wiw, ws;
-        scale0 = h / w;
+      resize = function(h, w, isHard) {
+        var body, doc, h1, hs, isDec, scale0, topScroll, w1, wih, wiw, ws;
         wih = window.innerHeight;
-        wiw = window.innerWidth;
         hs = (typeof wih !== 'undefined' ? wih : document[isCompV ? 'documentElement' : 'body'].offsetHeight - 22) - 100;
-        ws = (typeof wiw !== 'undefined' ? wiw : document[isCompV ? 'documentElement' : 'body'].offsetWidth) - 120;
-        h1 = hs;
-        w1 = ws;
-        isDec = false;
-        h >= hs && (isDec = true) || (h1 = h);
-        w >= ws && (isDec = true) || (w1 = w);
-        if (isDec) {
-          if (scale0 <= h1 / w1) {
-            h1 = Math.round(scale0 * w1);
-          } else {
-            w1 = Math.round(h1 / scale0);
+        if (!isHard) {
+          scale0 = h / w;
+          wiw = window.innerWidth;
+          ws = (typeof wiw !== 'undefined' ? wiw : document[isCompV ? 'documentElement' : 'body'].offsetWidth) - 120;
+          h1 = hs;
+          w1 = ws;
+          isDec = false;
+          h >= hs && (isDec = true) || (h1 = h);
+          w >= ws && (isDec = true) || (w1 = w);
+          if (isDec) {
+            if (scale0 <= h1 / w1) {
+              h1 = Math.round(scale0 * w1);
+            } else {
+              w1 = Math.round(h1 / scale0);
+            }
           }
-        }
-        if (img) {
           img.style.height = h1 + 'px';
           img.style.width = w1 + 'px';
         }
-        setup.$container.style.width = (w1 + 50) + 'px';
-        setup.$container.style.top = (hs - h1 + 20) / 3 + 'px';
+        setup.$container.style.width = ((isHard ? w : w1) + 50) + 'px';
+        doc = document.documentElement;
+        body = document.body;
+        topScroll = doc && doc.scrollTop || body && body.scrollTop || 0;
+        setup.$container.style.top = (hs - (isHard ? h : h1) + 20) / 3 + topScroll + 'px';
       };
       init = function() {
         var container, param, params, _i, _len;
@@ -1447,54 +1539,52 @@ DigiSeller-ru-api
         DS.dom.addEvent(setup.$fade, 'click', close);
         DS.dom.addEvent(setup.$close, 'click', close);
       };
-      return function(type, id, onLeft, onRight) {
-        !setup.$main && init();
-        isClosed = false;
-        setup.$container.style.display = 'none';
-        setup.$main.style.display = '';
-        setup.$loader.style.display = '';
-        setup.$left.style.display = onLeft ? '' : 'none';
-        if (onLeft) {
-          DS.dom.removeEvent(setup.$left, 'click', leftCallback);
-          leftCallback = DS.dom.addEvent(setup.$left, 'click', onLeft);
-        }
-        setup.$right.style.display = onRight ? '' : 'none';
-        if (onRight) {
-          DS.dom.removeEvent(setup.$right, 'click', rightCallback);
-          rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight);
-        }
-        switch (type) {
-          case 'img':
-            img = new Image();
-            img.onload = function() {
-              var h, w;
-              if (isClosed) {
-                return;
-              }
-              h = img.height;
-              w = img.width;
-              DS.dom.removeEvent(window, 'resize', wrCallback);
-              wrCallback = DS.dom.addEvent(window, 'resize', function() {
-                console.log('resize');
-                resize(h, w);
+      return {
+        open: function(type, id, onLeft, onRight) {
+          !setup.$main && init();
+          isClosed = false;
+          setup.$container.style.display = 'none';
+          setup.$main.style.display = '';
+          setup.$loader.style.display = '';
+          setup.$left.style.display = onLeft ? '' : 'none';
+          if (onLeft) {
+            DS.dom.removeEvent(setup.$left, 'click', leftCallback);
+            leftCallback = DS.dom.addEvent(setup.$left, 'click', onLeft);
+          }
+          setup.$right.style.display = onRight ? '' : 'none';
+          if (onRight) {
+            DS.dom.removeEvent(setup.$right, 'click', rightCallback);
+            rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight);
+          }
+          switch (type) {
+            case 'img':
+              DS.dom.klass('remove', setup.$img, 'digiseller-popup-video');
+              img = new Image();
+              img.onload = function() {
+                var h, w;
+                if (isClosed) {
+                  return;
+                }
+                h = img.height;
+                w = img.width;
+                DS.dom.removeEvent(window, 'resize', wrCallback);
+                show(function() {
+                  resize(h, w);
+                });
+                setup.$img.innerHTML = '';
+                return setup.$img.appendChild(img);
+              };
+              img.src = id;
+              break;
+            default:
+              DS.dom.klass('add', setup.$img, 'digiseller-popup-video');
+              show(function() {
+                resize(200, 500, true);
               });
-              setup.$loader.style.display = 'none';
-              setup.$container.style.display = '';
-              resize(h, w);
-              setup.$img.innerHTML = '';
-              return setup.$img.appendChild(img);
-            };
-            img.src = id;
-            break;
-          default:
-            setup.$loader.style.display = 'none';
-            setup.$container.style.display = '';
-            resize(305, 500);
-            setup.$img.innerHTML = DS.tmpl(DS.tmpls.video, {
-              id: id,
-              type: type
-            });
-        }
+              setup.$img.innerHTML = id;
+          }
+        },
+        close: close
       };
     })();
     inited = false;
@@ -1512,6 +1602,7 @@ DigiSeller-ru-api
         param = params[_i];
         DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) || DS.opts[param];
       }
+      DS.opts.agree = DS.util.cookie.get('digiseller-agree') || DS.opts.agree;
       DS.widget.category.init();
       DS.widget.main.init();
       DS.widget.loader.init();
