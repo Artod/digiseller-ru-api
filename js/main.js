@@ -896,7 +896,7 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var $selectSort, article, articles, container, out, param, params, that, _i, _j, _len, _len1;
+          var article, articles, container, out, param, params, set, that, _i, _j, _len, _len1;
           out = '';
           data.totalPages = parseInt(data.totalPages);
           articles = data.product;
@@ -950,16 +950,20 @@ DigiSeller-ru-api
                 }
               }).render();
               DS.widget.currency.init();
-              params = ['sort', 'view'];
-              for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
-                param = params[_j];
+              set = function(param) {
+                var $selectSort;
                 $selectSort = DS.dom.$('select', DS.dom.$("#digiseller-" + param))[0];
                 DS.dom.addEvent($selectSort, 'change', function(e) {
                   DS.opts[param] = DS.dom.select(this);
                   DS.util.cookie.set(that.prefix + ("-" + param), DS.opts[param]);
                   return that.get();
                 });
-                DS.dom.select($selectSort, DS.opts[param]);
+                return DS.dom.select($selectSort, DS.opts[param]);
+              };
+              params = ['sort', 'view'];
+              for (_j = 0, _len1 = params.length; _j < _len1; _j++) {
+                param = params[_j];
+                set(param);
               }
             }
           }
@@ -1422,7 +1426,7 @@ DigiSeller-ru-api
 				'\u2028': 'u2028',
 				'\u2029': 'u2029'
 			};
-
+			
 		text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
 			source += text.slice(index, offset)
 				.replace(escaper, function(match) {

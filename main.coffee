@@ -1471,7 +1471,7 @@ noparse=0"
 				'\u2028': 'u2028',
 				'\u2029': 'u2029'
 			};
-		console.dir(data)
+			
 		text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
 			source += text.slice(index, offset)
 				.replace(escaper, function(match) {

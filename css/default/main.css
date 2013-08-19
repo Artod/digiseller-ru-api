@@ -1487,7 +1487,9 @@ margin-bottom:10px;
 
 div.digiseller-calc-quanity div.digiseller-calc-left span {text-overflow:ellipsis; overflow:hidden; white-space:nowrap}
 
-
+.digiseller-calc-confirmation-error {
+    background:#fdbfbf; border-radius:4px; padding:7px;
+}
 
 .digiseller-calc-right input {color:#000;}
 .digiseller-calc-quanity input:focus {border-color:#0B6678;}
@@ -1527,22 +1529,9 @@ background-position: -400px;
 .digiseller-calc-wmr, .digiseller-calc-wmz, .digiseller-calc-wmu, .digiseller-calc-wmd, .digiseller-calc-wme {
 background-position: 5px -36px!important;
 }
-
-.digiseller-calc-confirmation-error {
-    background:#fdbfbf; border-radius:4px; padding:7px;
-}
-
-/*
-.digiseller-calc-wmz"WebMoney (USD)</option>
-.digiseller-calc-wmd"WebMoney (USD) в кредит</option>
-.digiseller-calc-wmr"WebMoney (RUR)</option>
-.digiseller-calc-wme"WebMoney (EUR)</option>
-.digiseller-calc-wmu"WebMoney (UAH)</option>*/
 .digiseller-calc-qsr {background-position: 5px -67px!important;}
-/*.digiseller-calc-ppl"PayPal (USD)</option>*/
 .digiseller-calc-pcr {background-position: 5px -95px!important;}
 .digiseller-calc-mmr {background-position:  5px -366px;}
-/*.digiseller-calc-mrr Деньги@Mail.Ru (RUR)</option>*/
 .digiseller-calc-mts {background-position: 5px -127px;}
 .digiseller-calc-bln {background-position: 5px -157px;}
 .digiseller-calc-mgf {background-position: 5px -185px;}
@@ -1551,7 +1540,6 @@ background-position: 5px -36px!important;
 .digiseller-calc-rcc {background-position:  5px -428px;}
 .digiseller-calc-occ {background-position:  5px -428px;}
 .digiseller-calc-alf {background-position:  5px -305px;}
-/*.digiseller-calc-sbr"«Спасибо» от Сбербанка</option>*/
 .digiseller-calc-prr {background-position:  5px -366px;}
 .digiseller-calc-atm {background-position: 5px -247px;} 
 .digiseller-calc-ppz {background-position:  5px -337px;}
@@ -1559,7 +1547,8 @@ background-position: 5px -36px!important;
 .digiseller-calc-ppe {background-position:  5px -337px;}
 .digiseller-calc-ppu {background-position:  5px -337px;}
 .digiseller-calc-gft {background-position: 5px -396px;}
-.digiseller-calc-rbx {}
+.digiseller-calc-ppl {background-position:  5px -458px;}
+.digiseller-calc-mrr  {background-position:  5px -488px;}
 
 /*table view*/
 .digiseller-tableHolder {width:100%; margin-top:15px;}
