@@ -1208,21 +1208,25 @@ DigiSeller-ru-api
 					if !$rules.checked
 						return						
 
-				DS.dom.$("#digiseller-buy-form-#{id}").submit()
+				DS.dom.$("#digiseller-buy-form-#{id}").submit()			
+			else
+				buy = () -> window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank')
 				
-			else	
-				DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,
-					text: DS.opts.agreement_text
-				))
+				if (DS.opts.agreement_text)
+					DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,
+						text: DS.opts.agreement_text
+					))
+					
+					DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->
+						DS.util.agree(true, buy)
+					)
+					
+					DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', () ->
+						DS.util.agree(false)
+					)
+				else
+					buy()
 				
-				DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->
-					DS.util.agree( true, ()-> window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank') )
-				)
-				
-				DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', () ->
-					DS.util.agree(false)
-				)
-
 			return
 			
 		'click-article-tab': ($el, e) ->
@@ -1666,48 +1670,48 @@ noparse=0"
 		DS.$el.head = DS.dom.$('head')[0] || document.documentElement
 		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
 		
-		# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
-		DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
-		
-		params = ['sort', 'rows', 'view']
-		for param in params
-			DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
-
-		DS.opts.agree = DS.util.cookie.get('digiseller-agree') or DS.opts.agree		
+		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
 			
-		DS.widget.category.init()
-		DS.widget.main.init()
-		DS.widget.loader.init()
-		DS.widget.search.init()
-		
-		DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo, logo_img: DS.opts.logo_img)
-		DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, d: DS.opts)			
-		
-		if not DS.widget.category.$el
-			DS.widget.main.$el.className = 'digiseller-main-nocategory'
+			params = ['sort', 'rows', 'view']
+			for param in params
+				DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
+
+			DS.opts.agree = DS.util.cookie.get('digiseller-agree') or DS.opts.agree		
 				
-		for name, route of DS.route
-			continue unless DS.route.hasOwnProperty(name) or route.url or route.action
-
-			((route) ->
-				DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->						
-					route.action(params)
-					
-					return
-				)
-
-				return
-			)(route)
-
-		DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
-
-		DS.historyClick.start()
-
-		if window.location.hash is ''
-			DS.historyClick.reload()
+			DS.widget.category.init()
+			DS.widget.main.init()
+			DS.widget.loader.init()
+			DS.widget.search.init()
 			
-		return
-		# )
+			DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo, logo_img: DS.opts.logo_img)
+			DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, d: DS.opts)			
+			
+			if not DS.widget.category.$el
+				DS.widget.main.$el.className = 'digiseller-main-nocategory'
+					
+			for name, route of DS.route
+				continue unless DS.route.hasOwnProperty(name) or route.url or route.action
+
+				((route) ->
+					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->						
+						route.action(params)
+						
+						return
+					)
+
+					return
+				)(route)
+
+			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
+
+			DS.historyClick.start()
+
+			if window.location.hash is ''
+				DS.historyClick.reload()
+				
+			return
+		)
 
 		return
 		
