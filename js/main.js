@@ -686,6 +686,7 @@ DigiSeller-ru-api
         _Class.prototype.checkMinMax = function(cnt) {
           var max, min, minmax, that;
           that = this;
+          cnt = parseInt(cnt);
           max = parseInt(DS.dom.attr(this.$.buy, 'data-max'));
           min = parseInt(DS.dom.attr(this.$.buy, 'data-min'));
           minmax = function(val, flag) {
@@ -1169,7 +1170,7 @@ DigiSeller-ru-api
         DS.route.article.comments.get();
       },
       'click-buy': function($el, e) {
-        var $rules, form, id;
+        var $rules, buy, form, id;
         DS.util.prevent(e);
         id = DS.dom.attr($el, 'data-id');
         form = DS.dom.attr($el, 'data-form');
@@ -1184,17 +1185,22 @@ DigiSeller-ru-api
           }
           DS.dom.$("#digiseller-buy-form-" + id).submit();
         } else {
-          DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {
-            text: DS.opts.agreement_text
-          }));
-          DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', function() {
-            return DS.util.agree(true, function() {
-              return window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id + "&dsn=limit", '_blank');
+          buy = function() {
+            return window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id + "&dsn=limit", '_blank');
+          };
+          if (DS.opts.agreement_text) {
+            DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {
+              text: DS.opts.agreement_text
+            }));
+            DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', function() {
+              return DS.util.agree(true, buy);
             });
-          });
-          DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', function() {
-            return DS.util.agree(false);
-          });
+            DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', function() {
+              return DS.util.agree(false);
+            });
+          } else {
+            buy();
+          }
         }
       },
       'click-article-tab': function($el, e) {
@@ -1593,56 +1599,57 @@ DigiSeller-ru-api
     })();
     inited = false;
     DS.init = function() {
-      var name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
       if (inited) {
         return false;
       }
       inited = true;
       DS.$el.head = DS.dom.$('head')[0] || document.documentElement;
       DS.$el.body = DS.dom.$('body')[0] || document.documentElement;
-      DS.opts.currency = DS.util.cookie.get('digiseller-currency') || DS.opts.currency;
-      params = ['sort', 'rows', 'view'];
-      for (_i = 0, _len = params.length; _i < _len; _i++) {
-        param = params[_i];
-        DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) || DS.opts[param];
-      }
-      DS.opts.agree = DS.util.cookie.get('digiseller-agree') || DS.opts.agree;
-      DS.widget.category.init();
-      DS.widget.main.init();
-      DS.widget.loader.init();
-      DS.widget.search.init();
-      if ((_ref = DS.dom.$('#digiseller-logo')) != null) {
-        _ref.innerHTML = DS.tmpl(DS.tmpls.logo, {
-          logo_img: DS.opts.logo_img
-        });
-      }
-      if ((_ref1 = DS.dom.$('#digiseller-topmenu')) != null) {
-        _ref1.innerHTML = DS.tmpl(DS.tmpls.topmenu, {
-          d: DS.opts
-        });
-      }
-      if (!DS.widget.category.$el) {
-        DS.widget.main.$el.className = 'digiseller-main-nocategory';
-      }
-      _ref2 = DS.route;
-      _fn = function(route) {
-        DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, function(params) {
-          route.action(params);
-        });
-      };
-      for (name in _ref2) {
-        route = _ref2[name];
-        if (!(DS.route.hasOwnProperty(name) || route.url || route.action)) {
-          continue;
+      DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, function() {
+        var name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
+        DS.opts.currency = DS.util.cookie.get('digiseller-currency') || DS.opts.currency;
+        params = ['sort', 'rows', 'view'];
+        for (_i = 0, _len = params.length; _i < _len; _i++) {
+          param = params[_i];
+          DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) || DS.opts[param];
         }
-        _fn(route);
-      }
-      DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
-      DS.historyClick.start();
-      if (window.location.hash === '') {
-        DS.historyClick.reload();
-      }
-      return;
+        DS.opts.agree = DS.util.cookie.get('digiseller-agree') || DS.opts.agree;
+        DS.widget.category.init();
+        DS.widget.main.init();
+        DS.widget.loader.init();
+        DS.widget.search.init();
+        if ((_ref = DS.dom.$('#digiseller-logo')) != null) {
+          _ref.innerHTML = DS.tmpl(DS.tmpls.logo, {
+            logo_img: DS.opts.logo_img
+          });
+        }
+        if ((_ref1 = DS.dom.$('#digiseller-topmenu')) != null) {
+          _ref1.innerHTML = DS.tmpl(DS.tmpls.topmenu, {
+            d: DS.opts
+          });
+        }
+        if (!DS.widget.category.$el) {
+          DS.widget.main.$el.className = 'digiseller-main-nocategory';
+        }
+        _ref2 = DS.route;
+        _fn = function(route) {
+          DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, function(params) {
+            route.action(params);
+          });
+        };
+        for (name in _ref2) {
+          route = _ref2[name];
+          if (!(DS.route.hasOwnProperty(name) || route.url || route.action)) {
+            continue;
+          }
+          _fn(route);
+        }
+        DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
+        DS.historyClick.start();
+        if (window.location.hash === '') {
+          DS.historyClick.reload();
+        }
+      });
     };
     window.DigiSeller = DS;
     DS.dom.addEvent(window, 'load', DS.init);

@@ -67,7 +67,8 @@ font-family:tahoma, Arial;
 color:#0B6678;
 font-size:13px;
 text-decoration:none;
-font-family:tahoma, Arial
+font-family:tahoma, Arial;
+cursor:pointer;
 }
 
 .digiseller-category ul a {
@@ -727,8 +728,7 @@ position:relative
 #digiseller-popup-fade {position:fixed; top:0px; left:0px; width:100%; height:100%; background-color:#000; zoom: 1; opacity: 0.5; -moz-opacity: 0.5; -khtml-opacity: 0.5; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; filter: alpha(opacity=50);}
 #digiseller-popup-loader {margin:0px auto 0px auto; top:30%; position:relative; background:#fff url(//events.webmoney.ru/images/loading2.gif) center center no-repeat; width:100px; height:50px;}
 #digiseller-popup-container {position: relative; margin: 0px auto; padding: 35px 25px 10px 25px; background:white;}
-#digiseller-popup-close {font-size:0; width:24px; display:block; z-index:99; position:absolute; height:24px; top:5px; right:5px; background:url(../../img/popup_close.png) center no-repeat;}
-
+#digiseller-popup-close {font-size:0; width:24px; display:block; z-index:99; position:absolute; height:24px; top:5px; right:5px; background:url(http://digiseller.ru/shop/img/popup_close.png) center no-repeat;}
 
 #digiseller-popup-container a#digiseller-popup-left {
 position:absolute;
@@ -839,8 +839,14 @@ padding-right:10px
 }
 
 .digiseller-prod-info {
-padding-top:20px
+clear: both;
+color: #373737;
+float: right;
+margin-right: -10px;
+padding-top: 20px;
 }
+
+.digiseller-description_content .digiseller-prod-info {float:none; clear:none; margin-right:4px}
 
 .digiseller-prod-info h3 {
 border-bottom:1px dashed #CCC;
@@ -1521,7 +1527,7 @@ font-size:18px;
 
 
 .digiseller-calc-option {
-background:url(../../img/digiseller-calc-icons.png) no-repeat;
+background:url(http://digiseller.ru/shop/img/digiseller-calc-icons.png) no-repeat;
 padding-left:30px;
 background-position: -400px;
 }
@@ -1560,7 +1566,7 @@ background-position: 5px -36px!important;
 .digiseller-table tr:nth-child(2n) {background:#f1f1f1;}
 .digiseller-table-left,.digiseller-table-right {padding-top:4px; padding-bottom:4px;}
 .digiseller-table-left {padding-left:10px;}   
-.digiseller-table-left a {text-decoration:none; color:#0B6678 ;}
+.digiseller-table-left a {text-decoration:none; color:#0B6678; cursor:pointer;}
 .digiseller-table-left a:hover {text-decoration:underline;}
 .digiseller-table-right {text-align:right;}
 .digiseller-table-right div {min-width:240px; float:right;}

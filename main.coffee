@@ -661,6 +661,7 @@ DigiSeller-ru-api
 				
 			checkMinMax: (cnt) ->
 				that = @
+				cnt = parseInt(cnt)
 				max = parseInt(DS.dom.attr(@$.buy, 'data-max'))
 				min = parseInt(DS.dom.attr(@$.buy, 'data-min'))
 
@@ -672,7 +673,7 @@ DigiSeller-ru-api
 						val: val
 						flag: flag
 					)						
-					
+
 				if max and cnt > max
 					minmax(max, true)
 					
