@@ -73,19 +73,11 @@
 		
 		<div class="digiseller-product-right">
 			<?= buy ?>
-
-			<div class="digiseller-prod-info">
-				<? if (d.type && d[d.type]) { ?>
-					<span class="digiseller-bold">Товар&nbsp;загружен:&nbsp;</span> <?= d[d.type].date ?>
-					<div class="digiseller-prodinfoseparator"></div>
-				<? } ?>
-					
-				<span class="digiseller-bold">Количество продаж/возвратов:</span> <?= d.statistics.sales ?>/<?= d.statistics.refunds ?>
-				<div class="digiseller-prodinfoseparator"></div>
-			</div>
 			
-			<? if (d.units.price && d.units.desc) { ?>
-				<span class="digiseller-bold">Цена:</span> <?= d.units.price ?> <?= d.currency ?> за <?= d.units.desc ?><br />
+			<? if (d.statistics.sales && d.statistics.sales != '0') { ?>
+				<div class="digiseller-prod-info">
+					<span>Количество продаж:&nbsp;</span><?= d.statistics.sales ?>
+				</div>
 			<? } ?>
 		</div>
 	</div>

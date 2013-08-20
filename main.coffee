@@ -908,7 +908,7 @@ DigiSeller-ru-api
 						out += DS.tmpl(DS.tmpls['article' + DS.opts.view.charAt(0).toUpperCase() + DS.opts.view.slice(1)], 
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
-							imgsize: DS.opts.imgsize_listpage							
+							imgsize: if DS.opts.view is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
 						)
 
 				container = DS.dom.$("##{@prefix}-#{@cid}")
