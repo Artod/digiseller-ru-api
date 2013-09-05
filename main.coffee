@@ -61,8 +61,25 @@ DigiSeller-ru-api
 			
 			return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"
 
+		getAbsPos: (a) ->
+			`var b = {
+				x: 0,
+				y: 0
+			};
+			if (a.offsetParent) do b.x += a.offsetLeft, b.y += a.offsetTop, a = a.offsetParent;
+			while (a);			
+			return b`
+			
+			return
+			
 		scrollUp: () ->
-			window.scroll(0, null)
+			doc = document.documentElement
+			body = document.body
+			scrollTop = (doc && doc.scrollTop  || body && body.scrollTop  || 0)
+			posY = DS.util.getAbsPos(DS.widget.main.$el).y
+			
+			if scrollTop > posY
+				window.scroll(null, DS.util.getAbsPos(DS.widget.main.$el).y)
 			
 			return
 			
@@ -72,7 +89,7 @@ DigiSeller-ru-api
 				  "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 				));
 
-				return matches ? decodeURIComponent(matches[1]) : undefined;`
+				return matches ? decodeURIComponent(matches[1]) : undefined`
 
 				return
 
@@ -101,7 +118,7 @@ DigiSeller-ru-api
 					}
 				}
 
-				document.cookie = updatedCookie;`
+				document.cookie = updatedCookie`
 
 				return
 
@@ -212,7 +229,7 @@ DigiSeller-ru-api
 				$el.className = action === 'add' ? ($el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '') : $el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "");
 			}
 
-			return els;`
+			return els`
 
 			return
 
@@ -707,7 +724,7 @@ DigiSeller-ru-api
 	DS.route =
 		home:
 			url: '/home'
-			action: (params) ->
+			action: () ->
 				DS.widget.category.mark()
 
 				@get()
@@ -1387,7 +1404,7 @@ noparse=0"
 		};
 
 		return historyClick;
-	})();`
+	})()`
 	
 
 	DS.JSONP = `(function() {
@@ -1690,12 +1707,24 @@ noparse=0"
 			
 			if not DS.widget.category.$el
 				DS.widget.main.$el.className = 'digiseller-main-nocategory'
-					
+				
+			homeInited = false
+			DS.historyClick.addRoute('#.*', (params) ->
+				if homeInited
+					return
+				
+				homeInited = true
+				DS.route.home.action()
+				
+				return
+			)
+				
 			for name, route of DS.route
 				continue unless DS.route.hasOwnProperty(name) or route.url or route.action
 
 				((route) ->
-					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->						
+					DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
+						homeInited = true
 						route.action(params)
 						
 						return
@@ -1704,7 +1733,7 @@ noparse=0"
 					return
 				)(route)
 
-			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
+			DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home')
 
 			DS.historyClick.start()
 

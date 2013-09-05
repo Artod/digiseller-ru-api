@@ -28,6 +28,18 @@
 		<? } ?>
 	</div>
 
+	<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
+		<div class="digiseller-product-toggle">
+			<? if (d.id_prev !== '0') { ?>
+				<span>&larr; </span><a onclick="location.hash='#!digiseller/detail/<?= d.id_prev ?>';">предыдущий товар</a> &nbsp;&nbsp;
+			<? } ?>
+			|
+			<? if (d.id_next !== '0') { ?>
+				&nbsp;&nbsp; <a onclick="location.hash='#!digiseller/detail/<?= d.id_next ?>';">следующий товар</a><span> &rarr;</span>
+			<? } ?>
+		</div>
+	<? } ?>
+	
 	<div class="digiseller-options">
 		<span class="digiseller-social">
 			<a class="digiseller-social-fb" title="Поделиться в facebook" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>

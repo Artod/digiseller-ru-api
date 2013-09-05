@@ -52,7 +52,7 @@ font-family:tahoma, Arial;
 .digiseller-main, .digiseller-main * {font-family:Tahoma, Arial}
 
 .digiseller-main-nocategory {width:100%}
-.digiseller-main-nocategory, .digiseller-main-nocategory  * {font-family:Tahoma, Arial}
+.digiseller-main-nocategory, .digiseller-main-nocategory  * {font-family:Tahoma, Arial; text-align:left;}
 
 
 .digiseller-breadcrumbs {
@@ -60,6 +60,7 @@ color:#7B7B7B;
 font-size:13px;
 padding-top:10px;
 padding-bottom:10px;
+display:inline-block;
 font-family:tahoma, Arial;
 }
 
@@ -228,7 +229,7 @@ display:inline-block
 }
 
 .digiseller-search-go {
-background:url(//www.digiseller.ru/shop/img/loupe.png) center center no-repeat #0b6678;
+background:url(//www.digiseller.ru/shop/img/loupe.png) center center no-repeat #0b6678!important;
 height:28px;
 width:29px;
 padding:0 10px;
@@ -251,7 +252,7 @@ transition:All .4s ease;
 }
 
 .digiseller-search-go:hover {
-background:url(//www.digiseller.ru/shop/img/loupe.png) center center no-repeat #0a91c0
+background:url(//www.digiseller.ru/shop/img/loupe.png) center center no-repeat #0a91c0!important;
 }
 
 .digiseller-articles {
@@ -558,7 +559,7 @@ color:#fff
 }
 
 a.digiseller-buyButton:hover {
-background:#0a91c0
+background:#0a91c0; text-decoration:none;
 }
 
 a.digiseller-buyButton-empty:hover {
@@ -735,7 +736,7 @@ left:0;
 top:0;
 height:100%;
 width:40%;
-background:url(../../img/popup_left.png) left center no-repeat;
+background:url(//www.digiseller.ru/shop/img/popup_left.png) left center no-repeat;
 }
 
 #digiseller-popup-container a#digiseller-popup-right {
@@ -744,7 +745,7 @@ right:0;
 top:0;
 height:100%;
 width:40%;
-background:url(../../img/popup_right.png) right center no-repeat;
+background:url(//www.digiseller.ru/shop/img/popup_right.png) right center no-repeat;
 }
 
 div.digiseller-popup-video + br + div.digiseller-calc-center a#digiseller-popup-left {width:48px!important;}
@@ -807,8 +808,6 @@ div.digiseller-popup-video + br + div.digiseller-calc-center a#digiseller-popup-
     color:#fff
 }
 
-
-
 .digiseller-browseProdTitle a.digiseller-product-details {
 color:#0B6678;
 display:inline-block;
@@ -816,7 +815,8 @@ font-size:14px;
 font-weight:400;
 width:130px;
 margin-top:10px;
-text-decoration:none
+text-decoration:none;
+cursor:pointer
 }
 
 .digiseller-browseProdTitle a.digiseller-product-details:hover {
@@ -844,6 +844,7 @@ float: right;
 margin-right: -10px;
 padding-top: 20px;
 }
+
 
 .digiseller-description_content .digiseller-prod-info {float:none; clear:none; margin-right:4px}
 
@@ -1013,7 +1014,9 @@ font-family:arial;
 font-size:12px;
 margin-top:-1px;
 padding:0 10px 10px;
-margin-bottom:10px 0
+margin-bottom:10px 0;
+background:#fff;
+font-size:12px;
 }
 
 .digiseller-left-thumbs {
@@ -1427,6 +1430,22 @@ clear:both
     
     #digiseller-view span {color:#373737; font-size:13px; line-height:27px;}
 
+    
+.digiseller-main  input, .digiseller-main  select {padding:0; height:24px; line-height:24px; font-size:14px;}
+    
+.digiseller-product-toggle {
+display:inline-block;
+float:right;
+font-size:13px;
+color:#cccccc;
+padding-top:10px;
+}
+
+.digiseller-product-toggle span {color:#0B6678; font-family:Arial;}
+.digiseller-product-toggle a {color:#0B6678; text-decoration:none;}
+.digiseller-product-toggle a:hover {color:#0B6678; text-decoration:underline;}
+    
+    
 /*__________________________________ Calculator ___________________________________*/
 
 

@@ -76,8 +76,24 @@ DigiSeller-ru-api
         top = parseInt(screenY + ((outerHeight - height) / 2.5), 10);
         return "scrollbars=1, resizable=1, menubar=0, left=" + left + ", top=" + top + ", width=" + width + ", height=" + height + ", toolbar=0, status=0";
       },
+      getAbsPos: function(a) {
+        var b = {
+				x: 0,
+				y: 0
+			};
+			if (a.offsetParent) do b.x += a.offsetLeft, b.y += a.offsetTop, a = a.offsetParent;
+			while (a);			
+			return b;
+      },
       scrollUp: function() {
-        window.scroll(0, null);
+        var body, doc, posY, scrollTop;
+        doc = document.documentElement;
+        body = document.body;
+        scrollTop = doc && doc.scrollTop || body && body.scrollTop || 0;
+        posY = DS.util.getAbsPos(DS.widget.main.$el).y;
+        if (scrollTop > posY) {
+          window.scroll(null, DS.util.getAbsPos(DS.widget.main.$el).y);
+        }
       },
       cookie: {
         get: function(name) {
@@ -85,7 +101,7 @@ DigiSeller-ru-api
 				  "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 				));
 
-				return matches ? decodeURIComponent(matches[1]) : undefined;;
+				return matches ? decodeURIComponent(matches[1]) : undefined;
         },
         set: function(name, value, props) {
           props = props || {};
@@ -112,7 +128,7 @@ DigiSeller-ru-api
 					}
 				}
 
-				document.cookie = updatedCookie;;
+				document.cookie = updatedCookie;
         },
         del: function(name) {
           this.set(name, null, {
@@ -224,7 +240,7 @@ DigiSeller-ru-api
 				$el.className = action === 'add' ? ($el.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '') : $el.className.replace(re, "$1").replace(/\s+/g, " ").replace(/(^ | $)/g, "");
 			}
 
-			return els;;
+			return els;
       },
       select: function($select, val) {
         var $option, $options, i, _i, _len;
@@ -732,7 +748,7 @@ DigiSeller-ru-api
     DS.route = {
       home: {
         url: '/home',
-        action: function(params) {
+        action: function() {
           DS.widget.category.mark();
           this.get();
         },
@@ -909,7 +925,7 @@ DigiSeller-ru-api
               out += DS.tmpl(DS.tmpls['article' + DS.opts.view.charAt(0).toUpperCase() + DS.opts.view.slice(1)], {
                 d: article,
                 url: DS.opts.hashPrefix + ("/detail/" + article.id),
-                imgsize: DS.opts.imgsize_listpage
+                imgsize: DS.opts.view === 'tile' ? DS.opts.imgsize_firstpage : DS.opts.imgsize_listpage
               });
             }
           }
@@ -1348,7 +1364,7 @@ DigiSeller-ru-api
 		};
 
 		return historyClick;
-	})();;
+	})();
     DS.JSONP = (function() {
 		var _callbacks = [];
 
@@ -1606,7 +1622,7 @@ DigiSeller-ru-api
       DS.$el.head = DS.dom.$('head')[0] || document.documentElement;
       DS.$el.body = DS.dom.$('body')[0] || document.documentElement;
       DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, function() {
-        var name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
+        var homeInited, name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
         DS.opts.currency = DS.util.cookie.get('digiseller-currency') || DS.opts.currency;
         params = ['sort', 'rows', 'view'];
         for (_i = 0, _len = params.length; _i < _len; _i++) {
@@ -1631,9 +1647,18 @@ DigiSeller-ru-api
         if (!DS.widget.category.$el) {
           DS.widget.main.$el.className = 'digiseller-main-nocategory';
         }
+        homeInited = false;
+        DS.historyClick.addRoute('#.*', function(params) {
+          if (homeInited) {
+            return;
+          }
+          homeInited = true;
+          DS.route.home.action();
+        });
         _ref2 = DS.route;
         _fn = function(route) {
           DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, function(params) {
+            homeInited = true;
             route.action(params);
           });
         };
