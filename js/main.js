@@ -21,12 +21,13 @@ DigiSeller-ru-api
     };
     DS.opts = {
       seller_id: null,
-      host: 'http://shop.digiseller.ru/xml/',
+      host: '//shop.digiseller.ru/xml/',
       hashPrefix: '#!digiseller',
       currency: 'RUR',
       sort: 'name',
       rows: 10,
       view: 'list',
+      mainView: 'tile',
       logo_img: '',
       menu_purchases: true,
       menu_reviews: true,
@@ -146,7 +147,7 @@ DigiSeller-ru-api
         DS.util.cookie.set('digiseller-agree', DS.opts.agree);
         DS.popup.close();
         if (onAgree) {
-          return onAgree();
+          onAgree();
         }
       }
     };
@@ -214,7 +215,7 @@ DigiSeller-ru-api
       },
       removeEvent: function($el, e, callback) {
         if ($el.detachEvent) {
-          $el.detachEvent("on" + type, callback);
+          $el.detachEvent("on" + e, callback);
         } else if ($el.removeEventListener) {
           $el.removeEventListener(e, callback, false);
         }
@@ -536,10 +537,10 @@ DigiSeller-ru-api
             page++;
           }
           if (left > 1) {
-            out = this.opts.getLink(1) + (left > 2 ? '<span>...</span>&nbsp;' : '') + out;
+            out = this.opts.getLink(1) + (left > 2 ? '<span>...</span> ' : '') + out;
           }
           if (right < this.total) {
-            out = out + (right < this.total - 1 ? '<span>...</span>&nbsp;' : '') + this.opts.getLink(this.total);
+            out = out + (right < this.total - 1 ? '<span>...</span> ' : '') + this.opts.getLink(this.total);
           }
           this.$el.innerHTML = DS.tmpl(this.opts.tmpl, {
             out: out
@@ -777,15 +778,15 @@ DigiSeller-ru-api
           if (articles && articles.length) {
             for (_i = 0, _len = articles.length; _i < _len; _i++) {
               article = articles[_i];
-              out += DS.tmpl(DS.tmpls.showcaseArticle, {
+              out += DS.tmpl(DS.tmpls['article' + DS.opts.mainView.charAt(0).toUpperCase() + DS.opts.mainView.slice(1)], {
                 d: article,
                 url: DS.opts.hashPrefix + ("/detail/" + article.id),
-                imgsize_firstpage: DS.opts.imgsize_firstpage
+                imgsize: DS.opts.mainView === 'tile' ? DS.opts.imgsize_firstpage : DS.opts.imgsize_listpage
               });
             }
           }
           return DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles, {
-            out: out,
+            out: DS.opts.mainView === 'table' ? '<table class="digiseller-table">' + out + '</table>' : out,
             categories: data.categories,
             opts: DS.opts
           });

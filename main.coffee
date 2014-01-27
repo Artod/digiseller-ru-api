@@ -15,12 +15,13 @@ DigiSeller-ru-api
 		
 	DS.opts =
 		seller_id: null
-		host: 'http://shop.digiseller.ru/xml/'
+		host: '//shop.digiseller.ru/xml/'
 		hashPrefix: '#!digiseller'
 		currency: 'RUR'
 		sort: 'name' # name, nameDESC, price, priceDESC
 		rows: 10
 		view: 'list'
+		mainView: 'tile'
 		logo_img: ''
 		menu_purchases: true
 		menu_reviews: true
@@ -133,9 +134,12 @@ DigiSeller-ru-api
 			
 			DS.opts.agree = if flag then 1 else 0
 			DS.util.cookie.set('digiseller-agree', DS.opts.agree)
+			
 			DS.popup.close()
 			
 			onAgree() if onAgree
+			
+			return
 
 	DS.dom =
 		$: (selector, context, tagName) ->
@@ -202,7 +206,7 @@ DigiSeller-ru-api
 
 		removeEvent: ($el, e, callback) ->
 			if $el.detachEvent
-				$el.detachEvent("on#{type}", callback)
+				$el.detachEvent("on#{e}", callback)
 			else if $el.removeEventListener
 				$el.removeEventListener(e, callback, false)
 			
@@ -538,10 +542,10 @@ DigiSeller-ru-api
 					page++
 
 				if left > 1
-					out = @opts.getLink(1) + (if left > 2 then '<span>...</span>&nbsp;' else '') + out
+					out = @opts.getLink(1) + (if left > 2 then '<span>...</span> ' else '') + out
 
 				if right < @total
-					out = out + (if right < @total - 1 then '<span>...</span>&nbsp;' else '') + @opts.getLink(@total)
+					out = out + (if right < @total - 1 then '<span>...</span> ' else '') + @opts.getLink(@total)
 
 				@$el.innerHTML = DS.tmpl(@opts.tmpl, out: out)
 
@@ -751,21 +755,21 @@ DigiSeller-ru-api
 
 				return
 
-			render: (data) ->
+			render: (data) ->				
 				out = ''
 
 				articles = data.product
 
 				if articles and articles.length
 					for article in articles
-						out += DS.tmpl(DS.tmpls.showcaseArticle,
+						out += DS.tmpl(DS.tmpls['article' + DS.opts.mainView.charAt(0).toUpperCase() + DS.opts.mainView.slice(1)],
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
-							imgsize_firstpage: DS.opts.imgsize_firstpage
+							imgsize: if DS.opts.mainView is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
 						)
 
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles,
-					out: out
+					out: if DS.opts.mainView is 'table' then '<table class="digiseller-table">' + out + '</table>' else out
 					categories: data.categories
 					opts: DS.opts
 				)
@@ -1235,7 +1239,7 @@ DigiSeller-ru-api
 						text: DS.opts.agreement_text
 					))
 					
-					DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->
+					DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->						
 						DS.util.agree(true, buy)
 					)
 					
@@ -1564,7 +1568,7 @@ noparse=0"
 		close = (e) ->
 			DS.util.prevent(e) if e
 			setup.$img.innerHTML = ''
-			setup.$main.style.display = 'none'
+			setup.$main.style.display = 'none'			
 			DS.dom.removeEvent(window, 'resize', wrCallback)
 			isClosed = true
 			img = null

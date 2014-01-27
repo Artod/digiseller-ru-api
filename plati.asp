@@ -16,7 +16,7 @@
 }
 </style>
 		
-		<script type="text/javascript" src="http://172.16.101.18/shop_test/digiseller-api.js.asp?seller_id=18728" charset="utf-8"></script>
+		<script type="text/javascript" src="//172.16.101.18/shop_test/digiseller-api.js.asp?seller_id=18728" charset="utf-8"></script>
 		
 		<div id="digiseller-logo" class="digiseller-logo"></div>
 		
@@ -27,7 +27,7 @@
 		<div id="digiseller-category" class="digiseller-category"></div>
 		
 		<div id="digiseller-main" class="digiseller-main">
-			<div style="text-align:center;"><img src="http://www.digiseller.ru/shop/img/preloader.gif" alt="Загрузка..." /></div>
+			<div style="text-align:center;"><img src="//www.digiseller.ru/shop/img/preloader.gif" alt="Загрузка..." /></div>
 			<noscript>Ваш браузер не поддерживает JavaScript.</noscript>
 		</div>
 		
