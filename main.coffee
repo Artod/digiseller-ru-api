@@ -21,7 +21,7 @@ DigiSeller-ru-api
 		sort: 'name' # name, nameDESC, price, priceDESC
 		rows: 10
 		view: 'list'
-		mainView: 'tile'
+		main_view: 'tile'
 		logo_img: ''
 		menu_purchases: true
 		menu_reviews: true
@@ -762,14 +762,14 @@ DigiSeller-ru-api
 
 				if articles and articles.length
 					for article in articles
-						out += DS.tmpl(DS.tmpls['article' + DS.opts.mainView.charAt(0).toUpperCase() + DS.opts.mainView.slice(1)],
+						out += DS.tmpl(DS.tmpls['article' + DS.opts.main_view.charAt(0).toUpperCase() + DS.opts.main_view.slice(1)],
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
-							imgsize: if DS.opts.mainView is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
+							imgsize: if DS.opts.main_view is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
 						)
 
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles,
-					out: if DS.opts.mainView is 'table' then '<table class="digiseller-table">' + out + '</table>' else out
+					out: if DS.opts.main_view is 'table' then '<table class="digiseller-table">' + out + '</table>' else out
 					categories: data.categories
 					opts: DS.opts
 				)
@@ -1026,10 +1026,10 @@ DigiSeller-ru-api
 				
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articleDetail,
 					d: data.product
-					imgsize: DS.opts.imgsize_infopage
+					opts: DS.opts
 					buy: DS.tmpl(DS.tmpls.buy,
 						d: data.product
-						opts: DigiSeller.opts
+						opts: DS.opts
 						failPage: window.location
 						agree: DS.opts.agree
 					)

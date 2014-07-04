@@ -2,6 +2,8 @@
 <? var reviewsCount = parseInt(d.statistics.good_reviews) + parseInt(d.statistics.bad_reviews); ?>
 <? var price = (d.collection == 'unit' ? 'от ' : '') + d.price + ' ' + d.currency ?>
 
+<img src="http://shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= opts.seller_id ?>" width="0" height="0" />
+
 <div class="digiseller-productpge">
 	<h1>
 		<?= d.name ?>&nbsp;
@@ -55,10 +57,10 @@
 		<div class="digiseller-product-left">
 			<? if (mainImg) { ?>
 				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img">
-					<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= imgsize ?>" alt="<?= name ?>" />
+					<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= opts.imgsize_infopage ?>" alt="<?= name ?>" />
 				</a>
 			<? } else { ?>
-				<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
+				<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
 			<? } ?>
 			
 			<? if (d.preview_imgs || d.preview_videos) { ?>
