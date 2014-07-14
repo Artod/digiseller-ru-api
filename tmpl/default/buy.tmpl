@@ -5,7 +5,8 @@
 <div class="digiseller-productBuy">
 	<? if (d.is_available && opts.extendedBuy) { ?>
 		<div id="digiseller-calc" class="digiseller-calc">		
-			<form method="POST" action="https://www.oplata.info/asp/pay.asp" id="digiseller-buy-form-<?= d.id ?>">			
+			<form method="POST" action="https://www.oplata.info/asp/pay.asp" id="digiseller-buy-form-<?= d.id ?>">
+				<input type="hidden" name="Agent" value="<?= d.agency_id ?>" />
 				<? if (!d.prices_unit) { ?>	
 					<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.price ?> <?= d.currency ?></span>
 				<? } else { ?>

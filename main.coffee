@@ -1218,8 +1218,8 @@ DigiSeller-ru-api
 		'click-buy': ($el, e) ->
 			DS.util.prevent(e)
 
-			id = DS.dom.attr($el, 'data-id')
-			form = DS.dom.attr($el, 'data-form')
+			id = DS.dom.attr($el, 'data-id')			
+			form = DS.dom.attr($el, 'data-form')			
 
 			if form
 				$rules = DS.dom.$('#digiseller-calc-rules')					
@@ -1232,7 +1232,9 @@ DigiSeller-ru-api
 
 				DS.dom.$("#digiseller-buy-form-#{id}").submit()			
 			else
-				buy = () -> window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&dsn=limit", '_blank')
+				ai = DS.dom.attr($el, 'data-ai')
+				
+				buy = () -> window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')
 				
 				if (DS.opts.agreement_text)
 					DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,

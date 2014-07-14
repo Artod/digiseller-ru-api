@@ -33,7 +33,7 @@
 		<span class="digiseller-snapprice"><?= d.price ?></span>
 		<span class="digiseller-snapcurrency"><?= d.currency ?></span>
 		<? if (d.is_available) { ?>
-			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>">Купить</a>
+			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>">Купить</a>
 		<? } else { ?>
 			<a class="digiseller-buyButton-empty">Нет в наличии</a>
 		<? } ?>

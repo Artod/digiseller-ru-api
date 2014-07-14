@@ -3,7 +3,7 @@
 		<span class="digiseller-article-cost"><? if (d.collection == 'unit') { ?> от <? } ?> <?= d.price ?></span>
 		<span class="digiseller-currency"><?= d.currency ?></span>
 		<? if (d.is_available) { ?>
-			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>">Купить</a>
+			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>">Купить</a>
 		<? } else { ?>
 			<a class="digiseller-buyButton-empty">Нет в наличии</a>
 		<? } ?>
