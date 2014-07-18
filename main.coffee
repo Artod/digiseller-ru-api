@@ -1040,34 +1040,36 @@ DigiSeller-ru-api
 				DS.widget.currency.init()				
 				
 				that = @
-				$preview = DS.dom.$("##{@prefix}-img-preview")				
-				# if $thumbs and $thumbs.children
-				if $preview					
-					onClick = ($el) ->						
-						type = DS.dom.attr($el, 'data-type')
-						id = if type is 'img' then DS.dom.attr($el, 'href') else DS.dom.attr($el, 'data-id')
+				
+				onClick = ($el) ->						
+					type = DS.dom.attr($el, 'data-type')
+					id = if type is 'img' then DS.dom.attr($el, 'href') else DS.dom.attr($el, 'data-id')
 
-						DS.popup.open(type, (if type is 'img' then id else DS.tmpl(DS.tmpls.video,
-							id: id
-							type: type
-						)),
-							if $thumbs.children.length and $el.previousSibling then () -> onClick($el.previousSibling) else false,
-							if $thumbs.children.length and $el.nextSibling then () -> onClick($el.nextSibling) else false
-						)
-						
-						return
+					DS.popup.open(type, (if type is 'img' then id else DS.tmpl(DS.tmpls.video,
+						id: id
+						type: type
+					)),
+						if $thumbs.children.length and $el.previousSibling then () -> onClick($el.previousSibling) else false,
+						if $thumbs.children.length and $el.nextSibling then () -> onClick($el.nextSibling) else false
+					)
 					
-					$thumbs = DS.dom.$("##{@prefix}-thumbs")
+					return
+				
+				$thumbs = DS.dom.$("##{@prefix}-thumbs")
+				if $thumbs
 					for $thumb in $thumbs.children
 						DS.dom.addEvent($thumb, 'click', (e) ->
 							DS.util.prevent(e)
+							
 							onClick(@)
 						)
-
+						
+				$preview = DS.dom.$("##{@prefix}-img-preview")
+				if $preview
 					DS.dom.addEvent($preview, 'click', (e) ->
 						DS.util.prevent(e)
 						
-						onClick(if $thumbs.children.length then $thumbs.children[0] else @)
+						onClick(if $thumbs and $thumbs.children.length then $thumbs.children[0] else @)
 					)
 
 				return
