@@ -1,10 +1,10 @@
 <div class="digiseller-options">
 	<div class="digiseller-filtersort">
-		<span>Показать: </span>
+		<span><?= opts.i18n['show'] ?>: </span>
 		<select>
-			<option value="all">Все отзывы</option>
-			<option value="good">Положительные (<?= totalGood ?>)</option>
-			<option value="bad">Отрицательные (<?= totalBad ?>)</option>
+			<option value="all"><?= opts.i18n['allReviews'] ?></option>
+			<option value="good"><?= opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
+			<option value="bad"><?= opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
 		</select>
 	</div>
 </div>

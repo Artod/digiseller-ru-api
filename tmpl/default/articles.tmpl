@@ -3,7 +3,7 @@
 <h1><?= d.breadCrumbs ? d.breadCrumbs[d.breadCrumbs.length - 1].name : '' ?></h1>
 
 <div class="digiseller-breadcrumbs">
-	<a title="Магазин" onclick="location.hash='#!digiseller/home';">Магазин</a> &gt;&nbsp;
+	<a title="<?= opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= opts.i18n['shop'] ?></a> &gt;&nbsp;
 	<? if (d.breadCrumbs) {
 		for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
 			<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;

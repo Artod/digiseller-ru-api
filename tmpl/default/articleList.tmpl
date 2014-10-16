@@ -3,9 +3,9 @@
 		<span class="digiseller-article-cost"><? if (d.collection == 'unit') { ?> от <? } ?> <?= d.price ?></span>
 		<span class="digiseller-currency"><?= d.currency ?></span>
 		<? if (d.is_available) { ?>
-			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>">Купить</a>
+			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= opts.i18n['buy'] ?></a>
 		<? } else { ?>
-			<a class="digiseller-buyButton-empty">Нет в наличии</a>
+			<a class="digiseller-buyButton-empty"><?= opts.i18n['notAvailable'] ?></a>
 		<? } ?>
 	</div>
 
@@ -19,20 +19,20 @@
 		<a onclick="location.hash='<?= url ?>'"><?= d.name ?>&nbsp;
 			<? switch(d.label) {
 				case 'top': ?>
-					<span class="digiseller-labellider">Лидер продаж!</span>
+					<span class="digiseller-labellider"><?= opts.i18n['leader!'] ?></span>
 					<? break;
 				case 'sale': ?>
-					<span class="digiseller-labelaction">Акция!</span>
+					<span class="digiseller-labelaction"><?= opts.i18n['action!'] ?></span>
 					<? break;
 				case 'new': ?>
-					<span class="digiseller-labelnew">Новинка!</span>
+					<span class="digiseller-labelnew"><?= opts.i18n['new!'] ?></span>
 					<? break;
 			} ?>
 		</a>
 		<p>
 			<?= d.info ?>
 			<br /><br />
-			<a onclick="location.hash='<?= url ?>';" class="digiseller-product-details" title="<?= d.name ?>">Подробнее »</a>
+			<a onclick="location.hash='<?= url ?>';" class="digiseller-product-details" title="<?= d.name ?>"><?= opts.i18n['readMore'] ?> »</a>
 		</p>
 	</div>
 </div>

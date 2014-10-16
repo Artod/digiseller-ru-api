@@ -9,19 +9,19 @@
 		<?= d.name ?>&nbsp;
 		<? switch(d.label) {
 			case 'top': ?>
-				<span class="digiseller-labellider">Лидер продаж!</span>
+				<span class="digiseller-labellider"><?= opts.i18n['leader!'] ?></span>
 				<? break;
 			case 'sale': ?>
-				<span class="digiseller-labelaction">Акция!</span>
+				<span class="digiseller-labelaction"><?= opts.i18n['action!'] ?></span>
 				<? break;
 			case 'new': ?>
-				<span class="digiseller-labelnew">Новинка!</span>
+				<span class="digiseller-labelnew"><?= opts.i18n['new!'] ?></span>
 				<? break;
 		} ?>
 	</h1>
 	
 	<div class="digiseller-breadcrumbs">
-		<a title="Магазин" onclick="location.hash='#!digiseller/home';">Магазин</a> &gt;&nbsp;
+		<a title="<?= opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= opts.i18n['shop'] ?></a> &gt;&nbsp;
 		<? if (d.breadCrumbs) {			
 			for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
 				<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
@@ -33,21 +33,21 @@
 	<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
 		<div class="digiseller-product-toggle">
 			<? if (d.id_prev !== '0') { ?>
-				<span>&larr; </span><a onclick="location.hash='#!digiseller/detail/<?= d.id_prev ?>';">предыдущий товар</a> &nbsp;&nbsp;
+				<span>&larr; </span><a onclick="location.hash='#!digiseller/detail/<?= d.id_prev ?>';"><?= opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;
 			<? } ?>
 			|
 			<? if (d.id_next !== '0') { ?>
-				&nbsp;&nbsp; <a onclick="location.hash='#!digiseller/detail/<?= d.id_next ?>';">следующий товар</a><span> &rarr;</span>
+				&nbsp;&nbsp; <a onclick="location.hash='#!digiseller/detail/<?= d.id_next ?>';"><?= opts.i18n['nextArticle'] ?></a><span> &rarr;</span>
 			<? } ?>
 		</div>
 	<? } ?>
 	
 	<div class="digiseller-options">
 		<span class="digiseller-social">
-			<a class="digiseller-social-fb" title="Поделиться в facebook" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-			<a class="digiseller-social-vk" title="Поделиться в вКонтакте" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-			<a class="digiseller-social-tw" title="Поделиться в twitter" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
-			<a class="digiseller-social-wm" title="Поделиться в Webmoney.Events" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-fb" title="<?= opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-vk" title="<?= opts.i18n['shareInVK'] ?>" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-tw" title="<?= opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
+			<a class="digiseller-social-wm" title="<?= opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
 		</span>
 
 		<div id="digiseller-currency"></div>
@@ -90,7 +90,7 @@
 			
 			<? if (d.statistics.sales && d.statistics.sales != '0') { ?>
 				<div class="digiseller-prod-info">
-					<span>Количество продаж:&nbsp;</span><?= d.statistics.sales ?>
+					<span><?= opts.i18n['numberOfSales'] ?>:&nbsp;</span><?= d.statistics.sales ?>
 				</div>
 			<? } ?>
 		</div>
@@ -100,12 +100,12 @@
 
 	<div>		
 		<div class="digiseller-productdetails-tabs">
-			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0">Описание</a>	
+			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= opts.i18n['description'] ?></a>	
 			<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
-				<a data-action="article-tab" data-tab="1">Скидки</a>	
+				<a data-action="article-tab" data-tab="1"><?= opts.i18n['discounts'] ?></a>	
 			<? } ?>
 			<? if (reviewsCount) { ?>
-				<a data-action="article-tab" data-tab="2">Отзывы (<?= reviewsCount ?>)</a>
+				<a data-action="article-tab" data-tab="2"><?= opts.i18n['reviews'] ?> (<?= reviewsCount ?>)</a>
 			<? } ?>
 		</div>
 		<div>
@@ -116,7 +116,7 @@
 
 				<? if (d.add_info !== "") { ?>
 					<div class="digiseller-prod-info">
-						<h3>Дополнительная информация:</h3>
+						<h3><?= opts.i18n['addInformation'] ?>:</h3>
 						<?= d.add_info ?>
 					</div>
 				<? } ?>
@@ -126,13 +126,13 @@
 				<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
 				
 					<? if (d.units && d.units.discounts) { ?>
-						<h3>Скидки от количества приобретаемого товара</h3>
+						<h3><?= opts.i18n['discountsOnQuantityPurchases'] ?></h3>
 						<table class="digiseller-discounttable1">
 							<thead>
 								<tr class="digiseller-discounttabbe-head">	
-									<td>при покупке от</td>
-									<td>скидка</td>
-									<td>цена за <?= d.units.desc ?></td>
+									<td><?= opts.i18n['whenBuyingFrom'] ?></td>
+									<td><?= opts.i18n['discount'] ?></td>
+									<td><?= opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
 								</tr>
 							</thead>
 							<tbody>
@@ -148,12 +148,12 @@
 					<? } ?> 
 				
 					<? if (d.discounts && d.discounts.length) { ?>
-						<h3>Cкидка постоянным покупателям</h3>
+						<h3><?= opts.i18n['discountLoyalCustomers'] ?></h3>
 						<table class="digiseller-discounttable1">
 							<thead>
 								<tr class="digiseller-discounttabbe-head">	
-									<td>сумма покупок от</td>
-									<td>скидка</td>
+									<td><?= opts.i18n['amountOfPurchasesFrom'] ?></td>
+									<td><?= opts.i18n['discount'] ?></td>
 								</tr>
 							</thead>
 							<tbody>

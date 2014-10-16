@@ -1,17 +1,17 @@
 <div class="digiseller-reviewList">
-	<h1>Отзывы покупателей</h1>
+	<h1><?= opts.i18n['customerReviews'] ?></h1>
 
 	<div class="digiseller-breadcrumbs">
-		<a title="Магазин" onclick="location.hash='#!digiseller/home';">Магазин</a> &gt; <strong>Отзывы</strong>
+		<a title="<?= opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= opts.i18n['shop'] ?></a> &gt; <strong><?= opts.i18n['reviews'] ?></strong>
 	</div>
 	
 	<div class="digiseller-options">
 		<div class="digiseller-filtersort" id="digiseller-reviews-type">
-			<span>Показать: </span>
+			<span><?= opts.i18n['show'] ?>: </span>
 			<select>
-				<option value="all" selected="selected">Все отзывы</option>
-				<option value="good">Положительные (<?= totalGood ?>)</option>
-				<option value="bad">Отрицательные (<?= totalBad ?>)</option>
+				<option value="all" selected="selected"><?= opts.i18n['allReviews'] ?></option>
+				<option value="good"><?= opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
+				<option value="bad"><?= opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
 			</select>
 		</div>
 	</div>

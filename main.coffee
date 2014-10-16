@@ -304,7 +304,7 @@ DigiSeller-ru-api
 			$el: null
 			init: () ->
 				@$el = DS.dom.$('#digiseller-main')
-				DS.widget.main.$el.innerHTML = '' # ���������� ������
+				DS.widget.main.$el.innerHTML = '' # сбрасываем лоадер
 				
 				callback = (e, type) ->
 					$el = e.originalTarget or e.srcElement
@@ -326,7 +326,9 @@ DigiSeller-ru-api
 				div = document.createElement('div')
 				div.id = 'digiseller-loader'
 				div.className = div.id
-				div.innerHTML = DS.tmpls.loader	
+				div.innerHTML = DS.tmpl(DS.tmpls.loader,
+					opts: DS.opts
+				)
 				div.style.display = 'none'
 				
 				DS.$el.body.appendChild(div)				
@@ -375,6 +377,29 @@ DigiSeller-ru-api
 				)
 
 				return
+
+		lang:
+			$el: null
+			prefix: 'digiseller-langs'
+			init: () ->
+				@$el = DS.dom.$("##{@prefix}")
+				return unless @$el
+				
+				@$el.innerHTML = DS.tmpl(DS.tmpls.langs, opts: DS.opts)
+				
+				$links = DS.dom.$('a', @$el)
+				for $link in $links
+					DS.dom.addEvent($link, 'click', (e) ->
+						DS.util.prevent(e)
+						
+						lang = DS.dom.attr(@, 'data-lang')
+						
+						DS.util.cookie.set('digiseller-lang', lang)
+						
+						window.location.reload()
+					)
+
+				return					
 				
 		category:
 			$el: null
@@ -388,8 +413,9 @@ DigiSeller-ru-api
 
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_categories.asp', @$el,
-					seller_id: DS.opts.seller_id
 					format: 'json'
+					lang: DS.opts.currentLang
+					seller_id: DS.opts.seller_id
 				, (data) ->
 					return off unless data
 					
@@ -480,7 +506,9 @@ DigiSeller-ru-api
 				@$el = DS.dom.$('#digiseller-currency')
 				return unless @$el
 				
-				@$el.innerHTML = DS.tmpls.currency
+				@$el.innerHTML = DS.tmpl(DS.tmpls.currency,
+					opts: DS.opts
+				)
 				
 				$sel = DS.dom.$('select', @$el)[0]
 				DS.dom.addEvent($sel, 'change', (e) ->
@@ -547,7 +575,10 @@ DigiSeller-ru-api
 				if right < @total
 					out = out + (if right < @total - 1 then '<span>...</span> ' else '') + @opts.getLink(@total)
 
-				@$el.innerHTML = DS.tmpl(@opts.tmpl, out: out)
+				@$el.innerHTML = DS.tmpl(@opts.tmpl,
+					out: out
+					opts: DS.opts
+				)
 
 				that = @
 				$select = DS.dom.$('select', @$el)[0]
@@ -574,9 +605,10 @@ DigiSeller-ru-api
 			get: () ->
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_reviews.asp', @$el,
+					format: 'json'
+					lang: DS.opts.currentLang
 					seller_id: DS.opts.seller_id
 					product_id: @product_id
-					format: 'json'
 					type: @type
 					page: @page
 					rows: @rows
@@ -595,11 +627,12 @@ DigiSeller-ru-api
 
 				out = ''
 				unless comments
-					out = DS.tmpls.nothing
+					out = DS.tmpl(DS.tmpls.nothing, opts: DS.opts)
 				else
 					for comment in comments
 						out += DS.tmpl(DS.tmpls.comment,
 							d: comment
+							opts: DS.opts
 						)
 
 				if @isInited
@@ -658,6 +691,7 @@ DigiSeller-ru-api
 				params = 
 					product_id: @id
 					format: 'json'
+					lang: DS.opts.currentLang
 				
 				if type is 'amount'
 					params.amount = @$.amount.value
@@ -693,6 +727,7 @@ DigiSeller-ru-api
 					that.$.limit.innerHTML = DS.tmpl(DS.tmpls.minmax,
 						val: val
 						flag: flag
+						opts: DS.opts
 					)						
 
 				if max and cnt > max
@@ -738,10 +773,11 @@ DigiSeller-ru-api
 			get: () ->
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
+					format: 'json'
+					lang: DS.opts.currentLang
 					seller_id: DS.opts.seller_id
 					category_id: 0
 					rows: 10
-					format: 'json'
 					order: DS.opts.sort
 					currency: DS.opts.currency
 				, (data) ->
@@ -766,6 +802,7 @@ DigiSeller-ru-api
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
 							imgsize: if DS.opts.main_view is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
+							opts: DS.opts
 						)
 
 				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles,
@@ -797,8 +834,9 @@ DigiSeller-ru-api
 			get: () ->
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_search.asp', DS.widget.main.$el,
-					seller_id: DS.opts.seller_id # 83991
 					format: 'json'
+					lang: DS.opts.currentLang
+					seller_id: DS.opts.seller_id # 83991
 					currency: DS.opts.currency
 					page: @page
 					rows: @rows
@@ -820,13 +858,13 @@ DigiSeller-ru-api
 				articles = data.product
 
 				if not articles or not articles.length
-					out = DS.tmpls.nothing
+					out = DS.tmpl(DS.tmpls.nothing, opts: DS.opts)
 				else
 					for article in articles
 						out += DS.tmpl(DS.tmpls.searchResult,
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
-							imgsize: DS.opts.imgsize_listpage
-							d: article							
+							d: article
+							opts: DS.opts
 						)
 
 				container = DS.dom.$("##{@prefix}-results")
@@ -842,6 +880,7 @@ DigiSeller-ru-api
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.searchResults,
 						totalItems: data.totalItems
 						out: out
+						opts: DS.opts
 					)
 
 					that = @
@@ -898,8 +937,9 @@ DigiSeller-ru-api
 
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
-					seller_id: DS.opts.seller_id
 					format: 'json'
+					lang: DS.opts.currentLang
+					seller_id: DS.opts.seller_id
 					category_id: @cid
 					page: @page
 					rows: @rows
@@ -923,13 +963,14 @@ DigiSeller-ru-api
 				
 				articles = data.product
 				if not articles or not articles.length					
-					out = DS.tmpls.nothing
+					out = DS.tmpl(DS.tmpls.nothing, opts: DS.opts)
 				else
 					for article in articles
 						out += DS.tmpl(DS.tmpls['article' + DS.opts.view.charAt(0).toUpperCase() + DS.opts.view.slice(1)], 
 							d: article
 							url: DS.opts.hashPrefix + "/detail/#{article.id}"
 							imgsize: if DS.opts.view is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
+							opts: DS.opts
 						)
 
 				container = DS.dom.$("##{@prefix}-#{@cid}")
@@ -946,7 +987,7 @@ DigiSeller-ru-api
 						opts: DS.opts
 						d: data
 						hasCategories: if not data.categories or not data.categories.length then false else true
-						articlesPanel: if data.totalPages then DS.tmpls.articlesPanel else ''
+						articlesPanel: if data.totalPages then DS.tmpl(DS.tmpls.articlesPanel, {opts: DS.opts}) else ''
 						out: out
 					)			
 					
@@ -1001,8 +1042,9 @@ DigiSeller-ru-api
 
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_product_info.asp', DS.widget.main.$el,
-					seller_id: DS.opts.seller_id
 					format: 'json'
+					lang: DS.opts.currentLang
+					seller_id: DS.opts.seller_id
 					product_id: @id
 					currency: DS.opts.currency
 				, (data) ->
@@ -1018,7 +1060,7 @@ DigiSeller-ru-api
 
 			render: (data) ->
 				if not data or not data.product
-					DS.widget.main.$el.innerHTML = DS.tmpls.nothing
+					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.nothing, opts: DS.opts)
 					
 					return
 
@@ -1088,6 +1130,7 @@ DigiSeller-ru-api
 					that.comments.$el.innerHTML = DS.tmpl(DS.tmpls.comments,
 						totalGood: data.totalGood
 						totalBad: data.totalBad
+						opts: DS.opts
 					)
 					
 					callback() if callback
@@ -1152,6 +1195,7 @@ DigiSeller-ru-api
 					id: @id
 					totalGood: data.totalGood
 					totalBad: data.totalBad
+					opts: DS.opts
 				)
 
 				that = @
@@ -1189,13 +1233,15 @@ DigiSeller-ru-api
 			action: (params) ->
 				that = @
 				DS.JSONP.get(DS.opts.host + 'shop_contacts.asp', DS.widget.main.$el,
-					seller_id: DS.opts.seller_id
 					format: 'json'
+					lang: DS.opts.currentLang
+					seller_id: DS.opts.seller_id
 				, (data) ->
 					off unless data
 					
 					DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.contacts,
 						d: data
+						opts: DS.opts
 					)
 					
 					DS.util.scrollUp()
@@ -1240,7 +1286,7 @@ DigiSeller-ru-api
 				
 				if (DS.opts.agreement_text)
 					DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,
-						text: DS.opts.agreement_text
+						opts: DS.opts
 					))
 					
 					DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->						
@@ -1289,12 +1335,11 @@ DigiSeller-ru-api
 		'click-agreement': ($el, e) ->
 			DS.util.prevent(e)
 			DS.popup.open('text', DS.tmpl(DS.tmpls.agreement,
-				text: DS.opts.agreement_text
+				opts: DS.opts
 			))	
 			
 			DS.dom.addEvent( DS.dom.$('#digiseller-agree'), 'click', () -> DS.util.agree(true) )
 			DS.dom.addEvent( DS.dom.$('#digiseller-disagree'), 'click', () -> DS.util.agree(false) )
-		
 		
 	# http://habrahabr.ru/post/156185/
 	DS.share = 
@@ -1337,7 +1382,7 @@ noparse=0"
 		}
 
 		function urlHashCheck() {
-			var mayChangeReload = false; // _needReload ����� ���������� ��� ��� urlHashCheck ����� ��� �� ����������� � _needReload ��� ��������� true
+			var mayChangeReload = false; // _needReload может обнулиться так как urlHashCheck может еще не закончиться а _needReload уже поставили true
 
 			if (_needReload) {
 				mayChangeReload = true;
@@ -1400,7 +1445,7 @@ noparse=0"
 					_routes.push([new RegExp(pattern[i], 'i'), callback]);
 				}
 
-				_revRoutes = _routes.slice().reverse(); // ��������� � �����������
+				_revRoutes = _routes.slice().reverse(); // клонируем и реверсируем
 			},
 			reload: function() {
 				_needReload = true;
@@ -1508,7 +1553,7 @@ noparse=0"
 					return '\\' + escapes[match];
 				});
 
-			/* todo: _.escape ���������� */
+			/* todo: _.escape переделать */
 			source +=
 				escape ? "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'" :
 				interpolate ? "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'" :
@@ -1709,9 +1754,10 @@ noparse=0"
 			DS.widget.main.init()
 			DS.widget.loader.init()
 			DS.widget.search.init()
+			DS.widget.lang.init()			
 			
 			DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo, logo_img: DS.opts.logo_img)
-			DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, d: DS.opts)			
+			DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, opts: DS.opts)			
 			
 			if not DS.widget.category.$el
 				DS.widget.main.$el.className = 'digiseller-main-nocategory'
@@ -1770,7 +1816,69 @@ noparse=0"
 	
 	
 	
-	
+# DigiSeller.opts.i18n =
+	# 'termsOfService': 'Условия предоставления сервиса'
+	# 'accept': 'Принять'
+	# 'refuse': 'Отказаться'
+	# 'leader!': 'Лидер продаж!',
+	# 'action!': 'Акция!',
+	# 'new!': 'Новинка!',
+	# 'shop': 'Магазин',
+	# 'prevArticle': 'предыдущий товар',
+	# 'nextArticle': 'следующий товар',
+	# 'shareInFacebook': 'Поделиться в Facebook',
+	# 'shareInVK': 'Поделиться в вКонтакте',
+	# 'shareInTwitter': 'Поделиться в Twitter',
+	# 'shareInWME': 'Поделиться в Webmoney.Events',
+	# 'numberOfSales': 'Количество продаж',
+	# 'description': 'Описание',
+	# 'discounts': 'Скидки',
+	# 'reviews': 'Отзывы',
+	# 'addInformation': 'Дополнительная информация',
+	# 'discountsOnQuantityPurchases': 'Скидки от количества приобретаемого товара',
+	# 'whenBuyingFrom': 'при покупке от',
+	# 'discount': 'скидка',
+	# 'priceFor': 'цена за',
+	# 'discountLoyalCustomers': 'Cкидка постоянным покупателям',
+	# 'amountOfPurchasesFrom': 'сумма покупок от'
+	# 'buy': 'Купить',
+	# 'notAvailable': 'Нет в наличии',
+	# 'readMore': 'Подробнее',
+	# 'sortBy': 'Сортировать по',
+	# 'nameFromAToZ': 'названию от А до Я',
+	# 'nameFromZToA': 'названию от Я до А',
+	# 'priceFromLowToHigh': 'цене от низкой до высокой',
+	# 'priceFromHighToLow': 'цене от высокой до низкой',
+	# 'view': 'Вид',
+	# 'tile': 'плитки',
+	# 'list': 'список',
+	# 'table': 'таблица',
+	# 'iAgreeWithTerms': 'с «<a data-action="agreement" href="#">Условиями предоставления сервиса</a>» ознакомлен и согласен.',
+	# 'iWillPay': 'заплачу',
+	# 'iWillGet': 'получу',
+	# 'paymentVia': 'оплата через',
+	# 'from': 'от',
+	# 'adminComment': 'Комментарий администратора',
+	# 'show': 'Показать',
+	# 'allReviews': 'Все отзывы',
+	# 'positive': 'Положительные',
+	# 'negative': 'Отрицательные',
+	# 'contactInfo': 'Контактная информация',
+	# 'phone': 'Телефон',
+	# 'statusIcqUser': 'Статус ICQ пользователя',
+	# 'currency': 'Валюта',
+	# 'loading': 'Загрузка...',
+	# 'myPurchases': 'Мои покупки',
+	# 'customerReviews': 'Отзывы покупателей',
+	# 'contacts': 'Контакты',
+	# 'max': 'Максимум',
+	# 'min': 'Минимум',
+	# 'nothingFound': 'Ничего не найдено',
+	# 'displayedOnThePage': 'Выводить на странице',
+	# 'search': 'Поиск',
+	# 'onRequest': 'По запросу',
+	# 'foundArticles': 'найдено товаров'
+
 	
 	
 
@@ -1830,7 +1938,7 @@ noparse=0"
 # https://github.com/mtrpcic/pathjs
 
 	# DS.$el.shop.innerHTML = '<img src="' + DS.opts.host + DS.opts.loader + '" style="digiseller-loader" alt="" />'
-	# DS.$el.shop.innerHTML = '<div id="digiseller-preloader">��������...</div>'
+	# DS.$el.shop.innerHTML = '<div id="digiseller-preloader">Загрузка...</div>'
 	# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=?' + DS.opts.seller_id)
 	# DS.dom.getScript(DS.opts.host + DS.opts.tmpl + '?' + Math.random(), ->
 	

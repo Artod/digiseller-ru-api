@@ -1,8 +1,8 @@
 <div class="digiseller-contacts">
-	<h1>Контактная информация</h1>
+	<h1><?= opts.i18n['contactInfo'] ?></h1>
 
 	<div class="digiseller-breadcrumbs">
-		<a title="Магазин" onclick="location.hash='#!digiseller/home';">Магазин</a> &gt; <strong>Контактная информация</strong>
+		<a title="<?= opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= opts.i18n['shop'] ?></a> &gt; <strong><?= opts.i18n['shop'] ?><?= opts.i18n['contactInfo'] ?></strong>
 	</div>
 	
 	<div class="digiseller-contacts-block">
@@ -11,7 +11,7 @@
 		<? } ?>
 		
 		<? if (d.icq) { ?>
-			<span class="digiseller-contacts-label">ICQ</span>: <span class="digiseller-contacts-value"><img src="http://status.icq.com/online.gif?icq=<?= d.icq ?>&img=5" title="Статус ICQ пользователя" /> <?= d.icq ?></span><br />
+			<span class="digiseller-contacts-label">ICQ</span>: <span class="digiseller-contacts-value"><img src="http://status.icq.com/online.gif?icq=<?= d.icq ?>&img=5" title="<?= opts.i18n['statusIcqUser'] ?>" /> <?= d.icq ?></span><br />
 		<? } ?>
 		
 		<? if (d.skype) { ?>
@@ -23,7 +23,7 @@
 		<? } ?>	
 		
 		<? if (d.wmid) { ?>
-			<span class="digiseller-contacts-label">Телефон</span>: <span class="digiseller-contacts-value"><?= d.phone ?></span><br />
+			<span class="digiseller-contacts-label"><?= opts.i18n['phone'] ?></span>: <span class="digiseller-contacts-value"><?= d.phone ?></span><br />
 		<? } ?>
 		
 		<p><?= d.comment ?></p>

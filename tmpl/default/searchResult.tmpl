@@ -4,9 +4,9 @@
 		<span class="digiseller-currency"><?= d.currency ?></span>
 	</div>	
 
-	<div class="digiseller-article-img" style="width:<?= 17 + imgsize ?>px;">
+	<div class="digiseller-article-img" style="width:<?= 17 + opts.imgsize_listpage ?>px;">
 		<a onclick="location.hash='<?= url ?>';">
-			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= imgsize ?>" alt="<?= d.name ?>" />
+			<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= opts.imgsize_listpage ?>" alt="<?= d.name ?>" />
 		</a>
 	</div>
 	
@@ -15,7 +15,7 @@
 		<p>
 			<?= d.snippet_info ?>
 			<br /><br />
-			<a onclick="location.hash='<?= url ?>';" title="Подробнее" class="digiseller-product-details">Подробнее »</a>
+			<a onclick="location.hash='<?= url ?>';" title="<?= opts.i18n['readMore'] ?>" class="digiseller-product-details"><?= opts.i18n['readMore'] ?> »</a>
 		</p>
 	</div>
 </div>
