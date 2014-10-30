@@ -993,7 +993,7 @@ DigiSeller-ru-api
 					
 					if data.totalPages
 						that = @
-						@pager = new DS.widget.pager(DS.dom.$(".#{@prefix}-pager", DS.widget.main.$el)[0], {
+						@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', DS.widget.main.$el)[0], {
 							page: @page
 							rows: @rows
 							total: data.totalPages
