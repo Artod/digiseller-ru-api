@@ -555,25 +555,29 @@ DigiSeller-ru-api
 				@total = parseInt(@total)
 				
 				@$el.style.display = if @total then '' else 'none'
-
-				left = @page - @opts.max
-				left = if left < 1 then 1 else left
-
-				right = @page + @opts.max
-				right = if right > @total then @total else right
-
-				page = left
-
+				
+				
 				out = ''
-				while page <= right
-					out += @opts.getLink(page)
-					page++
+				
+				if @total > 1
+					left = @page - @opts.max
+					left = if left < 1 then 1 else left
 
-				if left > 1
-					out = @opts.getLink(1) + (if left > 2 then '<span>...</span> ' else '') + out
+					right = @page + @opts.max
+					right = if right > @total then @total else right
 
-				if right < @total
-					out = out + (if right < @total - 1 then '<span>...</span> ' else '') + @opts.getLink(@total)
+					page = left
+
+					
+					while page <= right
+						out += @opts.getLink(page)
+						page++
+
+					if left > 1
+						out = @opts.getLink(1) + (if left > 2 then '<span>...</span> ' else '') + out
+
+					if right < @total
+						out = out + (if right < @total - 1 then '<span>...</span> ' else '') + @opts.getLink(@total)
 
 				@$el.innerHTML = DS.tmpl(@opts.tmpl,
 					out: out
@@ -1085,33 +1089,55 @@ DigiSeller-ru-api
 				
 				onClick = ($el) ->						
 					type = DS.dom.attr($el, 'data-type')
+					index = parseInt( DS.dom.attr($el, 'data-index') )
 					id = if type is 'img' then DS.dom.attr($el, 'href') else DS.dom.attr($el, 'data-id')
 
 					DS.popup.open(type, (if type is 'img' then id else DS.tmpl(DS.tmpls.video,
 						id: id
 						type: type
 					)),
-						if $thumbs.children.length and $el.previousSibling then () -> onClick($el.previousSibling) else false,
-						if $thumbs.children.length and $el.nextSibling then () -> onClick($el.nextSibling) else false
+						if $thumbs and $thumbs[index - 1] then () -> onClick($thumbs[index - 1]) else false,
+						if $thumbs and $thumbs[index + 1] then () -> onClick($thumbs[index + 1]) else false
 					)
 					
 					return
 				
-				$thumbs = DS.dom.$("##{@prefix}-thumbs")
-				if $thumbs
-					for $thumb in $thumbs.children
+				$thumbs = false
+				$container = DS.dom.$("##{@prefix}-thumbs")
+				if $container
+					$thumbs  = DS.dom.$('a', $container)
+					for $thumb in $thumbs
 						DS.dom.addEvent($thumb, 'click', (e) ->
 							DS.util.prevent(e)
 							
 							onClick(@)
 						)
 						
+						DS.dom.addEvent($thumb, 'mouseover', (e) ->
+							return if DS.dom.attr(@, 'data-type') isnt 'img'
+							
+							activeClass = 'digiseller-left-thumbs-active';
+							
+							DS.dom.klass('remove', $thumbs, activeClass, true)
+							DS.dom.klass('add', @, activeClass)
+							
+							index = DS.dom.attr(@, 'data-index')
+							id = DS.dom.attr(@, 'data-id')
+							
+							DS.dom.attr($preview, 'data-index', index)
+							$previewImg.src = $previewImg.src.replace(/idp=[0-9]+&/, "idp=#{id}&")
+							
+						)						
+						
 				$preview = DS.dom.$("##{@prefix}-img-preview")
 				if $preview
+					$previewImg = DS.dom.$('img', $preview)[0]
 					DS.dom.addEvent($preview, 'click', (e) ->
 						DS.util.prevent(e)
 						
-						onClick(if $thumbs and $thumbs.children.length then $thumbs.children[0] else @)
+						index = parseInt( DS.dom.attr(@, 'data-index') )
+						
+						onClick($thumbs[index])
 					)
 
 				return
@@ -1739,9 +1765,10 @@ noparse=0"
 		inited = yes
 
 		DS.$el.head = DS.dom.$('head')[0] || document.documentElement
-		DS.$el.body = DS.dom.$('body')[0] || document.documentElement
+		DS.$el.body = DS.dom.$('body')[0] || document.documentElement		
 		
-		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+		# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+		DS.dom.getStyle('css/default/test.css', () ->
 			DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
 			
 			params = ['sort', 'rows', 'view']

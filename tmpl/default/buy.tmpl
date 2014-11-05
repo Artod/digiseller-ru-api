@@ -46,7 +46,7 @@
 							wmr: 'RUR',
 							wme: 'EUR',
 							wmu: 'UAH'
-						};						
+						};
 						for (type in opts.types) {
 							if ( !opts.types.hasOwnProperty(type) || !d.prices[type] || d.prices[type] == 0)
 								continue; ?>						
@@ -55,6 +55,46 @@
 					</select>
 				</div>
 				
+				
+<!--div class="digiseller-calc-line">
+<div>Input</div>
+<input type="text">
+</div>
+
+<div class="digiseller-calc-line">
+<div>Textarea</div>
+<textarea></textarea>
+</div>
+
+<div class="digiseller-calc-line">
+<div>Select</div>
+<select>
+<option>option 1</option>
+<option>option 2</option>
+<option>option 3</option>
+<option>option 4</option>
+<option>option 5</option>
+<option>option 6</option>
+</select>
+</div> 
+
+<div class="digiseller-calc-line"> 
+<div>Radio</div>
+<input type="radio" id="radio1"><label for="radio1">radio 1 label</label><br>
+<input type="radio" id="radio2"><label for="radio2">radio 2 label</label><br>
+<input type="radio" id="radio3"><label for="radio3">radio 3 label</label><br>
+<input type="radio" id="radio4"><label for="radio4">radio 4 label</label><br>
+</div>
+
+<div class="digiseller-calc-line">
+<div>Checkbox</div>
+<input type="checkbox" id="checkbox1"><label for="checkbox1">check 1 label</label><br>
+<input type="checkbox" id="checkbox2"><label for="checkbox2">check 2 label</label><br>
+<input type="checkbox" id="checkbox3"><label for="checkbox3">check 3 label</label><br>
+<input type="checkbox" id="checkbox4"><label for="checkbox4">check 4 label</label><br>
+</div-->
+
+
 				<? if (opts.agreement_text) { ?>
 					<div class="digiseller-calc-confirmation">
 						<input type="checkbox" id="digiseller-calc-rules"<?= agree == 1 ? ' checked="checked"' : '' ?> />

@@ -556,21 +556,23 @@ DigiSeller-ru-api
           this.rows = parseInt(this.rows);
           this.total = parseInt(this.total);
           this.$el.style.display = this.total ? '' : 'none';
-          left = this.page - this.opts.max;
-          left = left < 1 ? 1 : left;
-          right = this.page + this.opts.max;
-          right = right > this.total ? this.total : right;
-          page = left;
           out = '';
-          while (page <= right) {
-            out += this.opts.getLink(page);
-            page++;
-          }
-          if (left > 1) {
-            out = this.opts.getLink(1) + (left > 2 ? '<span>...</span> ' : '') + out;
-          }
-          if (right < this.total) {
-            out = out + (right < this.total - 1 ? '<span>...</span> ' : '') + this.opts.getLink(this.total);
+          if (this.total > 1) {
+            left = this.page - this.opts.max;
+            left = left < 1 ? 1 : left;
+            right = this.page + this.opts.max;
+            right = right > this.total ? this.total : right;
+            page = left;
+            while (page <= right) {
+              out += this.opts.getLink(page);
+              page++;
+            }
+            if (left > 1) {
+              out = this.opts.getLink(1) + (left > 2 ? '<span>...</span> ' : '') + out;
+            }
+            if (right < this.total) {
+              out = out + (right < this.total - 1 ? '<span>...</span> ' : '') + this.opts.getLink(this.total);
+            }
           }
           this.$el.innerHTML = DS.tmpl(this.opts.tmpl, {
             out: out,
@@ -1060,7 +1062,7 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var $preview, $thumb, $thumbs, onClick, that, _i, _len, _ref;
+          var $container, $preview, $previewImg, $thumb, $thumbs, onClick, that, _i, _len;
           if (!data || !data.product) {
             DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.nothing, {
               opts: DS.opts
@@ -1082,34 +1084,52 @@ DigiSeller-ru-api
           DS.widget.currency.init();
           that = this;
           onClick = function($el) {
-            var id, type;
+            var id, index, type;
             type = DS.dom.attr($el, 'data-type');
+            index = parseInt(DS.dom.attr($el, 'data-index'));
             id = type === 'img' ? DS.dom.attr($el, 'href') : DS.dom.attr($el, 'data-id');
             DS.popup.open(type, (type === 'img' ? id : DS.tmpl(DS.tmpls.video, {
               id: id,
               type: type
-            })), $thumbs.children.length && $el.previousSibling ? function() {
-              return onClick($el.previousSibling);
-            } : false, $thumbs.children.length && $el.nextSibling ? function() {
-              return onClick($el.nextSibling);
+            })), $thumbs && $thumbs[index - 1] ? function() {
+              return onClick($thumbs[index - 1]);
+            } : false, $thumbs && $thumbs[index + 1] ? function() {
+              return onClick($thumbs[index + 1]);
             } : false);
           };
-          $thumbs = DS.dom.$("#" + this.prefix + "-thumbs");
-          if ($thumbs) {
-            _ref = $thumbs.children;
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              $thumb = _ref[_i];
+          $thumbs = false;
+          $container = DS.dom.$("#" + this.prefix + "-thumbs");
+          if ($container) {
+            $thumbs = DS.dom.$('a', $container);
+            for (_i = 0, _len = $thumbs.length; _i < _len; _i++) {
+              $thumb = $thumbs[_i];
               DS.dom.addEvent($thumb, 'click', function(e) {
                 DS.util.prevent(e);
                 return onClick(this);
+              });
+              DS.dom.addEvent($thumb, 'mouseover', function(e) {
+                var activeClass, id, index;
+                if (DS.dom.attr(this, 'data-type') !== 'img') {
+                  return;
+                }
+                activeClass = 'digiseller-left-thumbs-active';
+                DS.dom.klass('remove', $thumbs, activeClass, true);
+                DS.dom.klass('add', this, activeClass);
+                index = DS.dom.attr(this, 'data-index');
+                id = DS.dom.attr(this, 'data-id');
+                DS.dom.attr($preview, 'data-index', index);
+                return $previewImg.src = $previewImg.src.replace(/idp=[0-9]+&/, "idp=" + id + "&");
               });
             }
           }
           $preview = DS.dom.$("#" + this.prefix + "-img-preview");
           if ($preview) {
+            $previewImg = DS.dom.$('img', $preview)[0];
             DS.dom.addEvent($preview, 'click', function(e) {
+              var index;
               DS.util.prevent(e);
-              return onClick($thumbs && $thumbs.children.length ? $thumbs.children[0] : this);
+              index = parseInt(DS.dom.attr(this, 'data-index'));
+              return onClick($thumbs[index]);
             });
           }
         },
@@ -1681,7 +1701,7 @@ DigiSeller-ru-api
       inited = true;
       DS.$el.head = DS.dom.$('head')[0] || document.documentElement;
       DS.$el.body = DS.dom.$('body')[0] || document.documentElement;
-      DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, function() {
+      DS.dom.getStyle('css/default/test.css', function() {
         var homeInited, name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
         DS.opts.currency = DS.util.cookie.get('digiseller-currency') || DS.opts.currency;
         params = ['sort', 'rows', 'view'];

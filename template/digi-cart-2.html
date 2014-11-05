@@ -1,0 +1,248 @@
+<style>
+	.digiseller-cart-popup {
+		width:100%;
+		border-collapse:collapse;
+		font-size:13px;
+	}
+		
+	.digiseller-cart-popup td {padding:5px 7px; line-height:22px; vertical-align:top;}
+	.digiseller-cart-popup td:first-child {width:99%;}
+	.digiseller-cart-popup td a {color:0b6678; text-decoration:none;}
+	.digiseller-cart-popup td a:hover {text-decoration:underline;}
+	
+    .digiseller-cart-popup tr:last-child td{ padding-top:10px;}
+    
+    .digiseller-cart-footer a {float:left;}
+		
+	.digiseller-cart-popup input[type="number"] {width:70px; text-align:right;}
+		
+	.digiseller-cart-del-product {
+		display:inline-block;
+		width:16px;
+		height:16px;
+		font-size:0;
+    margin-top:3px;
+		line-height:13px;
+		background-image:url('/shop/img/digiseller-cart-icons.png')!important;
+		background-repeat:no-repeat;
+		background-position:50% top;
+	}
+
+    .digiseller-cart-del-product:hover {background-position:50% -16px;}
+		
+    .digiseller-cart-price {white-space:nowrap;}
+    
+	.digiseller-cart-error td {background:#ffb9b9; }
+	.digiseller-cart-error:nth-child(2n+1) td {text-align:right; font-size:11px; padding:0 5px; line-height:1em; padding-bottom:6px; color:#333; font-weight:bold;}
+		    
+	.digiseller-cart-footer {height:35px; margin-top:5px;}
+    .digiseller-cart-footer span {display:inline-block;}
+	.digiseller-cart-footer:first-child {margin-right:10px;}
+	.digiseller-cart-footer &amp;amp;amp;amp;amp;gt; span {float:right; margin-top:5px;}
+    .digiseller-cart-footer span span {font-weight:bold; color:#333; vertical-align:middle;}
+	.digiseller-cart-footer a + a {margin-left:10px;}
+		
+	.digiseller-cart-row-odd{background:#eee;}
+	.digiseller-cart-header {background:#eee;}
+	.digiseller-cart-header td {font-weight:bold;}
+	
+	.digiseller-cart-footer a {
+	    background: none repeat scroll 0 0 #0b6678;
+		border: 0 none;
+		border-radius: 3px;
+		color: #fff;
+		cursor: pointer;
+		display: inline-block;
+		font-family: Tahoma,Arial;
+		font-size: 14px;
+		line-height: 1.3em;
+		padding: 5px 7px;
+		transition: all 0.4s ease 0s;
+		text-decoration:none;
+	}
+	
+	.digiseller-cart-recount {
+		font-weight:normal;
+		margin-top:0;
+		vertical-align:top;
+		margin-top:-5px;
+	}
+	
+	.digiseller-cart-footer a:hover {background:#0a91ca!important;}
+	a.digiseller-cart-btn-disabeld {background:#ccc;}
+	a.digiseller-cart-btn-disabeld:hover {background:#ccc!important;}
+	
+	
+	.digiseller-cart-params-toggle {
+		background-image:url('/shop/img/digiseller-cart-icons.png');
+		background-repeat:no-repeat;
+		background-position:50% -32px;
+		vertical-align:top;
+		width:10px;
+		font-size:0;
+		height:16px;
+    vertical-align:middle;
+    margin-top:-1px;
+		display:inline-block;
+	}
+		.digiseller-cart-params-toggle.digiseller-cart-params-toggle-arrup {
+		background-position:50% -48px;
+	}	
+  
+  .digiseller-cart-row-params {font-size:10px; margin-top:5px;line-height:1.3em;}
+</style>	
+	
+	<div id="digiseller-popup-img" class="digiseller-popup-video">
+
+  <h2>Корзина</h2>
+  <div style="height:200px; width:550px; overflow-y:auto; text-align:left;">
+  
+  
+	<table class="digiseller-cart-popup">
+	<tbody>
+		
+	<tr class="digiseller-cart-header">
+		<td>
+			Название товара
+		</td>
+		<td class="digiseller-cart-price">
+			Цена
+		</td>
+		<td colspan="2">
+			Количество
+		</td>
+	</tr>	
+      
+	  
+	  
+	  
+	  
+	  
+	<tr class="digiseller-cart-row-even digiseller-cart-error"> <!-- если ошибка то добавляем .digiseller-cart-error -->
+		<td>
+      <a class="digiseller-cart-params-toggle digiseller-cart-params-toggle-arrup">12</a>
+			<a href="#">Игровая валюта такая-то</a>
+      <div class="digiseller-cart-row-params">
+        <strong>Цвет:</strong> Зелёный<br>
+        <strong>С наклейками:</strong> да<br>
+        <strong>Цвет наклеек:</strong> Белый<br>
+        <strong>Размер:</strong> XL  
+        
+      </div>
+		</td>
+		<td class="digiseller-cart-price">
+			1145.00 RUR
+		</td>
+		<td>
+			<input type="number">
+		</td>
+		<td>
+			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
+		</td>
+	</tr>	
+	<tr class="digiseller-cart-error"> <!-- и рисуем вот эту tr -->
+		<td colspan="4">
+			Максимально доступное количество товарова: 60
+		</td>
+	</tr>	
+
+		
+		
+
+    <tr class="digiseller-cart-row-odd">
+		<td>
+			<a href="#">Product name Product name</a>
+		</td>
+		<td class="digiseller-cart-price">
+			1145.00 RUR
+		</td>
+		<td>
+			<input type="number">
+		</td>
+		<td>
+			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
+		</td>
+	</tr>    
+
+
+	
+      
+	<tr class="digiseller-cart-row-even">
+		<td>
+      <a class="digiseller-cart-params-toggle">12</a>
+			<a href="#">Игровая валюта такая-то</a>
+		</td>
+		<td class="digiseller-cart-price">
+			1145.00 RUR
+		</td>
+		<td>
+			<input type="number">
+		</td>
+		<td>
+      
+			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
+		</td>
+	</tr>
+	
+	
+		
+      
+    <tr class="digiseller-cart-error digiseller-cart-row-odd">
+		<td>
+			<a href="#">Карта на покупку чего-то</a>
+		</td>
+		<td class="digiseller-cart-price">
+			1145.00 RUR
+		</td>
+		<td>
+			<input type="number">
+		</td>
+		<td>
+			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
+		</td>
+	</tr>      
+	<tr class="digiseller-cart-error">
+		<td colspan="4">
+			o_Ops! Вышло неловко!
+		</td>
+	</tr>
+			
+
+	
+	  
+    <tr class="digiseller-cart-row-even">
+		<td>
+			<a href="#">Product name Product name Product name Product name Product name</a>
+		</td>
+		<td class="digiseller-cart-price">
+			1145.00 RUR
+		</td>
+		<td>
+			<input type="number">
+		</td>
+		<td>
+			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
+		</td>
+	</tr>
+	
+	   
+    </tbody>
+	</table>
+    
+  </div>
+
+	<br>
+  
+	<div class="digiseller-cart-footer">
+		
+		<a class="digiseller-cart-btn-disabeld" href="#">Перейти к оплате</a>
+		<a href="#">Пересчитать</a><!-- прячем, если не надо пересчитывать, или вешаем класс .digiseller-cart-btn-disabeld-->
+		
+		<!-- прячем span, если нужно пересчитать -->
+		<span style="display:none">Итого:&nbsp;&nbsp;
+			<span>2224.99 RUR</span>
+		</span>
+		
+	</div>
+	
+</div>
