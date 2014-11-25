@@ -1,5 +1,13 @@
 <?
-	var button = (d.is_available ? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '"' + (opts.extendedBuy ? 'data-form="1"' : '') + (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '') + (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '') + ' id="digiseller-calc-buy">' + opts.i18n['buy'] + '</a>' : '<a class="digiseller-buyButton-empty">' + opts.i18n['notAvailable'] + '</a>');
+	var button = (d.is_available
+		? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '"'
+			+ (opts.extendedBuy ? ' data-form="1"' : '')
+			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
+			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
+			+ ' id="digiseller-calc-buy">' + opts.i18n['buy'] + '</a>'
+			+ (opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '">В корзину</a>' : '')
+		: '<a class="digiseller-buyButton-empty">' + opts.i18n['notAvailable'] + '</a>'
+	);
 ?>
 
 <div class="digiseller-productBuy">
@@ -48,52 +56,120 @@
 							wmu: 'UAH'
 						};
 						for (type in opts.types) {
-							if ( !opts.types.hasOwnProperty(type) || !d.prices[type] || d.prices[type] == 0)
-								continue; ?>						
+							if (!Object.prototype.hasOwnProperty.call(opts.types, type) || !d.prices[type] || d.prices[type] == 0)
+								continue; ?>
+								
 							<option class="digiseller-calc-option digiseller-calc-<?= type ?>" value="<?= type ?>" data-price="<?= d.prices[type] ?>"<?= currency[type] === opts.currency ? ' selected="selected"' : '' ?>><?= opts.types[type] ?></option>
 						<? } ?>
 					</select>
 				</div>
 				
+				<? if (d.options && d.options.length)
+					for (var i = 0, l = d.options.length; i < l; i++) {
+						/*if ( !Object.prototype.hasOwnProperty.call(d.options, option) ) continue;*/
+						
+						var option = d.options[i];
+						
+						console.log(option.type);
+						?>
+						
+						<div class="digiseller-calc-line">
+							<div><?= option.label ?></div>
+							
+							<? switch(option.type) {
+								case 'text': ?>
+								
+									<input type="text" name="<?= option.name ?>"<?= option.required == 1 ? ' required="required"' : '' ?> />						
+									
+									<? break;
+									
+								case 'textarea': ?>
+								
+									<textarea name="<?= option.name ?>"<?= option.required == 1 ? ' required="required"' : '' ?>></textarea>
+									
+									<? break;
+									
+								case 'select': ?>
+								
+									<select name="<?= option.name ?>">
+
+									<? if (option.variants && option.variants.length)
+										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
+											<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii].default == 1 ? ' checked' : '' ?>>
+												<?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?>
+											</option>
+										<? } ?>
+										
+									</select>
+									
+									<? break;
+									
+								case 'checkbox': case 'radio': 
+									console.dir(option.variants);
+									if (option.variants && option.variants.length)
+										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
+											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>"<?= option.variants[ii].default == 1 ? ' checked' : '' ?> />
+											<label for="<?= option.name ?>_<?= ii ?>"><?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?></label><br />
+										<? } ?>
+										
+									<? break;
+							} ?>
+						</div> 
+					<? } 
+				?>
+				 
+
+
+
+
+
+
+
+
 				
-<!--div class="digiseller-calc-line">
-<div>Input</div>
-<input type="text">
-</div>
+				
+				
+<!--
 
-<div class="digiseller-calc-line">
-<div>Textarea</div>
-<textarea></textarea>
-</div>
+				<div class="digiseller-calc-line">
+					<div>Input</div>
+					<input type="text">
+				</div>
 
-<div class="digiseller-calc-line">
-<div>Select</div>
-<select>
-<option>option 1</option>
-<option>option 2</option>
-<option>option 3</option>
-<option>option 4</option>
-<option>option 5</option>
-<option>option 6</option>
-</select>
-</div> 
+				<div class="digiseller-calc-line">
+					<div>Textarea</div>
+					<textarea></textarea>
+				</div>
 
-<div class="digiseller-calc-line"> 
-<div>Radio</div>
-<input type="radio" id="radio1"><label for="radio1">radio 1 label</label><br>
-<input type="radio" id="radio2"><label for="radio2">radio 2 label</label><br>
-<input type="radio" id="radio3"><label for="radio3">radio 3 label</label><br>
-<input type="radio" id="radio4"><label for="radio4">radio 4 label</label><br>
-</div>
+				<div class="digiseller-calc-line">
+					<div>Select</div>
+					<select>
+						<option>option 1</option>
+						<option>option 2</option>
+						<option>option 3</option>
+						<option>option 4</option>
+						<option>option 5</option>
+						<option>option 6</option>
+					</select>
+				</div> 
 
-<div class="digiseller-calc-line">
-<div>Checkbox</div>
-<input type="checkbox" id="checkbox1"><label for="checkbox1">check 1 label</label><br>
-<input type="checkbox" id="checkbox2"><label for="checkbox2">check 2 label</label><br>
-<input type="checkbox" id="checkbox3"><label for="checkbox3">check 3 label</label><br>
-<input type="checkbox" id="checkbox4"><label for="checkbox4">check 4 label</label><br>
-</div-->
+				<div class="digiseller-calc-line"> 
+					<div>Radio</div>
+					<input type="radio" id="radio1"><label for="radio1">radio 1 label</label><br>
+					<input type="radio" id="radio2"><label for="radio2">radio 2 label</label><br>
+					<input type="radio" id="radio3"><label for="radio3">radio 3 label</label><br>
+					<input type="radio" id="radio4"><label for="radio4">radio 4 label</label><br>
+				</div>
 
+				<div class="digiseller-calc-line">
+					<div>Checkbox</div>
+					<input type="checkbox" id="checkbox1"><label for="checkbox1">check 1 label</label><br>
+					<input type="checkbox" id="checkbox2"><label for="checkbox2">check 2 label</label><br>
+					<input type="checkbox" id="checkbox3"><label for="checkbox3">check 3 label</label><br>
+					<input type="checkbox" id="checkbox4"><label for="checkbox4">check 4 label</label><br>
+				</div>
+
+-->
 
 				<? if (opts.agreement_text) { ?>
 					<div class="digiseller-calc-confirmation">

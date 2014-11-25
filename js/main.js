@@ -9,7 +9,7 @@ DigiSeller-ru-api
 (function() {
 
   (function(window, document) {
-    var DS, inited;
+    var DS, checkReady, inited;
     if (window.DigiSeller != null) {
       false;
     }
@@ -21,7 +21,7 @@ DigiSeller-ru-api
     };
     DS.opts = {
       seller_id: null,
-      host: '//shop.digiseller.ru/xml/',
+      host: '//shop.digiseller.ru/xml/new/',
       hashPrefix: '#!digiseller',
       currency: 'RUR',
       sort: 'name',
@@ -419,7 +419,7 @@ DigiSeller-ru-api
             if (!data) {
               return false;
             }
-            that.$el.innerHTML = that.render(data.category);
+            that.$el.innerHTML = that.render(data.category, null, 0);
             that.isInited = true;
             that.mark();
           });
@@ -427,9 +427,9 @@ DigiSeller-ru-api
         mark: (function() {
           var _go;
           _go = function(cid) {
-            var cat, cats, parent, sub, subs, _i, _len, _ref;
-            cats = DS.dom.$('li', this.$el);
-            if (!cats.length) {
+            var $ancestor, $cat, $cats, $parent, sub, subs, _i, _len, _ref;
+            $cats = DS.dom.$('li', this.$el);
+            if (!$cats.length) {
               return;
             }
             subs = DS.dom.$('ul', this.$el);
@@ -438,19 +438,23 @@ DigiSeller-ru-api
               sub.style.display = 'none';
             }
             subs[0].style.display = '';
-            DS.dom.klass('remove', cats, this.prefix + '-active', true);
+            DS.dom.klass('remove', $cats, this.prefix + '-active', true);
+            DS.dom.klass('remove', $cats, this.prefix + '-active-hmenu', true);
             if (!cid) {
               return;
             }
-            cat = DS.dom.$("#" + this.prefix + "-" + cid);
-            if (!cat) {
+            $cat = DS.dom.$("#" + this.prefix + "-" + cid);
+            if (!$cat) {
               return;
             }
-            DS.dom.klass('add', cat, this.prefix + '-active');
-            parent = cat;
-            while (parent.id !== this.prefix) {
-              parent.style.display = '';
-              parent = parent.parentNode;
+            DS.dom.klass('add', $cat, this.prefix + '-active');
+            $parent = $ancestor = $cat;
+            while ($parent.id !== this.prefix) {
+              $parent.style.display = '';
+              $parent = $parent.parentNode;
+              if (/li/i.test($parent.tagName)) {
+                DS.dom.klass('add', $parent, this.prefix + '-active-hmenu');
+              }
             }
             if ((_ref = DS.dom.$("#" + this.prefix + "-sub-" + cid)) != null) {
               _ref.style.display = '';
@@ -479,14 +483,15 @@ DigiSeller-ru-api
           };
         })(),
         render: function(categories, parent_cid) {
-          var category, out, _i, _len;
+          var category, compileTmpl, out, _i, _len;
           if (!categories) {
             return '';
           }
           out = '';
+          compileTmpl = DS.tmpl(DS.tmpls.category);
           for (_i = 0, _len = categories.length; _i < _len; _i++) {
             category = categories[_i];
-            out += DS.tmpl(DS.tmpls.category, {
+            out += compileTmpl({
               d: category,
               url: DS.opts.hashPrefix + ("/articles/" + category.id),
               id: this.prefix + ("-" + category.id),
@@ -626,7 +631,7 @@ DigiSeller-ru-api
         };
 
         _Class.prototype.render = function(data) {
-          var comment, comments, out, _i, _len;
+          var comment, comments, compileTmpl, out, _i, _len;
           comments = data.review;
           out = '';
           if (!comments) {
@@ -634,9 +639,10 @@ DigiSeller-ru-api
               opts: DS.opts
             });
           } else {
+            compileTmpl = DS.tmpl(DS.tmpls.comment);
             for (_i = 0, _len = comments.length; _i < _len; _i++) {
               comment = comments[_i];
-              out += DS.tmpl(DS.tmpls.comment, {
+              out += compileTmpl({
                 d: comment,
                 opts: DS.opts
               });
@@ -812,13 +818,14 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var article, articles, out, _i, _len;
+          var article, articles, compileTmpl, out, _i, _len;
           out = '';
           articles = data.product;
           if (articles && articles.length) {
+            compileTmpl = DS.tmpl(DS.tmpls['article' + DS.opts.main_view.charAt(0).toUpperCase() + DS.opts.main_view.slice(1)]);
             for (_i = 0, _len = articles.length; _i < _len; _i++) {
               article = articles[_i];
-              out += DS.tmpl(DS.tmpls['article' + DS.opts.main_view.charAt(0).toUpperCase() + DS.opts.main_view.slice(1)], {
+              out += compileTmpl({
                 d: article,
                 url: DS.opts.hashPrefix + ("/detail/" + article.id),
                 imgsize: DS.opts.main_view === 'tile' ? DS.opts.imgsize_firstpage : DS.opts.imgsize_listpage,
@@ -868,7 +875,7 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var article, articles, container, out, that, _i, _len;
+          var article, articles, compileTmpl, container, out, that, _i, _len;
           out = '';
           articles = data.product;
           if (!articles || !articles.length) {
@@ -876,9 +883,10 @@ DigiSeller-ru-api
               opts: DS.opts
             });
           } else {
+            compileTmpl = DS.tmpl(DS.tmpls.searchResult);
             for (_i = 0, _len = articles.length; _i < _len; _i++) {
               article = articles[_i];
-              out += DS.tmpl(DS.tmpls.searchResult, {
+              out += compileTmpl({
                 url: DS.opts.hashPrefix + ("/detail/" + article.id),
                 d: article,
                 opts: DS.opts
@@ -960,7 +968,7 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var article, articles, container, out, param, params, set, that, _i, _j, _len, _len1;
+          var article, articles, compileTmpl, container, out, param, params, set, that, _i, _j, _len, _len1;
           out = '';
           data.totalPages = parseInt(data.totalPages);
           articles = data.product;
@@ -969,9 +977,10 @@ DigiSeller-ru-api
               opts: DS.opts
             });
           } else {
+            compileTmpl = DS.tmpl(DS.tmpls['article' + DS.opts.view.charAt(0).toUpperCase() + DS.opts.view.slice(1)]);
             for (_i = 0, _len = articles.length; _i < _len; _i++) {
               article = articles[_i];
-              out += DS.tmpl(DS.tmpls['article' + DS.opts.view.charAt(0).toUpperCase() + DS.opts.view.slice(1)], {
+              out += compileTmpl({
                 d: article,
                 url: DS.opts.hashPrefix + ("/detail/" + article.id),
                 imgsize: DS.opts.view === 'tile' ? DS.opts.imgsize_firstpage : DS.opts.imgsize_listpage,
@@ -1062,7 +1071,7 @@ DigiSeller-ru-api
           });
         },
         render: function(data) {
-          var $container, $preview, $previewImg, $thumb, $thumbs, onClick, that, _i, _len;
+          var $container, $preview, $thumb, $thumbs, onClick, that, _i, _len;
           if (!data || !data.product) {
             DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.nothing, {
               opts: DS.opts
@@ -1118,13 +1127,12 @@ DigiSeller-ru-api
                 index = DS.dom.attr(this, 'data-index');
                 id = DS.dom.attr(this, 'data-id');
                 DS.dom.attr($preview, 'data-index', index);
-                return $previewImg.src = $previewImg.src.replace(/idp=[0-9]+&/, "idp=" + id + "&");
+                return $preview.style.backgroundImage = $preview.style.backgroundImage.replace(/idp=[0-9]+&/, "idp=" + id + "&");
               });
             }
           }
           $preview = DS.dom.$("#" + this.prefix + "-img-preview");
           if ($preview) {
-            $previewImg = DS.dom.$('img', $preview)[0];
             DS.dom.addEvent($preview, 'click', function(e) {
               var index;
               DS.util.prevent(e);
@@ -1363,19 +1371,24 @@ DigiSeller-ru-api
 			_revRoutes = [];
 
 		function init() {
-			if (!historyClick.interval) {
-				historyClick.interval = setInterval(urlHashCheck, 100);
+			if (historyClick.interval) {
+				return;
 			}
+				
+			DS.dom.addEvent(window, 'hashchange', urlHashCheck);
 		}
 
 		function urlHashCheck() {
+			
 			var mayChangeReload = false; // _needReload может обнулиться так как urlHashCheck может еще не закончиться а _needReload уже поставили true
 
 			if (_needReload) {
 				mayChangeReload = true;
 			}
 
-			if (window.location.hash !== historyClick.currentHash || _needReload) {
+			if (window.location.hash !== historyClick.currentHash || _needReload) {	
+console.log('hashchange');
+			
 				historyClick.prevHash = ( _needReload ? historyClick.prevHash : historyClick.currentHash );
 				historyClick.currentHash = window.location.hash.toString();
 
@@ -1415,6 +1428,7 @@ DigiSeller-ru-api
 			params: [],
 			start: function() {
 				init();
+				urlHashCheck();
 			},
 			rootAlias: function(hash) {
 				if (hash) {
@@ -1702,7 +1716,7 @@ DigiSeller-ru-api
       DS.$el.head = DS.dom.$('head')[0] || document.documentElement;
       DS.$el.body = DS.dom.$('body')[0] || document.documentElement;
       DS.dom.getStyle('css/default/test.css', function() {
-        var homeInited, name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
+        var $cart, homeInited, name, param, params, route, _fn, _i, _len, _ref, _ref1, _ref2;
         DS.opts.currency = DS.util.cookie.get('digiseller-currency') || DS.opts.currency;
         params = ['sort', 'rows', 'view'];
         for (_i = 0, _len = params.length; _i < _len; _i++) {
@@ -1727,6 +1741,13 @@ DigiSeller-ru-api
         }
         if (!DS.widget.category.$el) {
           DS.widget.main.$el.className = 'digiseller-main-nocategory';
+        }
+        $cart = DS.dom.$('#digiseller-cart-btn');
+        if ($cart) {
+          DS.opts.hasCart = true;
+          $cart.innerHTML = DS.tmpl(DS.tmpls.cart, {
+            opts: DS.opts
+          });
         }
         homeInited = false;
         DS.historyClick.addRoute('#.*', function(params) {
@@ -1758,7 +1779,16 @@ DigiSeller-ru-api
       });
     };
     window.DigiSeller = DS;
-    DS.dom.addEvent(window, 'load', DS.init);
+    checkReady = function() {
+      if (document.readyState !== 'loading') {
+        return DS.init();
+      } else {
+        return setTimeout(function() {
+          checkReady();
+        }, 1);
+      }
+    };
+    checkReady();
   })(window, document);
 
 }).call(this);
