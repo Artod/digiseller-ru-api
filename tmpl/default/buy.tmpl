@@ -1,17 +1,17 @@
 <?
 	var button = (d.is_available
 		? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '"'
-			+ (opts.extendedBuy ? ' data-form="1"' : '')
+			+ (DS.opts.extendedBuy ? ' data-form="1"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
-			+ ' id="digiseller-calc-buy">' + opts.i18n['buy'] + '</a>'
-			+ (opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '">В корзину</a>' : '')
-		: '<a class="digiseller-buyButton-empty">' + opts.i18n['notAvailable'] + '</a>'
+			+ ' id="digiseller-calc-buy">' + DS.opts.i18n['buy'] + '</a>'
+			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '">В корзину</a>' : '')
+		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
 	);
 ?>
 
 <div class="digiseller-productBuy">
-	<? if (d.is_available && opts.extendedBuy) { ?>
+	<? if (d.is_available && DS.opts.extendedBuy) { ?>
 		<div id="digiseller-calc" class="digiseller-calc">		
 			<form method="POST" action="https://www.oplata.info/asp/pay.asp" id="digiseller-buy-form-<?= d.id ?>" target="_blank">
 				<input type="hidden" name="Agent" value="<?= d.agency_id ?>" />
@@ -20,7 +20,7 @@
 				<? } else { ?>
 					<div class="digiseller-calc-quanity">
 						<div class="digiseller-calc-left">
-							<span><?= opts.i18n['iWillPay'] ?> <b id="digiseller-calc-amountR"><?= d.prices_unit.unit_Currency ?></b></span><br />
+							<span><?= DS.opts.i18n['iWillPay'] ?> <b id="digiseller-calc-amountR"><?= d.prices_unit.unit_Currency ?></b></span><br />
 							<input name="Unit_Summa" type="text" id="digiseller-calc-amount" value="<?= d.prices_unit.unit_Amount ?>"<?= (d.prices_unit.unit_Fixed ? ' disabled="disabled"' : '') ?> />   
 						</div> 
 
@@ -29,7 +29,7 @@
 						</div>
 						
 						<div class="digiseller-calc-right" >
-							<span><?= opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span><br />
+							<span><?= DS.opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span><br />
 							<? if (d.prices_unit.unit_Fixed) { ?>
 								<select id="digiseller-calc-cntSelect" style="width:100%" name="Unit_Cnt">
 									<? for (var i = 0, l = d.prices_unit.unit_Fixed.length; i < l; i++) { ?>
@@ -47,7 +47,7 @@
 				<? } ?>
 
 				<div class="digiseller-calc-method">
-					<span><?= opts.i18n['paymentVia'] ?>:</span><br />
+					<span><?= DS.opts.i18n['paymentVia'] ?>:</span><br />
 					<select id="digiseller-calc-currency" name="TypeCurr">
 						<? var currency = {
 							wmz: 'USD',
@@ -55,11 +55,11 @@
 							wme: 'EUR',
 							wmu: 'UAH'
 						};
-						for (type in opts.types) {
-							if (!Object.prototype.hasOwnProperty.call(opts.types, type) || !d.prices[type] || d.prices[type] == 0)
+						for (type in DS.opts.types) {
+							if (!Object.prototype.hasOwnProperty.call(DS.opts.types, type) || !d.prices[type] || d.prices[type] == 0)
 								continue; ?>
 								
-							<option class="digiseller-calc-option digiseller-calc-<?= type ?>" value="<?= type ?>" data-price="<?= d.prices[type] ?>"<?= currency[type] === opts.currency ? ' selected="selected"' : '' ?>><?= opts.types[type] ?></option>
+							<option class="digiseller-calc-option digiseller-calc-<?= type ?>" value="<?= type ?>" data-price="<?= d.prices[type] ?>"<?= currency[type] === DS.opts.currency ? ' selected="selected"' : '' ?>><?= DS.opts.types[type] ?></option>
 						<? } ?>
 					</select>
 				</div>
@@ -171,10 +171,10 @@
 
 -->
 
-				<? if (opts.agreement_text) { ?>
+				<? if (DS.opts.agreement_text) { ?>
 					<div class="digiseller-calc-confirmation">
 						<input type="checkbox" id="digiseller-calc-rules"<?= agree == 1 ? ' checked="checked"' : '' ?> />
-						<?= opts.i18n['iAgreeWithTerms'] ?>
+						<?= DS.opts.i18n['iAgreeWithTerms'] ?>
 					</div>
 				<? } ?>
 	 
@@ -186,7 +186,7 @@
 			</form>
 		</div>
 	<? } else { ?>
-		<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.prices_unit ? opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
+		<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
 		<?= button ?>
 	<? } ?>
 </div>

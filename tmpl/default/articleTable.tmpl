@@ -6,9 +6,9 @@
 		<div>
 			<span><? if (d.collection == 'unit') { ?> от <? } ?> <?= d.price ?> <?= d.currency ?></span>
 			<? if (d.is_available) { ?>
-				<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= opts.i18n['buy'] ?></a>
+				<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= DS.opts.i18n['buy'] ?></a>
 			<? } else { ?>
-				<a class="digiseller-buyButton-empty"><?= opts.i18n['notAvailable'] ?></a>
+				<a class="digiseller-buyButton-empty"><?= DS.opts.i18n['notAvailable'] ?></a>
 			<? } ?>
 		</div>
 	</td>

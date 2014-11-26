@@ -2,26 +2,26 @@
 <? var reviewsCount = parseInt(d.statistics.good_reviews) + parseInt(d.statistics.bad_reviews); ?>
 <? var price = (d.collection == 'unit' ? 'от ' : '') + d.price + ' ' + d.currency ?>
 
-<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= opts.seller_id ?>" width="0" height="0" />
+<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
 
 <div class="digiseller-productpge">
 	<h1>
 		<?= d.name ?>&nbsp;
 		<? switch(d.label) {
 			case 'top': ?>
-				<span class="digiseller-labellider"><?= opts.i18n['leader!'] ?></span>
+				<span class="digiseller-labellider"><?= DS.opts.i18n['leader!'] ?></span>
 				<? break;
 			case 'sale': ?>
-				<span class="digiseller-labelaction"><?= opts.i18n['action!'] ?></span>
+				<span class="digiseller-labelaction"><?= DS.opts.i18n['action!'] ?></span>
 				<? break;
 			case 'new': ?>
-				<span class="digiseller-labelnew"><?= opts.i18n['new!'] ?></span>
+				<span class="digiseller-labelnew"><?= DS.opts.i18n['new!'] ?></span>
 				<? break;
 		} ?>
 	</h1>
 	
 	<div class="digiseller-breadcrumbs">
-		<a title="<?= opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= opts.i18n['shop'] ?></a> &gt;&nbsp;
+		<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt;&nbsp;
 		<? if (d.breadCrumbs) {			
 			for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
 				<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
@@ -33,21 +33,21 @@
 	<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
 		<div class="digiseller-product-toggle">
 			<? if (d.id_prev !== '0') { ?>
-				<span>&larr; </span><a onclick="location.hash='#!digiseller/detail/<?= d.id_prev ?>';"><?= opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;
+				<span>&larr; </span><a onclick="location.hash='#!digiseller/detail/<?= d.id_prev ?>';"><?= DS.opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;
 			<? } ?>
 			|
 			<? if (d.id_next !== '0') { ?>
-				&nbsp;&nbsp; <a onclick="location.hash='#!digiseller/detail/<?= d.id_next ?>';"><?= opts.i18n['nextArticle'] ?></a><span> &rarr;</span>
+				&nbsp;&nbsp; <a onclick="location.hash='#!digiseller/detail/<?= d.id_next ?>';"><?= DS.opts.i18n['nextArticle'] ?></a><span> &rarr;</span>
 			<? } ?>
 		</div>
 	<? } ?>
 	
 	<div class="digiseller-options">
 		<span class="digiseller-social">
-			<a class="digiseller-social-fb" title="<?= opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-			<a class="digiseller-social-vk" title="<?= opts.i18n['shareInVK'] ?>" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-			<a class="digiseller-social-tw" title="<?= opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
-			<a class="digiseller-social-wm" title="<?= opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-fb" title="<?= DS.opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-vk" title="<?= DS.opts.i18n['shareInVK'] ?>" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-tw" title="<?= DS.opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
+			<a class="digiseller-social-wm" title="<?= DS.opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
 		</span>
 
 		<div id="digiseller-currency"></div>
@@ -57,14 +57,14 @@
 		<div class="digiseller-product-left">
 		
 			<? if (mainImg) { ?>
-				<? var imgSize = parseInt(opts.imgsize_infopage) + 20; ?>
+				<? var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
 				
-				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" style="min-width:<?= imgSize ?>px; min-height:<?= imgSize ?>px; background: url(//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= opts.imgsize_infopage ?>) no-repeat scroll center center transparent;" title="<?= name ?>">
-					<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
-					<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
+				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" style="min-width:<?= imgSize ?>px; min-height:<?= imgSize ?>px; background: url(//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>) no-repeat scroll center center transparent;" title="<?= name ?>">
+					<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
+					<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
 				</a>
 			<? } else { ?>
-				<img class="digiseller-no-img" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
+				<img class="digiseller-no-img" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
 			<? } ?>
 			
 			<? if (d.preview_imgs || d.preview_videos) { ?>
@@ -107,7 +107,7 @@
 			
 			<? if (d.statistics.sales && d.statistics.sales != '0') { ?>
 				<div class="digiseller-prod-info">
-					<span><?= opts.i18n['numberOfSales'] ?>:&nbsp;</span><?= d.statistics.sales ?>
+					<span><?= DS.opts.i18n['numberOfSales'] ?>:&nbsp;</span><?= d.statistics.sales ?>
 				</div>
 			<? } ?>
 		</div>
@@ -117,12 +117,12 @@
 
 	<div>		
 		<div class="digiseller-productdetails-tabs">
-			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= opts.i18n['description'] ?></a>	
+			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= DS.opts.i18n['description'] ?></a>	
 			<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
-				<a data-action="article-tab" data-tab="1"><?= opts.i18n['discounts'] ?></a>	
+				<a data-action="article-tab" data-tab="1"><?= DS.opts.i18n['discounts'] ?></a>	
 			<? } ?>
 			<? if (reviewsCount) { ?>
-				<a data-action="article-tab" data-tab="2"><?= opts.i18n['reviews'] ?> (<?= reviewsCount ?>)</a>
+				<a data-action="article-tab" data-tab="2"><?= DS.opts.i18n['reviews'] ?> (<?= reviewsCount ?>)</a>
 			<? } ?>
 		</div>
 		<div>
@@ -133,7 +133,7 @@
 
 				<? if (d.add_info !== "") { ?>
 					<div class="digiseller-prod-info">
-						<h3><?= opts.i18n['addInformation'] ?>:</h3>
+						<h3><?= DS.opts.i18n['addInformation'] ?>:</h3>
 						<?= d.add_info ?>
 					</div>
 				<? } ?>
@@ -143,13 +143,13 @@
 				<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
 				
 					<? if (d.units && d.units.discounts) { ?>
-						<h3><?= opts.i18n['discountsOnQuantityPurchases'] ?></h3>
+						<h3><?= DS.opts.i18n['discountsOnQuantityPurchases'] ?></h3>
 						<table class="digiseller-discounttable1">
 							<thead>
 								<tr class="digiseller-discounttabbe-head">	
-									<td><?= opts.i18n['whenBuyingFrom'] ?></td>
-									<td><?= opts.i18n['discount'] ?></td>
-									<td><?= opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
+									<td><?= DS.opts.i18n['whenBuyingFrom'] ?></td>
+									<td><?= DS.opts.i18n['discount'] ?></td>
+									<td><?= DS.opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
 								</tr>
 							</thead>
 							<tbody>
@@ -165,12 +165,12 @@
 					<? } ?> 
 				
 					<? if (d.discounts && d.discounts.length) { ?>
-						<h3><?= opts.i18n['discountLoyalCustomers'] ?></h3>
+						<h3><?= DS.opts.i18n['discountLoyalCustomers'] ?></h3>
 						<table class="digiseller-discounttable1">
 							<thead>
 								<tr class="digiseller-discounttabbe-head">	
-									<td><?= opts.i18n['amountOfPurchasesFrom'] ?></td>
-									<td><?= opts.i18n['discount'] ?></td>
+									<td><?= DS.opts.i18n['amountOfPurchasesFrom'] ?></td>
+									<td><?= DS.opts.i18n['discount'] ?></td>
 								</tr>
 							</thead>
 							<tbody>

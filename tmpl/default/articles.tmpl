@@ -1,9 +1,9 @@
-<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=0&ids=<?= opts.seller_id ?>" width="0" height="0" />
+<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=0&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
 
 <h1><?= d.breadCrumbs ? d.breadCrumbs[d.breadCrumbs.length - 1].name : '' ?></h1>
 
 <div class="digiseller-breadcrumbs">
-	<a title="<?= opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= opts.i18n['shop'] ?></a> &gt;&nbsp;
+	<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt;&nbsp;
 	<? if (d.breadCrumbs) {
 		for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
 			<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
@@ -17,10 +17,10 @@
 		<? for (var i = 0, l = d.categories.length; i < l; i++) { ?>
 			<div>			
 				<a onclick="location.hash='#!digiseller/articles/<?= d.categories[i].id ?>';">
-					<img src="//graph.digiseller.ru/img.ashx?idn=<?= d.categories[i].hasImg == 1 ? d.categories[i].id : 1?>&maxlength=<?= opts.imgsize_category ?>" alt="<?= name ?>" />
+					<img src="//graph.digiseller.ru/img.ashx?idn=<?= d.categories[i].hasImg == 1 ? d.categories[i].id : 1?>&maxlength=<?= DS.opts.imgsize_category ?>" alt="<?= name ?>" />
 				</a>
 				
-				<a onclick="location.hash='#!digiseller/articles/<?= d.categories[i].id ?>';" style="max-width:<?= opts.imgsize_category ?>px;">
+				<a onclick="location.hash='#!digiseller/articles/<?= d.categories[i].id ?>';" style="max-width:<?= DS.opts.imgsize_category ?>px;">
 					<?= d.categories[i].name ?><span>&nbsp;(<?= d.categories[i].cnt ?>)</span>
 				</a>
 			</div>
@@ -33,7 +33,7 @@
 
 <? if (d.totalPages || !d.totalPages && !hasCategories) { ?>
 	<div class="digiseller-productList" id="<?= id ?>">
-		<?= opts.view === 'table' ? '<table class="digiseller-table" id="' + id + '-table">' + out + '</table>' : out ?>
+		<?= DS.opts.view === 'table' ? '<table class="digiseller-table" id="' + id + '-table">' + out + '</table>' : out ?>
 	</div>
 	<div class="digiseller-paging"></div>
 <? } ?>

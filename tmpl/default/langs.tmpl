@@ -1,7 +1,7 @@
-<div class="langs_bg <?= opts.currentLang ?>-icon"></div>
+<div class="langs_bg <?= DS.opts.currentLang ?>-icon"></div>
 <div class="digiseller-langs-dd">
 	<span></span>
-	<? for (var i = 0, l = opts.langs.length; i < l; i++) { ?>		
-		<a href="#" data-action="click-lang" data-lang="<?= opts.langs[i][0] ?>"><?= opts.langs[i][1] ?></a>
+	<? for (var i = 0, l = DS.opts.langs.length; i < l; i++) { ?>		
+		<a href="#" data-action="click-lang" data-lang="<?= DS.opts.langs[i][0] ?>"><?= DS.opts.langs[i][1] ?></a>
 	<? } ?>
 </div>
