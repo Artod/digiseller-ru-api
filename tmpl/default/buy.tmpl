@@ -1,17 +1,16 @@
 <?
 	var button = (d.is_available
-		? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '"'
-			+ (DS.opts.extendedBuy ? ' data-form="1"' : '')
+		? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1"'
 			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
 			+ ' id="digiseller-calc-buy">' + DS.opts.i18n['buy'] + '</a>'
-			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '">В корзину</a>' : '')
+			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1" data-cart="1">В корзину</a>' : '')
 		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
 	);
 ?>
 
 <div class="digiseller-productBuy">
-	<? if (d.is_available && DS.opts.extendedBuy) { ?>
+	<? if (d.is_available) { ?>
 		<div id="digiseller-calc" class="digiseller-calc">		
 			<form method="POST" action="https://www.oplata.info/asp/pay.asp" id="digiseller-buy-form-<?= d.id ?>" target="_blank">
 				<input type="hidden" name="Agent" value="<?= d.agency_id ?>" />
@@ -66,46 +65,41 @@
 				
 				<? if (d.options && d.options.length)
 					for (var i = 0, l = d.options.length; i < l; i++) {
-						/*if ( !Object.prototype.hasOwnProperty.call(d.options, option) ) continue;*/
-						
-						var option = d.options[i];
-						
-						console.log(option.type);
+						var option = d.options[i];						
 						?>
 						
-						<div class="digiseller-calc-line">
-							<div><?= option.label ?></div>
+						<div class="digiseller-calc-line"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
+							<div><?= option.label ?> <?= option.required == 1 ? '<span title="Обязательно">*</span>' : '' ?></div>
 							
 							<? switch(option.type) {
 								case 'text': ?>
 								
-									<input type="text" name="<?= option.name ?>"<?= option.required == 1 ? ' required="required"' : '' ?> />						
+									<input type="text" name="<?= option.name ?>" />						
 									
-									<? break;
-									
-								case 'textarea': ?>
+									<? break;									
+								case 'textarea': ?>		
 								
-									<textarea name="<?= option.name ?>"<?= option.required == 1 ? ' required="required"' : '' ?>></textarea>
+									<textarea name="<?= option.name ?>"></textarea>
 									
-									<? break;
-									
+									<? break;									
 								case 'select': ?>
 								
 									<select name="<?= option.name ?>">
-
 									<? if (option.variants && option.variants.length)
+										if (option.required != 1) { ?>
+											<option></option>
+										<? }
+										
 										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
 											<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii].default == 1 ? ' checked' : '' ?>>
 												<?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?>
 											</option>
-										<? } ?>
-										
+										<? } ?>										
 									</select>
 									
 									<? break;
-									
-								case 'checkbox': case 'radio': 
-									console.dir(option.variants);
+								case 'checkbox': case 'radio':
+								
 									if (option.variants && option.variants.length)
 										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
 											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>"<?= option.variants[ii].default == 1 ? ' checked' : '' ?> />
@@ -168,7 +162,6 @@
 					<input type="checkbox" id="checkbox3"><label for="checkbox3">check 3 label</label><br>
 					<input type="checkbox" id="checkbox4"><label for="checkbox4">check 4 label</label><br>
 				</div>
-
 -->
 
 				<? if (DS.opts.agreement_text) { ?>
@@ -183,10 +176,9 @@
 					<input type="hidden" name="failPage" value="<?= failPage ?>" />
 					<?= button ?>
 				</div>
+				
+				<div class="digiseller-calc-line-err" style="display:none;" id="digiseller-buy-error-<?= d.id ?>"></div>
 			</form>
 		</div>
-	<? } else { ?>
-		<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
-		<?= button ?>
 	<? } ?>
 </div>

@@ -74,19 +74,6 @@ DS.cookie =
 
 		return
 
-DS.agree = (flag, onAgree) ->
-	$rules = DS.dom.$('#digiseller-calc-rules')
-	$rules.checked = flag if $rules
-
-	DS.opts.agree = if flag then 1 else 0
-	DS.util.cookie.set('digiseller-agree', DS.opts.agree)
-
-	DS.popup.close()
-
-	onAgree() if onAgree
-
-	return
-
 DS.util =
 	getUID: ( ->
 		id = 1
@@ -275,27 +262,19 @@ DS.dom =
 
 		done = no
 		_onComplete = (e) ->
-		
-		
-			sasas = Math.random()*10000
-			console.log(sasas)
-			setTimeout(()->
+			# sasas = Math.random()*10000
+			# console.log(sasas)
+			# setTimeout(()->		
 			
-			
-			
-			
-				done = yes
-				script.onload = script.onreadystatechange = null
+			done = yes
+			script.onload = script.onreadystatechange = null
 
-				DS.$el.head.removeChild(script) if DS.$el.head and script.parentNode
-
-				onComplete if onComplete
+			DS.$el.head.removeChild(script) if DS.$el.head and script.parentNode
+			# console.log('onComplete')
+			onComplete() if onComplete
 				
 				
-				
-				
-				
-			, 0)
+			# , sasas)
 			
 			
 			
@@ -318,25 +297,28 @@ DS.dom =
 
 		return
 
-DS.serialize = (form) ->
+# https://gist.githubusercontent.com/bullgare/5336154/raw/e907dd47330d2af59e0a68f6fa272b4fdaa069ba/services.js
+DS.serialize = (form, onEach) ->
 	`if (!form || form.nodeName !== "FORM") {
 		return;
 	}
 
 	var i, j,
 		obj = {},
-		enc = encencodeURIComponent;
+		enc = encodeURIComponent;
 
 	for (i = form.elements.length - 1; i >= 0; i = i - 1) {
 		if (form.elements[i].name === "") {
 			continue;
 		}
+		
 		switch (form.elements[i].nodeName) {
 			case 'INPUT':
 				switch (form.elements[i].type) {
 					case 'text':
 					case 'hidden':
 					case 'password':
+					case 'number':
 						obj[form.elements[i].name] = enc(form.elements[i].value);
 						break;
 					case 'checkbox':
@@ -366,6 +348,10 @@ DS.serialize = (form) ->
 						break;
 				}
 				break;
+		}
+		
+		if (typeof onEach === 'function') {
+			onEach(form.elements[i]);
 		}
 	}
 
@@ -494,32 +480,32 @@ DS.ajax = (() ->
 		return queryString.join('&');
 	}`
 
-	return (method, url, options) ->
+	return (method, url, opts) ->
 		opts = DS.util.extend(
 			el: null
 			data: {}
 			onLoad: () ->
 			onFail: () ->
 			onComplete: () ->
-		, options, true)
+		, opts, true)
 
-		opts.data.transp = 'cors'		
-		opts.data._ = Math.random() if method is 'GET' # для jsonp два раза испольняеться
-		
+		opts.data.transp = 'cors'	
+
 		queryString = toQueryString(opts.data)
 		
-		xhr = createCORSRequest(method, if method is 'GET' then url + (if /\?/.test(url) then '&' else '?') + queryString else url)
+		xhr = createCORSRequest(method, if method is 'GET' then url + (if /\?/.test(url) then '&' else '?') + '_=' + Math.random() + queryString else url)
 
 		uid = DS.util.getUID()
 
 		DS.widget.loader.show(uid)
-		opts.onComplete = () ->
+		
+		_onComplete = () ->
 			opts.onComplete()
 			DS.widget.loader.hide(uid)
 
 		if not xhr
 			opts.data.transp = 'jsonp'
-			DS.JSONP.get(url, opts.el, opts.data, opts.onLoad, opts.onFail, opts.onComplete)
+			DS.JSONP.get(url, opts.el, opts.data, opts.onLoad, opts.onFail, _onComplete)
 
 			return
 
@@ -528,13 +514,21 @@ DS.ajax = (() ->
 		if needCheck
 			DS.dom.attr(opts.el, 'data-qid', uid)
 
+		xhr.onreadystatechange = () ->
+			if (xhr.readyState is 4) 
+				console.log(xhr.status)
+			
+			
 		xhr.onload = () ->
+			_onComplete()
+			
 			if needCheck and parseInt( DS.dom.attr(opts.el, 'data-qid') ) isnt uid
 				return
 
 			opts.onLoad(JSON.parse(xhr.responseText), xhr)
 
-		xhr.onerror = () ->
+		xhr.onerror = () ->			
+			_onComplete()			
 			opts.onFail(xhr)
 
 		xhr.send(queryString)
@@ -840,6 +834,22 @@ title=#{DS.util.enc(title)}&
 image=#{DS.util.enc(img)}&
 noparse=0"
 
+DS.agree = (flag, onAgree) ->
+	$rules = DS.dom.$('#digiseller-calc-rules')
+	$rules.checked = flag if $rules
+
+	DS.opts.agree = if flag then 1 else 0
+	DS.cookie.set('digiseller-agree', DS.opts.agree)
+
+	DS.popup.close()
+
+	onAgree() if onAgree
+
+	return
+
+DS.showCart = () ->
+	DS.popup.open( 'text', DS.tmpl(DS.tmpls.cart, {}) )
+	
 DS.widget =
 	main:
 		$el: null
@@ -881,7 +891,7 @@ DS.widget =
 
 			show: (uid) ->
 				that = @
-
+				# console.log('show = ', uid)
 				_timeouts[uid] = setTimeout(() ->
 					_timeouts[uid] = 0
 					_counter++
@@ -893,6 +903,7 @@ DS.widget =
 				return
 
 			hide: (uid) ->
+				# console.log('hide = ', uid)
 				clearTimeout(_timeouts[uid])
 
 				if _timeouts[uid] is 0
@@ -947,7 +958,7 @@ DS.widget =
 
 					lang = DS.dom.attr(@, 'data-lang')
 
-					DS.util.cookie.set('digiseller-lang', lang)
+					DS.cookie.set('digiseller-lang', lang)
 
 					window.location.reload()
 				)
@@ -971,11 +982,10 @@ DS.widget =
 					format: 'json'
 					lang: DS.opts.currentLang
 					seller_id: DS.opts.seller_id
-				onLoad: (data) ->
-					
-					return off unless data
+				onLoad: (res) ->					
+					return off unless res
 
-					that.$el.innerHTML = that.render(data.category, null, 0)
+					that.$el.innerHTML = that.render(res.category, null, 0)
 
 					that.isInited = true
 
@@ -1075,7 +1085,7 @@ DS.widget =
 				type = DS.dom.attr(@, 'data-type')
 
 				DS.opts.currency = DS.dom.select(@)
-				DS.util.cookie.set('digiseller-currency', DS.opts.currency)
+				DS.cookie.set('digiseller-currency', DS.opts.currency)
 				DS.historyClick.reload()
 
 				return
@@ -1280,8 +1290,8 @@ DS.widget =
 		checkMinMax: (cnt) ->
 			that = @
 			cnt = parseInt(cnt)
-			max = parseInt(DS.dom.attr(@$.buy, 'data-max'))
-			min = parseInt(DS.dom.attr(@$.buy, 'data-min'))
+			max = parseInt( DS.dom.attr(@$.buy, 'data-max') )
+			min = parseInt( DS.dom.attr(@$.buy, 'data-min') )
 
 			minmax = (val, flag) ->
 				that.$.limit.style.display = ''
@@ -1321,7 +1331,26 @@ DS.widget =
 			@$.amountR.innerHTML = data.unit_AmountDesc
 
 			return
+			
+	cartButton:
+		$el: null
+		init: () ->
+			@$el = DS.dom.$('#digiseller-cart-btn')
+			return unless @$el
 
+			DS.opts.hasCart = true
+			
+			@$el.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
+
+			$a = DS.dom.$('a', @$el)[0]
+			DS.dom.addEvent($a, 'click', (e) ->
+				DS.showCart()
+
+				return
+			)
+
+			return			
+			
 DS.route =
 	home:
 		url: '/home'
@@ -1456,7 +1485,7 @@ DS.route =
 
 					onChangeRows: (rows) ->
 						DS.opts.rows = rows
-						DS.util.cookie.set(DS.route.articles.prefix + '-rows', rows)
+						DS.cookie.set(DS.route.articles.prefix + '-rows', rows)
 
 						that.page = 1
 						that.rows = rows
@@ -1563,7 +1592,7 @@ DS.route =
 							)
 						onChangeRows: (rows) ->
 							DS.opts.rows = rows
-							DS.util.cookie.set(that.prefix + '-rows', rows)
+							DS.cookie.set(that.prefix + '-rows', rows)
 
 							that.page = 1
 							that.rows = rows
@@ -1580,7 +1609,7 @@ DS.route =
 						$selectSort = DS.dom.$( 'select', DS.dom.$("#digiseller-#{param}") )[0]
 						DS.dom.addEvent($selectSort, 'change', (e) ->
 							DS.opts[param] = DS.dom.select(@)
-							DS.util.cookie.set(that.prefix + "-#{param}", DS.opts[param])
+							DS.cookie.set(that.prefix + "-#{param}", DS.opts[param])
 							that.get()
 						)
 						DS.dom.select($selectSort, DS.opts[param])
@@ -1729,7 +1758,7 @@ DS.route =
 							url: '#'
 						)
 					onChangeRows: (rows) ->
-						DS.util.cookie.set('digiseller-comments-rows', rows)
+						DS.cookie.set('digiseller-comments-rows', rows)
 
 						that.comments.page = 1
 						that.comments.rows = rows
@@ -1742,7 +1771,7 @@ DS.route =
 				return
 			)
 
-			@comments.rows = DS.util.cookie.get('digiseller-comments-rows') || 10
+			@comments.rows = DS.cookie.get('digiseller-comments-rows') || 10
 			@comments.get()
 
 			return
@@ -1762,7 +1791,7 @@ DS.route =
 				)
 
 			@comments.page = parseInt(params[1]) or 1
-			@comments.rows = DS.util.cookie.get(@prefix + '-rows') || 10
+			@comments.rows = DS.cookie.get(@prefix + '-rows') || 10
 			@comments.get()
 
 			return
@@ -1786,7 +1815,7 @@ DS.route =
 					)
 
 				onChangeRows: (rows) ->
-					DS.util.cookie.set(@prefix + '-rows', rows)
+					DS.cookie.set(@prefix + '-rows', rows)
 
 					that.comments.page = 1
 					that.comments.rows = rows
@@ -1841,32 +1870,65 @@ DS.events =
 		DS.util.prevent(e)
 
 		id = DS.dom.attr($el, 'data-id')
-		form = DS.dom.attr($el, 'data-form')
+		form = parseInt( DS.dom.attr($el, 'data-form') )
+		cart = parseInt( DS.dom.attr($el, 'data-cart') )
 
 		if form
+			$form = DS.dom.$("#digiseller-buy-form-#{id}")
+			$error = DS.dom.$("#digiseller-buy-error-#{id}")
 			$rules = DS.dom.$('#digiseller-calc-rules')
+			
 			if $rules
 				DS.opts.agree = if $rules.checked then 1 else 0
-				DS.util.cookie.set('digiseller-agree', DS.opts.agree)
+				DS.cookie.set('digiseller-agree', DS.opts.agree)
 
 				if !$rules.checked
 					return
-
-			DS.dom.$("#digiseller-buy-form-#{id}").submit()
+			
+			if not cart
+				$form.submit()
+			else
+				requiredEls = {}
+				data = DS.serialize($form, ($el) ->
+					$parent = $el.parentNode
+					if ( DS.dom.attr($parent, 'data-required') )
+						requiredEls[$el.name] = $parent
+				)
+				
+				error = no
+				DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
+				for name, $parent of requiredEls
+					if not data[name]
+						error = yes
+						DS.dom.klass('add', $parent, 'digiseller-calc-line-err')
+ 				
+				$error.innerHTML  = if error then 'Заполнены не все поля' else ''
+				$error.style.display = if error then '' else 'none'
+				
+				return if error					
+				
+				DS.ajax('POST', DS.opts.host + '',
+					data: data,
+					onLoad: (res) ->
+						# console.dir('res', res)
+					onFail: (xhr) ->
+						console.dir(xhr)
+				)				
 		else
 			ai = DS.dom.attr($el, 'data-ai')
 
-			buy = () -> window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')
+			buy = () ->
+				window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')
 
 			if (DS.opts.agreement_text)
 				DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
 
 				DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->
-					DS.util.agree(true, buy)
+					DS.agree(true, buy)
 				)
 
 				DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', () ->
-					DS.util.agree(false)
+					DS.agree(false)
 				)
 			else
 				buy()
@@ -1909,8 +1971,8 @@ DS.events =
 
 		DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {}))
 
-		DS.dom.addEvent( DS.dom.$('#digiseller-agree'), 'click', () -> DS.util.agree(true) )
-		DS.dom.addEvent( DS.dom.$('#digiseller-disagree'), 'click', () -> DS.util.agree(false) )
+		DS.dom.addEvent( DS.dom.$('#digiseller-agree'), 'click', () -> DS.agree(true) )
+		DS.dom.addEvent( DS.dom.$('#digiseller-disagree'), 'click', () -> DS.agree(false) )
 
 DS.inited = no
 DS.init = ->
@@ -1923,19 +1985,20 @@ DS.init = ->
 	# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
 
 	DS.dom.getStyle('css/default/test.css', () ->
-		DS.opts.currency = DS.util.cookie.get('digiseller-currency') or DS.opts.currency
+		DS.opts.currency = DS.cookie.get('digiseller-currency') or DS.opts.currency
 
 		params = ['sort', 'rows', 'view']
 		for param in params
-			DS.opts[param] = DS.util.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
+			DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
 
-		DS.opts.agree = DS.util.cookie.get('digiseller-agree') or DS.opts.agree
+		DS.opts.agree = DS.cookie.get('digiseller-agree') or DS.opts.agree
 
 		DS.widget.category.init()
 		DS.widget.main.init()
 		DS.widget.loader.init()
 		DS.widget.search.init()
 		DS.widget.lang.init()
+		DS.widget.cartButton.init()
 
 		DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo,
 			logo_img: DS.opts.logo_img
@@ -1946,10 +2009,10 @@ DS.init = ->
 		if not DS.widget.category.$el
 			DS.widget.main.$el.className = 'digiseller-main-nocategory'
 
-		$cart = DS.dom.$('#digiseller-cart-btn')
-		if $cart
-			DS.opts.hasCart = true
-			$cart.innerHTML = DS.tmpl(DS.tmpls.cart, {})
+		# $cart = DS.dom.$('#digiseller-cart-btn')
+		# if $cart
+			# DS.opts.hasCart = true
+			# $cart.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
 
 		homeInited = false
 		DS.historyClick.addRoute('#.*', (params) ->
