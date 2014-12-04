@@ -22,6 +22,7 @@ DigiSeller-ru-api
 
   DS.opts = {
     seller_id: null,
+    cart_uid: null,
     host: '//shop.digiseller.ru/xml/new/',
     hashPrefix: '#!digiseller',
     currency: 'RUR',
@@ -468,7 +469,7 @@ DigiSeller-ru-api
 			xhr = null;
 		}
 		
-		//xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		
 		return xhr;
 	}
@@ -484,7 +485,7 @@ DigiSeller-ru-api
 		return queryString.join('&');
 	};
     return function(method, url, opts) {
-      var needCheck, queryString, uid, xhr, _onComplete;
+      var needCheck, queryString, sign, uid, xhr, _onComplete;
       opts = DS.util.extend({
         el: null,
         data: {},
@@ -492,38 +493,33 @@ DigiSeller-ru-api
         onFail: function() {},
         onComplete: function() {}
       }, opts, true);
-      opts.data.transp = 'cors';
+      sign = (/\?/.test(url) ? '&' : '?');
       queryString = toQueryString(opts.data);
-      xhr = createCORSRequest(method, method === 'GET' ? url + (/\?/.test(url) ? '&' : '?') + '_=' + Math.random() + queryString : url);
+      xhr = createCORSRequest(method, url + sign + (method === 'GET' ? '_=' + Math.random() + (queryString ? '&' + queryString : '') + '&' : '') + 'transp=cors');
       uid = DS.util.getUID();
       DS.widget.loader.show(uid);
-      _onComplete = function() {
-        opts.onComplete();
+      _onComplete = function(xhr) {
+        opts.onComplete(xhr);
         return DS.widget.loader.hide(uid);
       };
       if (!xhr) {
-        opts.data.transp = 'jsonp';
-        DS.JSONP.get(url, opts.el, opts.data, opts.onLoad, opts.onFail, _onComplete);
+        DS.JSONP.get(url + sign + 'transp=jsonp', opts.el, opts.data, opts.onLoad, opts.onFail, _onComplete);
         return;
       }
       needCheck = opts.el ? true : false;
       if (needCheck) {
         DS.dom.attr(opts.el, 'data-qid', uid);
       }
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          return console.log(xhr.status);
-        }
-      };
+      xhr.onreadystatechange = function() {};
       xhr.onload = function() {
-        _onComplete();
+        _onComplete(xhr);
         if (needCheck && parseInt(DS.dom.attr(opts.el, 'data-qid')) !== uid) {
           return;
         }
         return opts.onLoad(JSON.parse(xhr.responseText), xhr);
       };
       xhr.onerror = function() {
-        _onComplete();
+        _onComplete(xhr);
         return opts.onFail(xhr);
       };
       xhr.send(queryString);
@@ -535,7 +531,8 @@ DigiSeller-ru-api
 	var _callbacks = [];
 
 	function jsonp(url, el, params, onLoad, onFail, onComplete) {
-		var query = (url || '').indexOf('?') === -1 ? '?' : '&', key;
+		var query = (url || '').indexOf('?') === -1 ? '?' : '&',
+			key;
 
 		params = params || {};
 
@@ -1304,17 +1301,19 @@ DigiSeller-ru-api
     cartButton: {
       $el: null,
       init: function() {
-        var $a;
         this.$el = DS.dom.$('#digiseller-cart-btn');
         if (!this.$el) {
           return;
         }
         DS.opts.hasCart = true;
         this.$el.innerHTML = DS.tmpl(DS.tmpls.cartButton, {});
-        $a = DS.dom.$('a', this.$el)[0];
-        DS.dom.addEvent($a, 'click', function(e) {
+        DS.dom.addEvent(DS.dom.$('a', this.$el)[0], 'click', function(e) {
           DS.showCart();
         });
+      },
+      setCount: function(count) {
+        DS.dom.$('#digiseller-cart-count').innerHTML = count;
+        DS.dom.klass((count ? 'remove' : 'add'), DS.dom.$('#digiseller-cart-empty'), 'digiseller-cart-btn-empty');
       }
     }
   };
@@ -1799,36 +1798,41 @@ DigiSeller-ru-api
             return;
           }
         }
+        requiredEls = {};
+        data = DS.serialize($form, function($el) {
+          var $parent;
+          $parent = $el.parentNode;
+          if (DS.dom.attr($parent, 'data-required')) {
+            return requiredEls[$el.name] = $parent;
+          }
+        });
+        error = false;
+        DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true);
+        for (name in requiredEls) {
+          $parent = requiredEls[name];
+          if (!data[name]) {
+            error = true;
+            DS.dom.klass('add', $parent, 'digiseller-calc-line-err');
+          }
+        }
+        $error.innerHTML = error ? 'Заполнены не все поля' : '';
+        $error.style.display = error ? '' : 'none';
         if (!cart) {
           $form.submit();
         } else {
-          requiredEls = {};
-          data = DS.serialize($form, function($el) {
-            var $parent;
-            $parent = $el.parentNode;
-            if (DS.dom.attr($parent, 'data-required')) {
-              return requiredEls[$el.name] = $parent;
-            }
-          });
-          error = false;
-          DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true);
-          for (name in requiredEls) {
-            $parent = requiredEls[name];
-            if (!data[name]) {
-              error = true;
-              DS.dom.klass('add', $parent, 'digiseller-calc-line-err');
-            }
-          }
-          $error.innerHTML = error ? 'Заполнены не все поля' : '';
-          $error.style.display = error ? '' : 'none';
-          if (error) {
-            return;
-          }
-          DS.ajax('POST', DS.opts.host + '', {
+          DS.ajax('POST', DS.opts.host + 'shop_cart_add.asp?format=json', {
             data: data,
-            onLoad: function(res) {},
+            onLoad: function(res, xhr) {
+              if (res.error) {
+                $error.innerHTML = res.error;
+                $error.style.display = '';
+              }
+              DS.opts.cart_uid = res.cart_uid;
+              DS.cookie.set('digiseller-cart_uid', res.cart_uid);
+              return DS.widget.cartButton.setCount(res.count);
+            },
             onFail: function(xhr) {
-              return console.dir(xhr);
+              return console.log('Ошибка:', xhr.responseText);
             }
           });
         }
@@ -1910,6 +1914,7 @@ DigiSeller-ru-api
         DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) || DS.opts[param];
       }
       DS.opts.agree = DS.cookie.get('digiseller-agree') || DS.opts.agree;
+      DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') || DS.opts.cart_uid;
       DS.widget.category.init();
       DS.widget.main.init();
       DS.widget.loader.init();

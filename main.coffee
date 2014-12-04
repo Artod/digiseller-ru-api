@@ -14,6 +14,7 @@ DS.$el =
 
 DS.opts =
 	seller_id: null
+	cart_uid: null
 	host: '//shop.digiseller.ru/xml/new/'
 	hashPrefix: '#!digiseller'
 	currency: 'RUR'
@@ -133,7 +134,9 @@ DS.util =
 DS.dom =
 	$: (selector, context, tagName) ->
 		return unless selector
-
+		# console.log(selector)
+		# return (context or document).querySelectorAll(selector)		
+		 
 		type = selector.substring(0, 1)
 		name = selector.substring(1)
 
@@ -166,6 +169,7 @@ DS.dom =
 				(context || document).getElementsByTagName(selector)
 
 	attr: ($el, attr, val) ->
+		# console.log(attr)
 		if not $el or typeof attr is 'undefined'
 			return false
 
@@ -464,7 +468,7 @@ DS.ajax = (() ->
 			xhr = null;
 		}
 		
-		//xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		
 		return xhr;
 	}
@@ -489,23 +493,23 @@ DS.ajax = (() ->
 			onComplete: () ->
 		, opts, true)
 
-		opts.data.transp = 'cors'	
+		sign = (if /\?/.test(url) then '&' else '?')
 
 		queryString = toQueryString(opts.data)
 		
-		xhr = createCORSRequest(method, if method is 'GET' then url + (if /\?/.test(url) then '&' else '?') + '_=' + Math.random() + queryString else url)
+		xhr = createCORSRequest(method, url + sign + (if method is 'GET' then '_=' + Math.random() + (if queryString then '&' + queryString else '') + '&' else '') + 'transp=cors')
 
 		uid = DS.util.getUID()
 
 		DS.widget.loader.show(uid)
 		
-		_onComplete = () ->
-			opts.onComplete()
+		_onComplete = (xhr) ->
+			# console.log('Ответ:', xhr.responseText) if xhr
+			opts.onComplete(xhr)
 			DS.widget.loader.hide(uid)
 
 		if not xhr
-			opts.data.transp = 'jsonp'
-			DS.JSONP.get(url, opts.el, opts.data, opts.onLoad, opts.onFail, _onComplete)
+			DS.JSONP.get(url + sign + 'transp=jsonp', opts.el, opts.data, opts.onLoad, opts.onFail, _onComplete)
 
 			return
 
@@ -515,12 +519,11 @@ DS.ajax = (() ->
 			DS.dom.attr(opts.el, 'data-qid', uid)
 
 		xhr.onreadystatechange = () ->
-			if (xhr.readyState is 4) 
-				console.log(xhr.status)
-			
+			# if (xhr.readyState is 4) 
+				# console.log(xhr.status)			
 			
 		xhr.onload = () ->
-			_onComplete()
+			_onComplete(xhr)
 			
 			if needCheck and parseInt( DS.dom.attr(opts.el, 'data-qid') ) isnt uid
 				return
@@ -528,7 +531,7 @@ DS.ajax = (() ->
 			opts.onLoad(JSON.parse(xhr.responseText), xhr)
 
 		xhr.onerror = () ->			
-			_onComplete()			
+			_onComplete(xhr)			
 			opts.onFail(xhr)
 
 		xhr.send(queryString)
@@ -540,7 +543,8 @@ DS.JSONP = `(function() {
 	var _callbacks = [];
 
 	function jsonp(url, el, params, onLoad, onFail, onComplete) {
-		var query = (url || '').indexOf('?') === -1 ? '?' : '&', key;
+		var query = (url || '').indexOf('?') === -1 ? '?' : '&',
+			key;
 
 		params = params || {};
 
@@ -1221,6 +1225,7 @@ DS.widget =
 			@container.innerHTML = out
 
 			return
+			
 	calc: class
 		_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules']
 		_prefix = 'digiseller-calc'
@@ -1336,20 +1341,29 @@ DS.widget =
 		$el: null
 		init: () ->
 			@$el = DS.dom.$('#digiseller-cart-btn')
+
 			return unless @$el
 
 			DS.opts.hasCart = true
 			
 			@$el.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
 
-			$a = DS.dom.$('a', @$el)[0]
-			DS.dom.addEvent($a, 'click', (e) ->
+			DS.dom.addEvent(DS.dom.$('a', @$el)[0], 'click', (e) ->
+				DS.util.prevent(e)
+			
 				DS.showCart()
 
 				return
 			)
 
-			return			
+			return
+			
+		setCount: (count) ->
+			DS.dom.$('#digiseller-cart-count').innerHTML = count
+			DS.dom.klass( (if count then 'remove' else 'add'), DS.dom.$('#digiseller-cart-empty'), 'digiseller-cart-btn-empty' )
+			
+			return
+
 			
 DS.route =
 	home:
@@ -1885,35 +1899,49 @@ DS.events =
 				if !$rules.checked
 					return
 			
+			requiredEls = {}
+			data = DS.serialize($form, ($el) ->
+				$parent = $el.parentNode
+				if ( DS.dom.attr($parent, 'data-required') )
+					requiredEls[$el.name] = $parent
+			)
+			
+			error = no
+			DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
+			for name, $parent of requiredEls
+				if not data[name]
+					error = yes
+					DS.dom.klass('add', $parent, 'digiseller-calc-line-err')
+			
+			$error.innerHTML  = if error then 'Заполнены не все поля' else ''
+			$error.style.display = if error then '' else 'none'
+			
+			return if error
+			
 			if not cart
 				$form.submit()
 			else
-				requiredEls = {}
-				data = DS.serialize($form, ($el) ->
-					$parent = $el.parentNode
-					if ( DS.dom.attr($parent, 'data-required') )
-						requiredEls[$el.name] = $parent
-				)
-				
-				error = no
-				DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
-				for name, $parent of requiredEls
-					if not data[name]
-						error = yes
-						DS.dom.klass('add', $parent, 'digiseller-calc-line-err')
- 				
-				$error.innerHTML  = if error then 'Заполнены не все поля' else ''
-				$error.style.display = if error then '' else 'none'
-				
-				return if error					
-				
-				DS.ajax('POST', DS.opts.host + '',
+				data.cart_uid = DS.opts.cart_uid
+				DS.ajax('POST', DS.opts.host + 'shop_cart_add.asp?format=json',
 					data: data,
-					onLoad: (res) ->
-						# console.dir('res', res)
-					onFail: (xhr) ->
-						console.dir(xhr)
-				)				
+					onLoad: (res, xhr) ->						
+						if res.cart_err and res.cart_err isnt ''
+							$error.innerHTML = res.cart_err
+							$error.style.display = ''
+							
+							return
+						
+						DS.opts.cart_uid = res.cart_uid
+						
+						DS.cookie.set('digiseller-cart_uid', res.cart_uid)
+						DS.widget.cartButton.setCount(res.cart_cnt)
+						
+						DS.showCart()
+						
+						return
+					# onFail: (xhr) ->
+						# console.log('Ошибка:', xhr.responseText)
+				)
 		else
 			ai = DS.dom.attr($el, 'data-ai')
 
@@ -1992,6 +2020,7 @@ DS.init = ->
 			DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
 
 		DS.opts.agree = DS.cookie.get('digiseller-agree') or DS.opts.agree
+		DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
 
 		DS.widget.category.init()
 		DS.widget.main.init()

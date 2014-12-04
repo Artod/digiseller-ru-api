@@ -92,14 +92,83 @@
 				</div>
 			<? } ?>
 			
-			
-			
-			
-			
-			
-			
-			
-			
+
+			<div>		
+				<div class="digiseller-productdetails-tabs">
+					<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= DS.opts.i18n['description'] ?></a>	
+					<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
+						<a data-action="article-tab" data-tab="1"><?= DS.opts.i18n['discounts'] ?></a>	
+					<? } ?>
+					<? if (reviewsCount) { ?>
+						<a data-action="article-tab" data-tab="2"><?= DS.opts.i18n['reviews'] ?> (<?= reviewsCount ?>)</a>
+					<? } ?>
+				</div>
+				<div>
+					<div class="digiseller-description_content">
+						<div class="digiseller-prod-info">
+							<?= d.info ?>
+						</div>
+
+						<? if (d.add_info !== "") { ?>
+							<div class="digiseller-prod-info">
+								<h3><?= DS.opts.i18n['addInformation'] ?>:</h3>
+								<?= d.add_info ?>
+							</div>
+						<? } ?>
+					</div>
+					
+					<div class="digiseller-reviews_content digiseller-discounttable2" style="display:none;">
+						<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
+						
+							<? if (d.units && d.units.discounts) { ?>
+								<h3><?= DS.opts.i18n['discountsOnQuantityPurchases'] ?></h3>
+								<table class="digiseller-discounttable1">
+									<thead>
+										<tr class="digiseller-discounttabbe-head">	
+											<td><?= DS.opts.i18n['whenBuyingFrom'] ?></td>
+											<td><?= DS.opts.i18n['discount'] ?></td>
+											<td><?= DS.opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
+										</tr>
+									</thead>
+									<tbody>
+										<? for (var i = 0, l = d.units.discounts.length; i < l; i++) { ?>
+											<tr>
+												<td><?= d.units.discounts[i].desc ?></td>
+												<td><?= d.units.discounts[i].percent ?>%</td>
+												<td><?= d.units.discounts[i].price ?> <?= d.currency ?></td>
+											</tr>
+										<? } ?>
+									</tbody>
+								</table><br />
+							<? } ?> 
+						
+							<? if (d.discounts && d.discounts.length) { ?>
+								<h3><?= DS.opts.i18n['discountLoyalCustomers'] ?></h3>
+								<table class="digiseller-discounttable1">
+									<thead>
+										<tr class="digiseller-discounttabbe-head">	
+											<td><?= DS.opts.i18n['amountOfPurchasesFrom'] ?></td>
+											<td><?= DS.opts.i18n['discount'] ?></td>
+										</tr>
+									</thead>
+									<tbody>
+										<? for (var i = 0, l = d.discounts.length; i < l; i++) { ?>
+											<tr>
+												<td><?= d.discounts[i].summa ?> <?= d.currency ?></td>
+												<td><?= d.discounts[i].percent ?>%</td>
+											</tr>
+										<? } ?>
+									</tbody>
+								</table><br />
+							<? } ?> 
+						<? } ?>
+					</div>
+					
+					<div class="digiseller-reviews_content" id="digiseller-article-comments-<?= d.id ?>" style="display:none;"></div>
+				</div>
+			</div>
+
+
 		</div>
 		
 		<div class="digiseller-product-right">
@@ -115,79 +184,5 @@
 	
 	<div class="digiseller-both"></div>
 
-	<div>		
-		<div class="digiseller-productdetails-tabs">
-			<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= DS.opts.i18n['description'] ?></a>	
-			<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
-				<a data-action="article-tab" data-tab="1"><?= DS.opts.i18n['discounts'] ?></a>	
-			<? } ?>
-			<? if (reviewsCount) { ?>
-				<a data-action="article-tab" data-tab="2"><?= DS.opts.i18n['reviews'] ?> (<?= reviewsCount ?>)</a>
-			<? } ?>
-		</div>
-		<div>
-			<div class="digiseller-description_content">
-				<div class="digiseller-prod-info">
-					<?= d.info ?>
-				</div>
-
-				<? if (d.add_info !== "") { ?>
-					<div class="digiseller-prod-info">
-						<h3><?= DS.opts.i18n['addInformation'] ?>:</h3>
-						<?= d.add_info ?>
-					</div>
-				<? } ?>
-			</div>
-			
-			<div class="digiseller-reviews_content digiseller-discounttable2" style="display:none;">
-				<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
-				
-					<? if (d.units && d.units.discounts) { ?>
-						<h3><?= DS.opts.i18n['discountsOnQuantityPurchases'] ?></h3>
-						<table class="digiseller-discounttable1">
-							<thead>
-								<tr class="digiseller-discounttabbe-head">	
-									<td><?= DS.opts.i18n['whenBuyingFrom'] ?></td>
-									<td><?= DS.opts.i18n['discount'] ?></td>
-									<td><?= DS.opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
-								</tr>
-							</thead>
-							<tbody>
-								<? for (var i = 0, l = d.units.discounts.length; i < l; i++) { ?>
-									<tr>
-										<td><?= d.units.discounts[i].desc ?></td>
-										<td><?= d.units.discounts[i].percent ?>%</td>
-										<td><?= d.units.discounts[i].price ?> <?= d.currency ?></td>
-									</tr>
-								<? } ?>
-							</tbody>
-						</table><br />
-					<? } ?> 
-				
-					<? if (d.discounts && d.discounts.length) { ?>
-						<h3><?= DS.opts.i18n['discountLoyalCustomers'] ?></h3>
-						<table class="digiseller-discounttable1">
-							<thead>
-								<tr class="digiseller-discounttabbe-head">	
-									<td><?= DS.opts.i18n['amountOfPurchasesFrom'] ?></td>
-									<td><?= DS.opts.i18n['discount'] ?></td>
-								</tr>
-							</thead>
-							<tbody>
-								<? for (var i = 0, l = d.discounts.length; i < l; i++) { ?>
-									<tr>
-										<td><?= d.discounts[i].summa ?> <?= d.currency ?></td>
-										<td><?= d.discounts[i].percent ?>%</td>
-									</tr>
-								<? } ?>
-							</tbody>
-						</table><br />
-					<? } ?> 
-				<? } ?>
-			</div>
-			
-			<div class="digiseller-reviews_content" id="digiseller-article-comments-<?= d.id ?>" style="display:none;"></div>
-		</div>
-	</div>
 </div>
 <br />

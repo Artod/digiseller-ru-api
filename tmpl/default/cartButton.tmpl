@@ -1,3 +1,3 @@
-<div<?= DS.opts.cartFilling ? '' : ' class="digiseller-cart-btn-empty"' ?>>
-	<a href="#" title="<?= DS.opts.i18n.showCart ?>"><span><?= DS.opts.cartFilling || 28 ?></span></a>
+<div<?= DS.opts.cartFilling ? '' : ' class="digiseller-cart-btn-empty"' ?> id="digiseller-cart-empty">
+	<a href="#" title="<?= DS.opts.i18n.showCart ?>"><span id="digiseller-cart-count"><?= DS.opts.cartFilling || 28 ?></span></a>
 </div>
