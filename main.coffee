@@ -96,6 +96,10 @@ DS.util =
 
 		return target
 
+	each: (els, cb) ->
+		for el, i in els
+			cb(el, i)
+		
 	getPopupParams: (width, height) ->
 		screenX = if typeof window.screenX isnt 'undefined' then window.screenX else window.screenLeft
 		screenY = if typeof window.screenY isnt 'undefined' then window.screenY else window.screenTop
@@ -128,8 +132,144 @@ DS.util =
 
 		return
 
+		
 	cookie: DS.cookie # backward compatibility
 	agree: DS.agree # backward compatibility
+
+	
+
+
+# NanoJQuery events = {}
+DS.$ = (()->
+	events = {}
+	
+	return (selector, context) ->
+		els = []
+		
+		if typeof selector is 'string'
+			els = (context or document).querySelectorAll(selector)
+		else if selector # and selector.nodeType
+			els = [selector]
+
+		klass = (action, el, cl) ->
+			re = new RegExp('(^|\\s)' + ( if action is 'add' then cl else cl.replace(' ', '|') ) + '(\\s|$)', 'g')
+
+			return if action is 'add' and re.test(el.className)
+				
+			if action is 'add'
+				el.className = (el.className + ' ' + cl).replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
+			else
+				el.className = el.className.replace(re, "$1").replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
+
+			return	
+
+		out =
+			each: (cb) ->
+				for el, i in els
+					cb(el, i)
+
+				return @
+				
+			attr: (attr, val) ->			
+				if typeof val isnt 'undefined'
+					@each (el) ->
+						el.setAttribute(attr, val)
+				else
+					try
+						return els[0].getAttribute(attr)
+					catch e
+						return null
+
+				@
+				
+			addClass: (cl) ->
+				@each (el) ->
+					klass('add', el, cl)	
+					
+				@			
+				
+			removeClass: (cl) ->
+				@each (el) ->
+					klass('remove', el, cl)
+					
+				@
+				
+			on: (type, handler) ->
+				# console.log('on' + type)
+				@each (el, i) ->
+					events[el] = events[el] or {}
+					events[el][type] = events[el][type] or []
+						
+					if el.attachEvent
+						ieHandler = (type) ->
+							handler.call(el, type)
+
+						el.attachEvent('on' + type, ieHandler)					
+
+						events[el][type].push(ieHandler)
+
+					else if el.addEventListener
+						el.addEventListener(type, handler, false)
+						events[el][type].push(handler)
+						
+				console.dir(events)
+				
+				@
+				
+			off: (type, handler) ->
+				# console.log('off' +type)
+				@each (el, i) ->
+					return if not events[el] or not events[el][type]
+					
+					handlers = events[el][type]
+					j = handlers.length
+					
+					while j--
+						handler = handlers[j]
+						
+						if el.detachEvent
+							el.detachEvent("on#{type}", handler)
+						else if el.removeEventListener
+							el.removeEventListener(type, handler, false)
+						
+						handlers.splice(j, 1)
+						
+				# console.dir(events)
+				
+				@
+				
+			show: () ->
+				@each (el) ->
+					el.style.display = ''
+					
+				@
+				
+			hide: () ->
+				@each (el) ->
+					el.style.display = 'none'
+					
+				@
+					
+			get: (i) ->
+				els[i]
+				
+			html: (html) ->
+				@each (el) ->
+					el.innerHTML = html
+					
+				@
+				
+			css: (prop, val) ->
+				@each (el) ->
+					el.style[prop] = val
+					
+				@
+		
+		out.length = els.length
+		
+		return out
+)()
+
 
 DS.dom =
 	$: (selector, context, tagName) ->
@@ -684,10 +824,22 @@ DS.popup = (() ->
 	isClosed = true
 
 	show = (onResize) ->
+		
 		setup.$loader.style.display = 'none'
 		setup.$container.style.display = ''
 
-		wrCallback = DS.dom.addEvent(window, 'resize', onResize)
+		# wrCallback = DS.dom.addEvent(window, 'resize', onResize)
+		DS.$(window).on('resize', onResize)
+		
+		
+		# as = ()->
+			# console.log('empt')
+		# as2 = ()->
+			# console.log('empt2')			
+
+		# DS.$(window).on('click', as	)
+		# DS.$(window).on('click', as2	)
+
 		onResize()
 
 		return
@@ -696,13 +848,15 @@ DS.popup = (() ->
 		DS.util.prevent(e) if e
 		setup.$img.innerHTML = ''
 		setup.$main.style.display = 'none'
-		DS.dom.removeEvent(window, 'resize', wrCallback)
+		# DS.dom.removeEvent(window, 'resize', wrCallback)
+		DS.$(window).off('resize')
 		isClosed = true
 		img = null
 
 		return
 
 	resize = (h, w, isHard) ->
+		console.log('resize')
 		wih = window.innerHeight
 		hs = ( if typeof wih isnt 'undefined' then wih else (document[if isCompV then 'documentElement' else 'body'].offsetHeight - 22) ) - 100
 
@@ -783,9 +937,9 @@ DS.popup = (() ->
 						h = img.height
 						w = img.width
 
-						DS.dom.removeEvent(window, 'resize', wrCallback)
-
-						show(() ->
+						# DS.dom.removeEvent(window, 'resize', wrCallback)
+						DS.$(window).off('resize')
+						show(() ->							
 							resize(h, w)
 							return
 						)
@@ -839,8 +993,8 @@ image=#{DS.util.enc(img)}&
 noparse=0"
 
 DS.agree = (flag, onAgree) ->
-	$rules = DS.dom.$('#digiseller-calc-rules')
-	$rules.checked = flag if $rules
+	$rules = DS.$('#digiseller-calc-rules')
+	$rules.get(0).checked = flag if $rules
 
 	DS.opts.agree = if flag then 1 else 0
 	DS.cookie.set('digiseller-agree', DS.opts.agree)
@@ -852,7 +1006,44 @@ DS.agree = (flag, onAgree) ->
 	return
 
 DS.showCart = () ->
-	DS.popup.open( 'text', DS.tmpl(DS.tmpls.cart, {}) )
+	initCart = ()->
+		DS.$('.digiseller-cart-del-product').on('click', (e)->
+			DS.util.prevent(e)
+			
+			console.log('sdsd')
+		)
+	
+
+	DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
+		el: DS.widget.cartButton.$el
+		data:
+			format: 'json'
+			lang: DS.opts.currentLang
+			cart_uid: DS.cookie.get('digiseller-cart_uid')  #'535EDB8DF9A74746B758F4DC83A590AF' #
+		onLoad: (res) ->					
+			return off unless res
+			
+			items = ''
+			tmpl = DS.tmpl(DS.tmpls.cartItem)
+
+			for product, i in res.products
+				items += tmpl({
+					d: product
+					even: !!(i % 2)
+				})			
+			
+			
+			DS.popup.open( 'text',  DS.tmpl(DS.tmpls.cart, {
+				d: res
+				items: items
+			}) )
+
+			initCart()
+			
+			return
+	)
+	
+	return
 	
 DS.widget =
 	main:
@@ -1929,7 +2120,7 @@ DS.events =
 							$error.innerHTML = res.cart_err
 							$error.style.display = ''
 							
-							return
+							# return
 						
 						DS.opts.cart_uid = res.cart_uid
 						
@@ -2085,6 +2276,7 @@ window.DigiSeller = DS
 checkReady = ()->
 	if document.readyState isnt 'loading'
 		DS.init()
+		console.dir(DS.$('div').length)
 	else
 		setTimeout(()->
 			checkReady()
