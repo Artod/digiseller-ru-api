@@ -94,7 +94,7 @@
 										<? }
 										
 										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
-											<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii].default == 1 ? ' checked' : '' ?>>
+											<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?>>
 												<?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?>
 											</option>
 										<? } ?>										
@@ -105,7 +105,7 @@
 								
 									if (option.variants && option.variants.length)
 										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
-											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>" value="<?= option.variants[ii].value ?>"<?= option.variants[ii].default == 1 ? ' checked' : '' ?> />
+											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>" value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?> />
 											<label for="<?= option.name ?>_<?= ii ?>"><?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?></label><br />
 										<? } ?>
 										

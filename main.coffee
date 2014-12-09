@@ -7,14 +7,13 @@ off if window.DigiSeller?
 
 DS = {}
 
-DS.$el =
+DS.el =
 	head: null
 	body: null
-	widget: null
 
 DS.opts =
 	seller_id: null
-	cart_uid: null
+	cart_uid: ''
 	host: '//shop.digiseller.ru/xml/new/'
 	hashPrefix: '#!digiseller'
 	currency: 'RUR'
@@ -76,7 +75,7 @@ DS.cookie =
 		return
 
 DS.util =
-	getUID: ( ->
+	getUID: (() ->
 		id = 1
 		return () -> id++
 	)()
@@ -99,6 +98,8 @@ DS.util =
 	each: (els, cb) ->
 		for el, i in els
 			cb(el, i)
+		
+		return
 		
 	getPopupParams: (width, height) ->
 		screenX = if typeof window.screenX isnt 'undefined' then window.screenX else window.screenLeft
@@ -132,96 +133,143 @@ DS.util =
 
 		return
 
+	debounce: (cb, delay) ->
+		timeout = null
+	
+		return () ->
+			context = this
+			args = arguments
+
+			clearTimeout(timeout)			
+			timeout = setTimeout(() ->
+				cb.apply(context, args)
+				context = args = null
+			, delay || 200)
+			
+			return
+
+
+# NanoJQuery
+DS.$ = (() ->
+	# events = {}
+	
+	_klass = (action, el, cl) ->
+		re = new RegExp('(^|\\s)' + ( if action is 'add' then cl else cl.replace(' ', '|') ) + '(\\s|$)', 'g')
+
+		return if action is 'add' and re.test(el.className)
+			
+		if action is 'add'
+			el.className = (el.className + ' ' + cl).replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
+		else
+			el.className = el.className.replace(re, "$1").replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
+
+		return
+
+	_each = (els, cb) ->
+		for el, i in els
+			cb(el, i)
 		
-	cookie: DS.cookie # backward compatibility
-	agree: DS.agree # backward compatibility
+		return
 
+	_getVal = (el) ->
+		return null if not el or not el.nodeName
 	
+		switch el.nodeName
+			when 'SELECT'
+				option = el.querySelectorAll('option')[el.selectedIndex]
+				
+				return if option then option.value else null
+			else
+				return el.value
 
+		return
+		
+	_setVal = (el, val) ->
+		return off if not el or not el.nodeName
+		
+		switch el.nodeName
+			when 'SELECT'
+				options = el.querySelectorAll('option')
+				for option, i in options
+					if option.value is val + ''
+						el.selectedIndex = i
+						
+						return
+			else
+				el.value = val
+				
+				return
 
-# NanoJQuery events = {}
-DS.$ = (()->
-	events = {}
-	
-	return (selector, context) ->
-		els = []
+		return
+		
+	return (selector, $context) ->
+		_els = []
 		
 		if typeof selector is 'string'
-			els = (context or document).querySelectorAll(selector)
-		else if selector # and selector.nodeType
-			els = [selector]
-
-		klass = (action, el, cl) ->
-			re = new RegExp('(^|\\s)' + ( if action is 'add' then cl else cl.replace(' ', '|') ) + '(\\s|$)', 'g')
-
-			return if action is 'add' and re.test(el.className)
-				
-			if action is 'add'
-				el.className = (el.className + ' ' + cl).replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
-			else
-				el.className = el.className.replace(re, "$1").replace(/\s+/g, ' ').replace(/(^ | $)/g, '')
-
-			return	
+			context = $context and $context.get and $context.get(0)
+			
+			if typeof $context is 'undefined' or context
+				_each( (context or document).querySelectorAll(selector), (el) ->
+					_els.push(el)
+				)
+		else if Object.prototype.toString.call(selector) is '[object Array]'
+			_els = selector
+		else if selector and (selector.nodeType or selector is window)
+			_els = [selector]
 
 		out =
 			each: (cb) ->
-				for el, i in els
-					cb(el, i)
+				_each(_els, cb)
 
 				return @
 				
-			attr: (attr, val) ->			
-				if typeof val isnt 'undefined'
-					@each (el) ->
-						el.setAttribute(attr, val)
-				else
-					try
-						return els[0].getAttribute(attr)
-					catch e
-						return null
-
-				@
-				
 			addClass: (cl) ->
 				@each (el) ->
-					klass('add', el, cl)	
+					_klass('add', el, cl)	
 					
 				@			
 				
 			removeClass: (cl) ->
 				@each (el) ->
-					klass('remove', el, cl)
+					_klass('remove', el, cl)
 					
 				@
 				
 			on: (type, handler) ->
-				# console.log('on' + type)
 				@each (el, i) ->
-					events[el] = events[el] or {}
-					events[el][type] = events[el][type] or []
-						
+					# events = {}
+					# events[el] = events[el] or {}
+					# events[el][type] = events[el][type] or []
+					
+					el.DigiSeller = {} if not el.DigiSeller
+					el.DigiSeller.events = {} if not el.DigiSeller.events
+					el.DigiSeller.events[type] = [] if not el.DigiSeller.events[type]
+					
+					events = (el and el.DigiSeller and el.DigiSeller.events) or {}
+					# console.log(events)
+					# events[type] = events[type] or []					
+
 					if el.attachEvent
 						ieHandler = (type) ->
 							handler.call(el, type)
 
 						el.attachEvent('on' + type, ieHandler)					
 
-						events[el][type].push(ieHandler)
+						# events[el][type].push(ieHandler)
+						el.DigiSeller.events[type].push(ieHandler)
 
 					else if el.addEventListener
 						el.addEventListener(type, handler, false)
-						events[el][type].push(handler)
-						
-				console.dir(events)
+						# events[el][type].push(handler)
+						el.DigiSeller.events[type].push(handler)
+					
+					return
 				
 				@
 				
 			off: (type, handler) ->
-				# console.log('off' +type)
-				@each (el, i) ->
-					return if not events[el] or not events[el][type]
-					
-					handlers = events[el][type]
+				@each (el, i) ->					
+					handlers = (el and el.DigiSeller and el.DigiSeller.events and el.DigiSeller.events[type]) or []
 					j = handlers.length
 					
 					while j--
@@ -234,38 +282,115 @@ DS.$ = (()->
 						
 						handlers.splice(j, 1)
 						
-				# console.dir(events)
+					return
 				
 				@
 				
 			show: () ->
-				@each (el) ->
-					el.style.display = ''
-					
-				@
+				@.removeClass('digiseller-hidden')
 				
 			hide: () ->
-				@each (el) ->
-					el.style.display = 'none'
-					
-				@
+				@.addClass('digiseller-hidden')				
 					
 			get: (i) ->
-				els[i]
+				_els[i]
+
+			attr: (attr, val) ->
+				if typeof val is 'undefined'
+					try
+						return _els[0].getAttribute(attr)
+					catch e
+						return null
+				else
+					@each (el) ->
+						el.setAttribute(attr, val)
+						
+						return
+
+				@
 				
-			html: (html) ->
-				@each (el) ->
-					el.innerHTML = html
-					
+			html: (html) ->			
+				if typeof html is 'undefined'
+					return _els[0].innerHTML
+				else
+					@each (el) ->
+						el.innerHTML = html
+						
+						return
+						
+				@
+				
+			val: (val) ->
+				if typeof val is 'undefined'
+					return _getVal(_els[0])
+				else
+					@each (el) ->
+						_setVal(el, val)
+						
+						return
+						
 				@
 				
 			css: (prop, val) ->
 				@each (el) ->
 					el.style[prop] = val
 					
+					return
+					
 				@
-		
-		out.length = els.length
+				
+			remove: () ->
+				@each (el) ->
+					el.parentNode.removeChild(el)
+					
+					return
+
+				@
+				
+			parent: () ->
+				els = []
+				@each (el) ->
+					els.push(el.parentNode)
+					
+					return
+					
+				return DS.$(els)
+				
+			next: () ->
+				els = []
+				@each (el) ->
+					els.push(el.nextSibling)
+					
+					return
+					
+				return DS.$(els)
+				
+			prev: () ->
+				els = []
+				@each (el) ->
+					els.push(el.prevSibling)
+					
+					return
+					
+				return DS.$(els)
+				
+			children: () ->
+				els = []
+				@each (el) ->
+					_each(el.children, (child) ->
+						els.push(child)
+						
+						return
+					)
+					
+					return
+					
+				return DS.$(els)
+				
+			eq: (i) ->
+				return DS.$(_els[i])
+					
+		out.length = _els.length
 		
 		return out
 )()
@@ -309,7 +434,6 @@ DS.dom =
 				(context || document).getElementsByTagName(selector)
 
 	attr: ($el, attr, val) ->
-		# console.log(attr)
 		if not $el or typeof attr is 'undefined'
 			return false
 
@@ -388,7 +512,7 @@ DS.dom =
 		link.rel = 'stylesheet'
 		link.href = url
 
-		DS.$el.head.appendChild(link)
+		DS.el.head.appendChild(link)
 
 		css = new Image()
 		css.onerror = () ->
@@ -408,12 +532,12 @@ DS.dom =
 		_onComplete = (e) ->
 			# sasas = Math.random()*10000
 			# console.log(sasas)
-			# setTimeout(()->		
+			# setTimeout(() ->		
 			
 			done = yes
 			script.onload = script.onreadystatechange = null
 
-			DS.$el.head.removeChild(script) if DS.$el.head and script.parentNode
+			DS.el.head.removeChild(script) if DS.el.head and script.parentNode
 			# console.log('onComplete')
 			onComplete() if onComplete
 				
@@ -437,7 +561,7 @@ DS.dom =
 
 			return
 
-		DS.$el.head.appendChild(script)
+		DS.el.head.appendChild(script)
 
 		return
 
@@ -514,7 +638,7 @@ DS.historyClick = `(function() {
 			return;
 		}
 
-		DS.dom.addEvent(window, 'hashchange', urlHashCheck);
+		DS.$(window).on('hashchange', urlHashCheck);
 	}
 
 	function urlHashCheck() {
@@ -540,6 +664,8 @@ DS.historyClick = `(function() {
 		if (!hash) {
 			return;
 		}
+		
+		historyClick.onGo()
 
 		var pattern,
 			callback;
@@ -586,10 +712,14 @@ DS.historyClick = `(function() {
 		},
 		reload: function() {
 			_needReload = true;
+			urlHashCheck();
 		},
 		changeHashSilent: function(hash) {
 			historyClick.prevHash = historyClick.currentHash;
 			historyClick.currentHash = window.location.hash = hash;
+		},
+		onGo: function() {
+		
 		}
 	};
 
@@ -608,7 +738,8 @@ DS.ajax = (() ->
 			xhr = null;
 		}
 		
-		xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+		if (xhr.setRequestHeader)
+			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		
 		return xhr;
 	}
@@ -618,6 +749,8 @@ DS.ajax = (() ->
 			queryString = [];
 
 		for (key in params) {
+			if ( !Object.prototype.hasOwnProperty.call(params, key) ) continue;
+			
 			queryString.push( ( DS.util.enc(key) + '=' + DS.util.enc(params[key]) ) );
 		}
 
@@ -626,7 +759,7 @@ DS.ajax = (() ->
 
 	return (method, url, opts) ->
 		opts = DS.util.extend(
-			el: null
+			$el: null
 			data: {}
 			onLoad: () ->
 			onFail: () ->
@@ -649,23 +782,23 @@ DS.ajax = (() ->
 			DS.widget.loader.hide(uid)
 
 		if not xhr
-			DS.JSONP.get(url + sign + 'transp=jsonp', opts.el, opts.data, opts.onLoad, opts.onFail, _onComplete)
+			DS.JSONP.get(url + sign + 'transp=jsonp', opts.$el, opts.data, opts.onLoad, opts.onFail, _onComplete)
 
 			return
 
-		needCheck = if opts.el then yes else no
-
+		needCheck = if opts.$el then yes else no
+		
 		if needCheck
-			DS.dom.attr(opts.el, 'data-qid', uid)
-
-		xhr.onreadystatechange = () ->
+			opts.$el.attr('data-qid', uid)
+		
+		# xhr.onreadystatechange = () ->
 			# if (xhr.readyState is 4) 
 				# console.log(xhr.status)			
 			
 		xhr.onload = () ->
 			_onComplete(xhr)
 			
-			if needCheck and parseInt( DS.dom.attr(opts.el, 'data-qid') ) isnt uid
+			if needCheck and parseInt( opts.$el.attr('data-qid') ) isnt uid
 				return
 
 			opts.onLoad(JSON.parse(xhr.responseText), xhr)
@@ -682,7 +815,7 @@ DS.ajax = (() ->
 DS.JSONP = `(function() {
 	var _callbacks = [];
 
-	function jsonp(url, el, params, onLoad, onFail, onComplete) {
+	function jsonp(url, $el, params, onLoad, onFail, onComplete) {
 		var query = (url || '').indexOf('?') === -1 ? '?' : '&',
 			key;
 
@@ -699,14 +832,14 @@ DS.JSONP = `(function() {
 			query += DS.util.enc(key) + '=' + DS.util.enc(params[key]) + '&'
 		}
 
-		var needCheck = el ? true : false;
+		var needCheck = $el ? true : false;
 
 		if (needCheck) {
-			DS.dom.attr(el, 'data-qid', _uid);
+			$el.attr('data-qid', _uid);
 		}
 
 		_callbacks[_uid] = function(data) {
-			if ( needCheck && ( !el || data.queryId != DS.dom.attr(el, 'data-qid') ) ) {
+			if ( needCheck && ( !$el || data.queryId != $el.attr('data-qid') ) ) {
 				return;
 			}
 
@@ -823,18 +956,16 @@ DS.popup = (() ->
 	rightCallback = null
 	isClosed = true
 
-	show = (onResize) ->
-		
+	show = (onResize) ->		
 		setup.$loader.style.display = 'none'
 		setup.$container.style.display = ''
 
 		# wrCallback = DS.dom.addEvent(window, 'resize', onResize)
-		DS.$(window).on('resize', onResize)
+		DS.$(window).on('resize', onResize)		
 		
-		
-		# as = ()->
+		# as = () ->
 			# console.log('empt')
-		# as2 = ()->
+		# as2 = () ->
 			# console.log('empt2')			
 
 		# DS.$(window).on('click', as	)
@@ -845,11 +976,34 @@ DS.popup = (() ->
 		return
 
 	close = (e) ->
+		return if isClosed
+	
 		DS.util.prevent(e) if e
 		setup.$img.innerHTML = ''
 		setup.$main.style.display = 'none'
 		# DS.dom.removeEvent(window, 'resize', wrCallback)
 		DS.$(window).off('resize')
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		DS.$(window).off('resize')
+		
+		
+		
+		
+		
+		
+		
+		
 		isClosed = true
 		img = null
 
@@ -965,6 +1119,170 @@ DS.popup = (() ->
 	}
 )()
 
+
+
+
+
+DS.popup = (() ->
+	setup = {}
+	img = null
+	prefix = 'digiseller-popup-'
+	isCompV = document.compatMode is 'CSS1Compat'
+	# wrCallback = null
+	# leftCallback = null
+	# rightCallback = null
+	isClosed = true
+
+	show = (onResize) ->		
+		setup.$loader.hide()
+		setup.$container.show()
+
+		# wrCallback = DS.dom.addEvent(window, 'resize', onResize)
+		DS.$(window).on('resize', onResize)		
+		
+		# as = () ->
+			# console.log('empt')
+		# as2 = () ->
+			# console.log('empt2')			
+
+		# DS.$(window).on('click', as	)
+		# DS.$(window).on('click', as2	)
+
+		onResize()
+
+		return
+
+	close = (e) ->
+		return if isClosed
+	
+		DS.util.prevent(e) if e
+		setup.$img.html('')
+		setup.$main.hide()
+		# DS.dom.removeEvent(window, 'resize', wrCallback)
+		DS.$(window).off('resize')	
+		
+		isClosed = true
+		img = null
+
+		return
+
+	resize = (h, w, isHard) ->
+		console.log('resize')		
+		
+		wih = window.innerHeight
+		hs = ( if typeof wih isnt 'undefined' then wih else (document[if isCompV then 'documentElement' else 'body'].offsetHeight - 22) ) - 100
+
+		if not isHard
+			scale0 = h / w
+			wiw = window.innerWidth
+			ws = ( if typeof wiw isnt 'undefined' then wiw else document[if isCompV then 'documentElement' else 'body'].offsetWidth ) - 120
+			h1 = hs
+			w1 = ws
+
+			isDec = false
+			h >= hs and (isDec = true) or (h1 = h)
+			w >= ws and (isDec = true) or (w1 = w)
+
+			if isDec
+				if scale0 <= h1/w1
+					h1 = Math.round(scale0 * w1)
+				else
+					w1 = Math.round(h1 / scale0)
+
+			img.style.height = h1 + 'px'
+			img.style.width = w1 + 'px'
+
+		setup.$container.css('width', ( (if isHard then w else w1) + 50 ) + 'px')
+
+		doc = document.documentElement
+		body = document.body
+		topScroll = (doc && doc.scrollTop or body && body.scrollTop or 0)
+		setup.$container.css('top', (hs - (if isHard then h else h1) + 20)/3 + topScroll + 'px')
+
+		return
+
+	init = () ->
+		container = document.createElement('div')
+		container.innerHTML = DS.tmpl(DS.tmpls.popup,
+			p: prefix
+		)
+
+		DS.el.body.appendChild(container.firstChild);
+
+		params = ['main', 'fade', 'loader', 'container', 'close', 'img', 'left', 'right']
+		for param in params
+			setup['$' + param] = DS.$("##{prefix}#{param}")
+
+		setup.$fade.on('click', close)
+		setup.$close.on('click', close)
+
+		return
+
+	return {
+		open: (type, id, onLeft, onRight) ->
+			not setup.$main and  init()
+			console.dir(setup)
+			isClosed = false
+
+			setup.$container.hide()
+			setup.$main.show()
+			setup.$loader.show()
+
+			setup.$left[if onLeft then 'show' else 'hide']()
+			if onLeft
+				# leftCallback = DS.dom.addEvent(setup.$left, 'click', onLeft)
+				setup.$left.off('click').on('click', onLeft)
+
+			# setup.$right.style.display = if onRight then '' else 'none'
+			setup.$right[if onRight then 'show' else 'hide']()
+			if onRight
+				# DS.dom.removeEvent(setup.$right, 'click', rightCallback)
+				# rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight)
+				setup.$right.off('click').on('click', onRight)
+
+			switch type
+				when 'img'
+					# DS.dom.klass('remove', setup.$img, 'digiseller-popup-video')
+					setup.$img.removeClass('digiseller-popup-video')
+
+					img = new Image()
+					img.onload = () ->
+						return if isClosed
+
+						h = img.height
+						w = img.width
+
+						# DS.dom.removeEvent(window, 'resize', wrCallback)
+						DS.$(window).off('resize')
+						show(() ->							
+							resize(h, w)
+							return
+						)
+						console.dir(setup.$img.get(0))
+						setup.$img
+							.html('')
+							.get(0).appendChild(img)
+
+					img.src = id
+
+				else
+					# DS.dom.klass('add', setup.$img, 'digiseller-popup-video')
+					setup.$img.addClass('digiseller-popup-video')
+
+					show(() ->
+						resize(200, 500, true)
+						return
+					)
+
+					setup.$img.html(id)
+
+			return
+
+		close: close
+	}
+)()
+
+
 # http://habrahabr.ru/post/156185/
 DS.share =
 	vk: (title, img) ->
@@ -994,7 +1312,7 @@ noparse=0"
 
 DS.agree = (flag, onAgree) ->
 	$rules = DS.$('#digiseller-calc-rules')
-	$rules.get(0).checked = flag if $rules
+	$rules.get(0).checked = flag if $rules.length
 
 	DS.opts.agree = if flag then 1 else 0
 	DS.cookie.set('digiseller-agree', DS.opts.agree)
@@ -1004,62 +1322,22 @@ DS.agree = (flag, onAgree) ->
 	onAgree() if onAgree
 
 	return
-
-DS.showCart = () ->
-	initCart = ()->
-		DS.$('.digiseller-cart-del-product').on('click', (e)->
-			DS.util.prevent(e)
-			
-			console.log('sdsd')
-		)
-	
-
-	DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
-		el: DS.widget.cartButton.$el
-		data:
-			format: 'json'
-			lang: DS.opts.currentLang
-			cart_uid: DS.cookie.get('digiseller-cart_uid')  #'535EDB8DF9A74746B758F4DC83A590AF' #
-		onLoad: (res) ->					
-			return off unless res
-			
-			items = ''
-			tmpl = DS.tmpl(DS.tmpls.cartItem)
-
-			for product, i in res.products
-				items += tmpl({
-					d: product
-					even: !!(i % 2)
-				})			
-			
-			
-			DS.popup.open( 'text',  DS.tmpl(DS.tmpls.cart, {
-				d: res
-				items: items
-			}) )
-
-			initCart()
-			
-			return
-	)
-	
-	return
 	
 DS.widget =
 	main:
 		$el: null
 		init: () ->
-			@$el = DS.dom.$('#digiseller-main')
-			DS.widget.main.$el.innerHTML = '' # сбрасываем лоадер
+			@$el = DS.$('#digiseller-main')
+			@$el.html('') # сбрасываем лоадер
 
 			callback = (e, type) ->
-				$el = e.originalTarget or e.srcElement
-				action = DS.dom.attr($el, 'data-action')
+				$el = DS.$(e.originalTarget or e.srcElement)
+				action = $el.attr('data-action')
 
-				if action and typeof DS.events[type + '-' + action] is 'function'
-					DS.events[type + '-' + action]($el, e)
+				if action and typeof DS.eventsDisp[type + '-' + action] is 'function'
+					DS.eventsDisp[type + '-' + action]($el, e)
 
-			DS.dom.addEvent(DS.widget.main.$el, 'click', (e) ->
+			@$el.on('click', (e) ->
 				callback(e, 'click')
 			)
 
@@ -1076,11 +1354,11 @@ DS.widget =
 				div.id = 'digiseller-loader'
 				div.className = div.id
 				div.innerHTML = DS.tmpl(DS.tmpls.loader, {})
-				div.style.display = 'none'
+				# div.style.display = 'none'
 
-				DS.$el.body.appendChild(div)
+				DS.el.body.appendChild(div)
 
-				@$el = DS.dom.$("##{div.id}")
+				@$el = DS.$("##{div.id}").hide()
 
 				return
 
@@ -1090,7 +1368,8 @@ DS.widget =
 				_timeouts[uid] = setTimeout(() ->
 					_timeouts[uid] = 0
 					_counter++
-					that.$el.style.display = ''
+					
+					that.$el.show()
 					
 					return
 				, 1000)
@@ -1107,7 +1386,7 @@ DS.widget =
 				delete _timeouts[uid]
 
 				if _counter <= 0
-					@$el.style.display = 'none'
+					@$el.hide()
 
 				return
 		}
@@ -1118,19 +1397,19 @@ DS.widget =
 		$input: null
 		prefix: 'digiseller-search'
 		init: () ->
-			@$el = DS.dom.$("##{@prefix}")
-			return unless @$el
+			@$el = DS.$("##{@prefix}")
+			return unless @$el.length
 
-			@$el.innerHTML = DS.tmpls.search
+			@$el.html(DS.tmpls.search)
 
-			@$input = DS.dom.$(".#{@prefix}-input", @$el, 'input')[0]
-			form = DS.dom.$(".#{@prefix}-form", @$el, 'form')[0]
+			@$input = DS.$("input.#{@prefix}-input", @$el)
+			$form = DS.$("form.#{@prefix}-form", @$el)
 
 			that = @
-			DS.dom.addEvent(form, 'submit', (e) ->
+			$form.on('submit', (e) ->
 				DS.util.prevent(e)
 
-				window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.value}"
+				window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.val()}"
 
 				return
 			)
@@ -1141,22 +1420,20 @@ DS.widget =
 		$el: null
 		prefix: 'digiseller-langs'
 		init: () ->
-			@$el = DS.dom.$("##{@prefix}")
-			return unless @$el
+			@$el = DS.$("##{@prefix}")
+			return unless @$el.length
 
-			@$el.innerHTML = DS.tmpl(DS.tmpls.langs, {})
+			@$el.html( DS.tmpl(DS.tmpls.langs, {}) )
 
-			$links = DS.dom.$('a', @$el)
-			for $link in $links
-				DS.dom.addEvent($link, 'click', (e) ->
-					DS.util.prevent(e)
+			DS.$('a', @$el).on('click', (e) ->
+				DS.util.prevent(e)
 
-					lang = DS.dom.attr(@, 'data-lang')
+				lang = DS.$(@).attr('data-lang')
 
-					DS.cookie.set('digiseller-lang', lang)
+				DS.cookie.set('digiseller-lang', lang)
 
-					window.location.reload()
-				)
+				window.location.reload()
+			)
 
 			return
 
@@ -1165,22 +1442,21 @@ DS.widget =
 		isInited: false
 		prefix: 'digiseller-category'
 		init: () ->
-			@$el = DS.dom.$("##{@prefix}")
-			return unless @$el
+			@$el = DS.$("##{@prefix}")
+			return unless @$el.length
 
 			@isInited = false
 
 			that = @
-			DS.ajax('GET', DS.opts.host + 'shop_categories.asp'
+			DS.ajax('GET', DS.opts.host + 'shop_categories.asp?format=json'
 				el: @$el
 				data:
-					format: 'json'
 					lang: DS.opts.currentLang
 					seller_id: DS.opts.seller_id
 				onLoad: (res) ->					
 					return off unless res
 
-					that.$el.innerHTML = that.render(res.category, null, 0)
+					that.$el.html( that.render(res.category, null, 0) )
 
 					that.isInited = true
 
@@ -1193,41 +1469,53 @@ DS.widget =
 
 		mark: (() ->
 			_go = (cid) ->
-				$cats = DS.dom.$('li', @$el)
+				$cats = DS.$('li', @$el)
 
 				return unless $cats.length
 
-				subs = DS.dom.$('ul', @$el)
-				for sub in subs
-					sub.style.display = 'none'
+				$subs = DS.$('ul', @$el)
+				$subs.hide()
+				DS.$( $subs.get(0) ).show()
+				
+				# $subs.show()
+				# for sub in subs
+					# sub.style.display = 'none'
 
-				subs[0].style.display = ''
+				# subs[0].style.display = ''
 
-				DS.dom.klass('remove', $cats, @prefix + '-active', true)
-				DS.dom.klass('remove', $cats, @prefix + '-active-hmenu', true)
+				# DS.dom.klass('remove', $cats, "#{@prefix}-active", true)
+				# DS.dom.klass('remove', $cats, "#{@prefix}-active-hmenu", true)
+				
+				$cats.removeClass("#{@prefix}-active")
+					.removeClass("#{@prefix}-active-hmenu")
 
 				return unless cid
 
-				$cat = DS.dom.$("##{@prefix}-#{cid}")
-				return unless $cat
+				$cat = DS.$("##{@prefix}-#{cid}")
+				return unless $cat.length
 
-				DS.dom.klass('add', $cat, @prefix + '-active')
+				# DS.dom.klass('add', $cat, @prefix + '-active')
+				$cat.addClass("#{@prefix}-active")
 
 				$parent = $ancestor = $cat
 
-				while $parent.id isnt @prefix
-					$parent.style.display = ''
-					$parent = $parent.parentNode
+				while $parent.get(0).id isnt @prefix
+					# $parent.style.display = ''
+					$parent.show()
+					# $parent = DS.$($parent.get(0).parentNode)
+					$parent = $parent.parent()
 
-					if /li/i.test($parent.tagName)
-						DS.dom.klass('add', $parent, @prefix + '-active-hmenu')
+					if /li/i.test($parent.get(0).nodeName)
+						# DS.dom.klass('add', $parent, @prefix + '-active-hmenu')
+						$parent.addClass("#{@prefix}-active-hmenu")
 
-				DS.dom.$("##{@prefix}-sub-#{cid}")?.style.display = ''
+				# DS.dom.$("##{@prefix}-sub-#{cid}")?.style.display = ''
+				DS.$("##{@prefix}-sub-#{cid}").show()
 
 				return
 
 			return (cid) ->
-				return unless @$el
+				return if not @$el or not @$el.length
 
 				if @isInited
 					_go.call(@, cid)
@@ -1250,43 +1538,46 @@ DS.widget =
 		)()
 
 		render: (categories, parent_cid) ->
-			return '' if not categories
+			return '' if not categories				
 
 			out = ''
 			compileTmpl = DS.tmpl(DS.tmpls.category)
 			for category in categories
 				out += compileTmpl(
 					d: category
-					url: DS.opts.hashPrefix + "/articles/#{category.id}"
-					id: @prefix + "-#{category.id}"
+					url: "#{DS.opts.hashPrefix}/articles/#{category.id}"
+					id: "#{@prefix}-#{category.id}"
 					sub: @render(category.sub, category.id)
 				)
-
-			DS.tmpl(DS.tmpls.categories,
-				id: if parent_cid then @prefix + "-sub-#{parent_cid}" else ''
+			
+			return DS.tmpl(DS.tmpls.categories,
+				id: if parent_cid then "#{@prefix}-sub-#{parent_cid}" else ''
 				out: out
 			)
 
 	currency:
 		$el: null
 		init: () ->
-			@$el = DS.dom.$('#digiseller-currency')
-			return unless @$el
+			@$el = DS.$('#digiseller-currency')
+			return unless @$el.length
 
-			@$el.innerHTML = DS.tmpl(DS.tmpls.currency, {})
+			@$el.html( DS.tmpl(DS.tmpls.currency, {}) )
 
-			$sel = DS.dom.$('select', @$el)[0]
-			DS.dom.addEvent($sel, 'change', (e) ->
-				type = DS.dom.attr(@, 'data-type')
+			$sel = DS.$('select', @$el)
+			$sel.val(DS.opts.currency).on('change', (e) ->
+				$this = DS.$(@)
+				type = $this.attr('data-type')
 
-				DS.opts.currency = DS.dom.select(@)
+				# DS.opts.currency = DS.dom.select(@)
+				DS.opts.currency = $sel.val()
 				DS.cookie.set('digiseller-currency', DS.opts.currency)
 				DS.historyClick.reload()
 
 				return
 			)
 
-			DS.dom.select($sel, DS.opts.currency)
+			# DS.dom.select($sel.get(0), DS.opts.currency)
+			# $sel.val(DS.opts.currency)
 
 			return
 
@@ -1307,11 +1598,15 @@ DS.widget =
 			return
 
 		mark: () ->
-			pages = DS.dom.$('a', @$el)
+			$pages = DS.$('a', @$el)
 
-			for page, index in pages
-				DS.dom.klass( (if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-activepage' )
+			# for page, index in pages
+				# DS.dom.klass( (if @page == parseInt( DS.dom.attr(page, 'data-page') ) then 'add' else 'remove'), page, 'digiseller-activepage' )
 
+			$pages.each (el) ->
+				$page = DS.$(el)				
+				$page[if @page == parseInt( $page.attr('data-page') ) then 'addClass' else 'removeClass']('digiseller-activepage')				
+				
 			return @
 
 		render: () ->
@@ -1320,7 +1615,6 @@ DS.widget =
 			@total = parseInt(@total)
 
 			@$el.style.display = if @total then '' else 'none'
-
 
 			out = ''
 
@@ -1542,7 +1836,7 @@ DS.widget =
 			DS.dom.addEvent(DS.dom.$('a', @$el)[0], 'click', (e) ->
 				DS.util.prevent(e)
 			
-				DS.showCart()
+				new DS.widget.cart()
 
 				return
 			)
@@ -1555,6 +1849,149 @@ DS.widget =
 			
 			return
 
+	cart: class
+		_prefix = 'digiseller-cart'		
+		
+		constructor: () ->			
+			@get()
+
+		get: () ->
+			that = @
+			DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp?format=json'
+				el: DS.widget.cartButton.$el
+				data:
+					lang: DS.opts.currentLang
+					cart_uid: DS.opts.cart_uid
+				onLoad: (res) ->					
+					return off if not res or not res.products
+					
+					that.render(res)
+					
+					return
+			)
+			
+			return
+			
+		render: (res) ->
+			items = ''
+			tmpl = DS.tmpl(DS.tmpls.cartItem)
+
+			for product, i in res.products
+				items += tmpl({
+					d: product
+					even: !!(i % 2)
+				})			
+			
+			DS.popup.open( 'text',  DS.tmpl(DS.tmpls.cart, {
+				d: res
+				items: items
+			}) )
+
+			@init()
+			
+			return
+			
+		init: () ->
+			$context = DS.$("##{_prefix}-items")
+			
+			return if not $context.length
+			
+			that = @
+			
+			changeCount = DS.util.debounce( ($this, isDel) ->				
+				that.changeCount($this, isDel)
+				
+				return
+			)
+			
+			DS.$(".#{_prefix}-del-product", $context).on('click', (e) ->
+				DS.util.prevent(e)
+				
+				that.changeCount(DS.$(this), yes)
+				
+				return
+			)
+			
+			$inputs = DS.$('input', $context)
+			
+			$inputs.on('change', (e) ->				
+				changeCount( DS.$(this) )
+				
+				return
+			).on('keyup', (e) ->
+				changeCount( DS.$(this) )
+				
+				return
+			)
+			
+			DS.$(".#{_prefix}-params-toggle", $context).on('click', (e) ->
+				DS.util.prevent(e)
+				
+				$el = DS.$(this.parentNode)
+				
+				isOpened = $el.attr('data-opened') is '1'
+
+				$el[if isOpened then 'removeClass' else 'addClass']("#{_prefix}-show-params")
+					.attr('data-opened', if isOpened then 0 else 1)
+				
+				return
+			)
+			
+			return
+			
+		update: (res, idForDel) ->
+			items = (if res and res.products then res.products else [])
+			
+			DS.$("##{_prefix}-amount").html(res.amount)
+			DS.widget.cartButton.setCount(res.cart_cnt or 0)
+
+			DS.util.each(items, (item, i) ->
+				# item.error = 'dddd'
+				if item.id is idForDel
+					idForDel = false
+			
+				$item = DS.$("##{_prefix}-item-#{item.id}")				
+				$error = DS.$("##{_prefix}-item-error-#{item.id}")
+				
+				$item[if item.error then 'addClass' else 'removeClass']("#{_prefix}-error")
+				$error[if item.error then 'show' else 'hide']()
+				
+				DS.$('td', $error).html(item.error)
+				
+				if item.error
+					DS.$("##{_prefix}-item-count-#{item.id}").val(item.cnt_item)
+					
+				return
+			)
+			
+			if idForDel
+				DS.$("##{_prefix}-item-#{idForDel}").remove()
+				DS.$("##{_prefix}-item-error-#{idForDel}").remove()
+				
+			return
+		
+		changeCount: ($this, isDel) ->
+			id = $this.attr('data-id')
+			$item = DS.$("##{_prefix}-item-#{id}")
+			$productCnt = if isDel then DS.$("##{_prefix}-item-count-#{id}") else $this			
+			that = @
+			
+			DS.ajax('POST', DS.opts.host + 'shop_cart_lst.asp?format=json'
+				el: $this.get(0)
+				data:
+					lang: DS.opts.currentLang
+					cart_uid: DS.opts.cart_uid
+					product_id: id
+					product_cnt: if isDel then 0 else $productCnt.val()
+				onLoad: (res) ->					
+					return off unless res				
+					
+					that.update(res, id)
+					
+					return
+			)
+
+			return			
 			
 DS.route =
 	home:
@@ -1597,14 +2034,16 @@ DS.route =
 				for article in articles
 					out += compileTmpl(
 						d: article
-						url: DS.opts.hashPrefix + "/detail/#{article.id}"
+						url: "#{DS.opts.hashPrefix}/detail/#{article.id}"
 						imgsize: if DS.opts.main_view is 'tile' then DS.opts.imgsize_firstpage else DS.opts.imgsize_listpage
 					)
 
-			DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.showcaseArticles,
+			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.showcaseArticles,
 				out: if DS.opts.main_view is 'table' then '<table class="digiseller-table">' + out + '</table>' else out
 				categories: data.categories
-			)
+			) )
+			
+			return
 
 	search:
 		url: '/search(?:/([0-9]*))?\\?s=(.*)'
@@ -1620,7 +2059,7 @@ DS.route =
 
 			DS.widget.category.mark()
 
-			DS.widget.search.$input.value = @search
+			DS.widget.search.$input.val(@search)
 
 			@get()
 
@@ -1672,10 +2111,10 @@ DS.route =
 				@pager.total = data.totalPages
 				@pager.render()
 			else
-				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.searchResults,
+				DS.widget.main.$el.html( DS.tmpl(DS.tmpls.searchResults,
 					totalItems: data.totalItems
 					out: out
-				)
+				) )
 
 				that = @
 				@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', DS.widget.main.$el)[0],
@@ -1776,17 +2215,17 @@ DS.route =
 				@pager.total = data.totalPages
 				@pager.render()
 			else
-				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articles,
+				DS.widget.main.$el.html(DS.tmpl(DS.tmpls.articles,
 					id: @prefix + '-' + @cid
 					d: data
 					hasCategories: if not data.categories or not data.categories.length then false else true
 					articlesPanel: if data.totalPages then DS.tmpl(DS.tmpls.articlesPanel, {}) else ''
 					out: out
-				)
+				) )
 
 				if data.totalPages
 					that = @
-					@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', DS.widget.main.$el)[0], {
+					@pager = new DS.widget.pager(DS.dom.$('.digiseller-paging', DS.widget.main.$el.get(0))[0], {
 						page: @page
 						rows: @rows
 						total: data.totalPages
@@ -1852,19 +2291,19 @@ DS.route =
 
 		render: (data) ->
 			if not data or not data.product
-				DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.nothing, {})
+				DS.widget.main.$el.html( DS.tmpl(DS.tmpls.nothing, {}) )
 
 				return
 
 			DS.widget.category.mark(data.product.category_id)
-			DS.widget.main.$el.innerHTML = DS.tmpl(DS.tmpls.articleDetail,
+			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.articleDetail,
 				d: data.product
 				buy: DS.tmpl(DS.tmpls.buy,
 					d: data.product
 					failPage: window.location
 					agree: DS.opts.agree
 				)
-			)
+			) )
 
 			new DS.widget.calc(data.product.id, data.product.prices_unit)
 
@@ -2060,11 +2499,11 @@ DS.route =
 
 			return
 
-DS.events =
+DS.eventsDisp =
 	'click-comments-page': ($el, e) ->
 		DS.util.prevent(e)
 
-		page = DS.dom.attr($el, 'data-page')
+		page = $el.attr('data-page')
 
 		DS.route.article.comments.page = page
 		DS.route.article.comments.get()
@@ -2074,38 +2513,43 @@ DS.events =
 	'click-buy': ($el, e) ->
 		DS.util.prevent(e)
 
-		id = DS.dom.attr($el, 'data-id')
-		form = parseInt( DS.dom.attr($el, 'data-form') )
-		cart = parseInt( DS.dom.attr($el, 'data-cart') )
+		id = $el.attr('data-id')
+		form = parseInt( $el.attr('data-form') )
+		cart = parseInt( $el.attr('data-cart') )
 
 		if form
-			$form = DS.dom.$("#digiseller-buy-form-#{id}")
-			$error = DS.dom.$("#digiseller-buy-error-#{id}")
-			$rules = DS.dom.$('#digiseller-calc-rules')
-			
+			$form = DS.$("#digiseller-buy-form-#{id}")
+			$error = DS.$("#digiseller-buy-error-#{id}")
+			$rules = DS.$('#digiseller-calc-rules')
+
 			if $rules
-				DS.opts.agree = if $rules.checked then 1 else 0
+				isChecked = $rules.get(0).checked
+				DS.opts.agree = if isChecked then 1 else 0
 				DS.cookie.set('digiseller-agree', DS.opts.agree)
 
-				if !$rules.checked
+				if !isChecked
 					return
 			
-			requiredEls = {}
-			data = DS.serialize($form, ($el) ->
-				$parent = $el.parentNode
-				if ( DS.dom.attr($parent, 'data-required') )
-					requiredEls[$el.name] = $parent
+			required$Els = {}
+			data = DS.serialize($form.get(0), (el) ->
+				$parent = DS.$(el).parent()
+				
+				if $parent.attr('data-required')
+					required$Els[el.name] = $parent
 			)
-			
+
 			error = no
-			DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
-			for name, $parent of requiredEls
+			# DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
+			DS.$('.digiseller-calc-line', $form).removeClass('digiseller-calc-line-err')
+			
+			for name, $parent of required$Els
 				if not data[name]
 					error = yes
-					DS.dom.klass('add', $parent, 'digiseller-calc-line-err')
+					$parent.addClass('digiseller-calc-line-err')
 			
-			$error.innerHTML  = if error then 'Заполнены не все поля' else ''
-			$error.style.display = if error then '' else 'none'
+			$error.html(if error then 'Заполнены не все поля' else '')
+			# $error.style.display = if error then '' else 'none'
+			$error[if error then 'show' else 'hide']()
 			
 			return if error
 			
@@ -2117,24 +2561,23 @@ DS.events =
 					data: data,
 					onLoad: (res, xhr) ->						
 						if res.cart_err and res.cart_err isnt ''
-							$error.innerHTML = res.cart_err
-							$error.style.display = ''
+							$error.html(res.cart_err).show()
 							
 							# return
 						
-						DS.opts.cart_uid = res.cart_uid
+						DS.opts.cart_uid = res.cart_uid || ''
 						
-						DS.cookie.set('digiseller-cart_uid', res.cart_uid)
+						DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
 						DS.widget.cartButton.setCount(res.cart_cnt)
 						
-						DS.showCart()
+						new DS.widget.cart()
 						
 						return
 					# onFail: (xhr) ->
 						# console.log('Ошибка:', xhr.responseText)
 				)
 		else
-			ai = DS.dom.attr($el, 'data-ai')
+			ai = $el.attr('data-ai')
 
 			buy = () ->
 				window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')
@@ -2142,11 +2585,11 @@ DS.events =
 			if (DS.opts.agreement_text)
 				DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
 
-				DS.dom.addEvent(DS.dom.$('#digiseller-agree'), 'click', () ->
+				DS.$('#digiseller-agree').on('click', () ->
 					DS.agree(true, buy)
 				)
 
-				DS.dom.addEvent(DS.dom.$('#digiseller-disagree'), 'click', () ->
+				DS.dom.$('#digiseller-disagree').on('click', () ->
 					DS.agree(false)
 				)
 			else
@@ -2157,17 +2600,21 @@ DS.events =
 	'click-article-tab': ($el, e) ->
 		DS.util.prevent(e)
 
-		index = DS.dom.attr($el, 'data-tab')
-		$panels = $el.parentNode.nextSibling.children
+		index = $el.attr('data-tab')
 
-		DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)
-		DS.dom.klass('add', $el, 'digiseller-activeTab')
+		$panels = $el.parent().next().children()
+
+		# DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)
+		$el.parent().children().removeClass('digiseller-activeTab')
+		# DS.dom.klass('add', $el, 'digiseller-activeTab')
+		$el.addClass('digiseller-activeTab')
 
 		change = () ->
-			for $panel in $panels
-				$panel.style.display = 'none'
+			# for $panel in $panels
+				# $panel.style.display = 'none'
+			$panels.hide().eq(index).show()
 
-			$panels[index].style.display = ''
+			# $panels.eq(index).style.display = ''
 
 		if index is '2'
 			DS.route.article.initComments(change)
@@ -2198,8 +2645,11 @@ DS.init = ->
 	return off if DS.inited
 	DS.inited = yes
 
-	DS.$el.head = DS.dom.$('head')[0] || document.documentElement
-	DS.$el.body = DS.dom.$('body')[0] || document.documentElement
+	getEl = (elName) ->
+		return document.getElementsByTagName(elName)[0] || document.documentElement
+	
+	DS.el.head = getEl('html')
+	DS.el.body = getEl('body')
 
 	# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
 
@@ -2209,10 +2659,11 @@ DS.init = ->
 		params = ['sort', 'rows', 'view']
 		for param in params
 			DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
-
+		
 		DS.opts.agree = DS.cookie.get('digiseller-agree') or DS.opts.agree
-		DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
 
+		DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
+		
 		DS.widget.category.init()
 		DS.widget.main.init()
 		DS.widget.loader.init()
@@ -2261,10 +2712,13 @@ DS.init = ->
 
 		DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home')
 		DS.historyClick.start()
-
+		
 		if window.location.hash is ''
 			DS.historyClick.reload()
 
+		DS.historyClick.onGo = () ->
+			DS.popup.close()
+			
 		return
 	)
 
@@ -2273,12 +2727,11 @@ DS.init = ->
 # alias
 window.DigiSeller = DS
 
-checkReady = ()->
+checkReady = () ->
 	if document.readyState isnt 'loading'
-		DS.init()
-		console.dir(DS.$('div').length)
+		DS.init()		
 	else
-		setTimeout(()->
+		setTimeout(() ->
 			checkReady()
 			return
 		, 1)

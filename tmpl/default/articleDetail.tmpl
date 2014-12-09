@@ -56,41 +56,7 @@
 	<div class="digiseller-product-details">		
 		<div class="digiseller-product-left">
 		
-			<? if (mainImg) { ?>
-				<? var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
-				
-				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" style="min-width:<?= imgSize ?>px; min-height:<?= imgSize ?>px; background: url(//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>) no-repeat scroll center center transparent;" title="<?= name ?>">
-					<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
-					<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
-				</a>
-			<? } else { ?>
-				<img class="digiseller-no-img" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
-			<? } ?>
-			
-			<? if (d.preview_imgs || d.preview_videos) { ?>
-				<div class="digiseller-left-thumbs" id="digiseller-article-thumbs">
-					<? if (d.preview_imgs) { ?>
-						<div class="digiseller-image-view">
-							<? for (var i = 0, index = 0, l = d.preview_imgs.length; i < l; i++, index++) { ?>
-								<a href="<?= d.preview_imgs[i].url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= d.preview_imgs[i].id ?>"<?=  d.preview_imgs.length == 1 ? ' style="display:none;"' : '' ?>>
-									<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[i].id ?>&maxlength=44&crop=1" alt="" />
-								</a>
-							<? } ?>
-						</div>
-					<? } ?>					
-					
-					<? if (d.preview_videos) { ?>
-						<div class="digiseller-video-view">
-							<? for (var i = 0, l = d.preview_videos.length; i < l; i++, index++) { ?>
-								<a class="digiseller-videothumb" data-id="<?= d.preview_videos[i].id ?>" data-type="<?= d.preview_videos[i].type ?>" data-index="<?= index ?>">
-									<img src="<?= d.preview_videos[i].preview ?>" alt="" />
-									<span></span>
-								</a>
-							<? } ?>
-						</div>
-					<? } ?>					
-				</div>
-			<? } ?>
+
 			
 
 			<div>		
@@ -106,6 +72,44 @@
 				<div>
 					<div class="digiseller-description_content">
 						<div class="digiseller-prod-info">
+							<? if (mainImg) { ?>
+								<? var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
+								
+								<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" style="min-width:<?= imgSize ?>px; min-height:<?= imgSize ?>px; background: url(//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>) no-repeat scroll center center transparent;" title="<?= name ?>">
+									<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
+									<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
+								</a>
+							<? } else { ?>
+								<img class="digiseller-no-img" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
+							<? } ?>
+							
+							<? if (d.preview_imgs || d.preview_videos) { ?>
+								<div class="digiseller-left-thumbs" id="digiseller-article-thumbs">
+									<? if (d.preview_imgs) { ?>
+										<div class="digiseller-image-view">
+											<? for (var i = 0, index = 0, l = d.preview_imgs.length; i < l; i++, index++) { ?>
+												<a href="<?= d.preview_imgs[i].url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= d.preview_imgs[i].id ?>"<?=  d.preview_imgs.length == 1 ? ' style="display:none;"' : '' ?>>
+													<img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[i].id ?>&maxlength=44&crop=1" alt="" />
+												</a>
+											<? } ?>
+										</div>
+									<? } ?>					
+									
+									<? if (d.preview_videos) { ?>
+										<div class="digiseller-video-view">
+											<? for (var i = 0, l = d.preview_videos.length; i < l; i++, index++) { ?>
+												<a class="digiseller-videothumb" data-id="<?= d.preview_videos[i].id ?>" data-type="<?= d.preview_videos[i].type ?>" data-index="<?= index ?>">
+													<img src="<?= d.preview_videos[i].preview ?>" alt="" />
+													<span></span>
+												</a>
+											<? } ?>
+										</div>
+									<? } ?>					
+								</div>
+							<? } ?>
+						</div>
+					
+						<div class="digiseller-prod-info">
 							<?= d.info ?>
 						</div>
 
@@ -117,7 +121,7 @@
 						<? } ?>
 					</div>
 					
-					<div class="digiseller-reviews_content digiseller-discounttable2" style="display:none;">
+					<div class="digiseller-reviews_content digiseller-discounttable2 digiseller-hidden">
 						<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
 						
 							<? if (d.units && d.units.discounts) { ?>
@@ -164,7 +168,7 @@
 						<? } ?>
 					</div>
 					
-					<div class="digiseller-reviews_content" id="digiseller-article-comments-<?= d.id ?>" style="display:none;"></div>
+					<div class="digiseller-reviews_content digiseller-hidden" id="digiseller-article-comments-<?= d.id ?>"></div>
 				</div>
 			</div>
 
