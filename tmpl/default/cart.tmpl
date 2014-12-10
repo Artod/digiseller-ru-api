@@ -8,12 +8,12 @@
 			</td>
 			<td class="digiseller-cart-price">
 				÷ена
-			  <select>
-				<option>RUR</option>
-				<option>USD</option>
-				<option>EUR</option>
-				<option>UAH</option>
-			  </select>
+				<select id="digiseller-cart-currency">
+					<option value="RUR">RUR</option>
+					<option value="USD">USD</option>
+					<option value="EUR">EUR</option>
+					<option value="UAH">UAH</option>
+				</select>
 			</td>
 			<td colspan="2">
 				 оличество
@@ -33,7 +33,14 @@
 <br />
 
 <div class="digiseller-cart-footer">
-	<a href="#">ѕерейти к оплате</a>
+	<form action="https://www.oplata.info/asp2/pay.asp" method="POST" target="_blank">
+		<input type="hidden" name="TypeCurr" value="<?= d.currency ?>" />
+		<input type="hidden" name="FailPage" value="<?= failPage ?>" />
+		<input type="hidden" name="Cart_UID" value="<?= DS.opts.cart_uid ?>" />
+		<input type="hidden" name="Lang" value="<?= DS.opts.currentLang ?>" />
+		
+		<a href="#" id="digiseller-cart-go">ѕерейти к оплате</a>	
+	</form>
 	<a href="#" style="display:none">ѕересчитать</a><!--class="digiseller-cart-btn-disabeld"  пр€чем, если не надо пересчитывать, или вешаем класс .digiseller-cart-btn-disabeld-->
 	
 	<!-- пр€чем span, если нужно пересчитать -->

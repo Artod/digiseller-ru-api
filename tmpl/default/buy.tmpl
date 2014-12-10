@@ -4,7 +4,7 @@
 			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
 			+ ' id="digiseller-calc-buy">' + DS.opts.i18n['buy'] + '</a>'
-			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1" data-cart="1">В корзину</a>' : '')
+			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1" data-cart="1" id="digiseller-calc-cart">В корзину</a>' : '')
 		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
 	);
 ?>
@@ -12,12 +12,13 @@
 <div class="digiseller-productBuy">
 	<? if (d.is_available) { ?>
 		<div id="digiseller-calc" class="digiseller-calc">		
-			<form method="POST" action="https://www.oplata.info/asp/pay.asp" id="digiseller-buy-form-<?= d.id ?>" target="_blank">
+			<form id="digiseller-calc-form" method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>" target="_blank">
 				<input type="hidden" name="Agent" value="<?= d.agency_id ?>" />
-				
 				<input type="hidden" name="product_id" value="<?= d.id ?>" />
+				<input type="hidden" name="ID_D" value="<?= d.id ?>" />
 				<input type="hidden" name="seller_id" value="<?= DS.opts.seller_id ?>" />
-				
+				<input type="hidden" name="FailPage" value="<?= failPage ?>" />
+					
 				<? if (!d.prices_unit) { ?>	
 					<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.price ?> <?= d.currency ?></span>
 				<? } else { ?>
@@ -46,7 +47,7 @@
 						
 						<div class="digiseller-calc-right-value"><?= d.prices_unit.unit_CntDesc ?></div>				
 					</div>
-					<div class="digiseller-calc-limit" id="digiseller-calc-limit" style="display:none;"></div>
+					<div class="digiseller-calc-limit digiseller-hidden" id="digiseller-calc-limit"></div>
 				<? } ?>
 
 				<div class="digiseller-calc-method">
@@ -67,53 +68,54 @@
 					</select>
 				</div>
 				
-				<? if (d.options && d.options.length)
-					for (var i = 0, l = d.options.length; i < l; i++) {
-						var option = d.options[i]; ?>
-						
-						<div class="digiseller-calc-line"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
-							<div><?= option.label ?> <?= option.required == 1 ? '<span title="Обязательно">*</span>' : '' ?></div>
+				<? if (d.options && d.options.length) ?>
+					<div id="digiseller-calc-options">
+						<? for (var i = 0, l = d.options.length; i < l; i++) {
+							var option = d.options[i]; ?>
 							
-							<? switch(option.type) {
-								case 'text': ?>
+							<div class="digiseller-calc-line"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
+								<div><?= option.label ?> <?= option.required == 1 ? '<span title="Обязательно">*</span>' : '' ?></div>
 								
-									<input type="text" name="<?= option.name ?>" />						
+								<? switch(option.type) {
+									case 'text': ?>
 									
-									<? break;									
-								case 'textarea': ?>		
-								
-									<textarea name="<?= option.name ?>"></textarea>
-									
-									<? break;									
-								case 'select': ?>
-								
-									<select name="<?= option.name ?>">
-									<? if (option.variants && option.variants.length)
-										if (option.required != 1) { ?>
-											<option></option>
-										<? }
+										<input type="text" name="<?= option.name ?>" />						
 										
-										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
-											<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?>>
-												<?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?>
-											</option>
-										<? } ?>										
-									</select>
+										<? break;									
+									case 'textarea': ?>		
 									
-									<? break;
-								case 'checkbox': case 'radio':
-								
-									if (option.variants && option.variants.length)
-										for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
-											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>" value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?> />
-											<label for="<?= option.name ?>_<?= ii ?>"><?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?></label><br />
-										<? } ?>
+										<textarea name="<?= option.name ?>"></textarea>
 										
-									<? break;
-							} ?>
-						</div> 
-					<? } 
-				?>
+										<? break;									
+									case 'select': ?>
+									
+										<select name="<?= option.name ?>">
+										<? if (option.variants && option.variants.length)
+											if (option.required != 1) { ?>
+												<option></option>
+											<? }
+											
+											for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
+												<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?>>
+													<?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?>
+												</option>
+											<? } ?>										
+										</select>
+										
+										<? break;
+									case 'checkbox': case 'radio':
+									
+										if (option.variants && option.variants.length)
+											for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
+												<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>" value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?> />
+												<label for="<?= option.name ?>_<?= ii ?>"><?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?></label><br />
+											<? } ?>
+											
+										<? break;
+								} ?>
+							</div> 
+						<? } ?>
+					</div>
 				 
 
 
@@ -175,12 +177,10 @@
 				<? } ?>
 	 
 				<div class="digiseller-calc-buy">
-					<input type="hidden" name="ID_D" value="<?= d.id ?>" />
-					<input type="hidden" name="failPage" value="<?= failPage ?>" />
 					<?= button ?>
 				</div>
 				
-				<div class="digiseller-calc-line-err" style="display:none;" id="digiseller-buy-error-<?= d.id ?>"></div>
+				<div class="digiseller-calc-line-err digiseller-hidden" id="digiseller-buy-error-<?= d.id ?>"></div>
 			</form>
 		</div>
 	<? } ?>
