@@ -1,13 +1,13 @@
-<h2>Корзина</h2>
+<h2><?= DS.opts.i18n['cart'] ?></h2>
 
 <table class="digiseller-cart-popup">
 	<tbody>
 		<tr class="digiseller-cart-header">
 			<td>
-				Название товара
+				<?= DS.opts.i18n['nameOfArticle'] ?>
 			</td>
 			<td class="digiseller-cart-price">
-				Цена
+				<?= DS.opts.i18n['cost'] ?>
 				<select id="digiseller-cart-currency">
 					<option value="RUR">RUR</option>
 					<option value="USD">USD</option>
@@ -16,35 +16,37 @@
 				</select>
 			</td>
 			<td colspan="2">
-				Количество
+				<?= DS.opts.i18n['count'] ?>
 			</td>
 		</tr>
 	</tbody>
 </table>
 
 <div class="digiseller-cart-content">
-	<table class="digiseller-cart-popup" id="digiseller-cart-items">
-		<tbody>			
-			<?= items ?>
-		</tbody>
-	</table>
+	<? if (items) { ?>
+			<table class="digiseller-cart-popup" id="digiseller-cart-items">
+				<tbody>			
+					<?= items ?>
+				</tbody>
+			</table>
+	<? } else { ?>
+		<?= DS.opts.i18n['cartIsEmpty'] ?>
+	<? } ?>
 </div>
 
 <br />
 
 <div class="digiseller-cart-footer">
-	<form action="https://www.oplata.info/asp2/pay.asp" method="POST" target="_blank">
+	<form action="https://www.oplata.info/asp2/pay.asp" method="POST">
 		<input type="hidden" name="TypeCurr" value="<?= d.currency ?>" />
 		<input type="hidden" name="FailPage" value="<?= failPage ?>" />
 		<input type="hidden" name="Cart_UID" value="<?= DS.opts.cart_uid ?>" />
 		<input type="hidden" name="Lang" value="<?= DS.opts.currentLang ?>" />
 		
-		<a href="#" id="digiseller-cart-go">Перейти к оплате</a>	
+		<a id="digiseller-cart-go"<?= !items ? ' data-disabled="1" class="digiseller-cart-btn-disabled"' : '' ?>><?= DS.opts.i18n['goToPay'] ?></a>	
 	</form>
-	<a href="#" style="display:none">Пересчитать</a><!--class="digiseller-cart-btn-disabeld"  прячем, если не надо пересчитывать, или вешаем класс .digiseller-cart-btn-disabeld-->
-	
-	<!-- прячем span, если нужно пересчитать -->
-	<span>Итого:&nbsp;&nbsp;
+
+	<span id="digiseller-cart-amount-cont"<?= !items ? ' class="digiseller-hidden"' : '' ?>><?= DS.opts.i18n['inTotal'] ?>:&nbsp;&nbsp;
 		<span id="digiseller-cart-amount"><?= d.amount ?></span> <?= d.currency ?>
 	</span>
 </div>
