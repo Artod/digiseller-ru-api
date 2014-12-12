@@ -1309,7 +1309,7 @@ DS.widget =
 
 			that = @
 			DS.ajax('GET', DS.opts.host + 'shop_categories.asp'
-				el: @$el
+				$el: @$el
 				data:
 					lang: DS.opts.currentLang
 					seller_id: DS.opts.seller_id
@@ -1542,20 +1542,21 @@ DS.widget =
 
 		get: () ->
 			that = @
-			DS.JSONP.get(DS.opts.host + 'shop_reviews.asp', @$el,
-				format: 'json'
-				lang: DS.opts.currentLang
-				seller_id: DS.opts.seller_id
-				product_id: @product_id
-				type: @type
-				page: @page
-				rows: @rows
-			, (data) ->
-				return off unless data
+			# DS.JSONP.get(DS.opts.host + 'shop_reviews.asp', @$el,
+			DS.ajax('GET', DS.opts.host + 'shop_reviews.asp',
+				$el: @$el
+				data:
+					seller_id: DS.opts.seller_id
+					product_id: @product_id
+					type: @type
+					page: @page
+					rows: @rows
+				onLoad: (data) ->
+					return off unless data
 
-				that.render(data)
+					that.render(data)
 
-				return
+					return
 			)
 
 			return
@@ -1599,7 +1600,7 @@ DS.widget =
 			return
 			
 	calc: class
-		_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules', 'cart']
+		_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules', 'cart', 'method', 'curadd']
 		_prefix = 'digiseller-calc'
 
 		constructor: (@id) ->
@@ -1641,16 +1642,46 @@ DS.widget =
 					return
 				)
 
-			@$.currency.on('change', () ->
-				that.get()
-				# if that.$.amount.length
-					# that.get()
-				# else if that.$.price.length
-								##	that.$.price.html( DS.dom.attr(DS.dom.$('option', that.$.currency)[that.$.currency.selectedIndex], 'data-price') )
-					# that.$.price.html( DS.$('option', that.$.currency).eq(@.selectedIndex).attr('data-price') )
-					
+		
+			onChangeCurrency = (withoutGet) ->
+				index = that.$.currency.get(0).selectedIndex
+
+				$curAdd = $curAddSelects.eq(index)
+				vars = parseInt( $curAdd.attr('data-vars') )
+
+				$curAddSelects.hide()
+				
+				if vars > 1
+					$curAdd.show()
+					that.$.method.removeClass(_prefix + '-method').addClass(_prefix + '-method-two')
+				else
+					that.$.method.addClass(_prefix + '-method').removeClass(_prefix + '-method-two')
+
+				onChangeCurAdd($curAdd, withoutGet)
+				
+			$currencyOpts = DS.$('option', @$.currency)
+			onChangeCurAdd = ($this, withoutGet) ->				
+				index = $this.attr('data-index')
+				val = $this.val()
+
+				that.$.currency.get(0).selectedIndex = index
+				$currencyOpts.eq(index).val(val)
+				
+				unless withoutGet
+					that.get()
+				
 				return
+				
+			$curAddSelects = DS.$('select', @$.curadd)			
+			$curAddSelects.on('change', ()->
+				onChangeCurAdd( DS.$(@) )
 			)
+			
+			@$.currency.on('change', () ->
+				onChangeCurrency()
+			)
+			
+			onChangeCurrency(true)
 			
 			$optionsCont = DS.$('#digiseller-calc-options')
 			if $optionsCont.length
@@ -1661,39 +1692,33 @@ DS.widget =
 					return
 				)
 				
-				@get()
+			@get()
 
 			if that.$.rules.length
 				$parentRules = that.$.rules.parent()
 				
 				rules = (flag) ->
 					$parentRules[if flag and not that.$.rules.get(0).checked then 'addClass' else 'removeClass'](_prefix + '-confirmation-error')
-					# if $parentRules.length
-						# DS.dom.klass( (if flag and not that.$.rules.checked then 'add' else 'remove'), that.$.rules.parentNode, 'digiseller-calc-confirmation-error' )						
 
-				@$.buy
-					.on('mouseover', () ->
-						rules(true)
-						
-						return
-					)
-					.on('mouseout', () ->
-						rules(false)
-						
-						return
-					)
+				@$.buy.on('mouseover', () ->
+					rules(true)
 					
-				@$.cart
-					.on('mouseover', () ->
-						rules(true)
-						
-						return
-					)
-					.on('mouseout', () ->
-						rules(false)
-						
-						return
-					)
+					return
+				).on('mouseout', () ->
+					rules(false)
+					
+					return
+				)
+					
+				@$.cart.on('mouseover', () ->
+					rules(true)
+					
+					return
+				).on('mouseout', () ->
+					rules(false)
+					
+					return
+				)
 
 			return
 
@@ -1734,7 +1759,7 @@ DS.widget =
 			params.x += '</response>'
 			
 			DS.ajax('GET', '//www.oplata.info/asp2/price_options.asp'
-				el: @$.container
+				$el: @$.container
 				data: params
 				onLoad: (res) ->					
 					return off if not res
@@ -1865,7 +1890,7 @@ DS.widget =
 		get: () ->
 			that = @
 			DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
-				el: DS.widget.cartButton.$el
+				$el: DS.widget.cartButton.$el
 				data:
 					lang: DS.opts.currentLang
 					cart_uid: DS.opts.cart_uid
@@ -2048,7 +2073,7 @@ DS.widget =
 				count = 1
 			
 			DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
-				el: $this.get(0)
+				$el: $this
 				data:
 					lang: DS.opts.currentLang
 					cart_uid: DS.opts.cart_uid
@@ -2076,22 +2101,23 @@ DS.route =
 
 		get: () ->
 			that = @
-			DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
-				format: 'json'
-				lang: DS.opts.currentLang
-				seller_id: DS.opts.seller_id
-				category_id: 0
-				rows: 10
-				order: DS.opts.sort
-				currency: DS.opts.currency
-			, (data) ->
-				return off unless data
+			# DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
+			DS.ajax('GET', DS.opts.host + 'shop_products.asp',
+				$el: DS.widget.main.$el
+				data:
+					seller_id: DS.opts.seller_id
+					category_id: 0
+					rows: 10
+					order: DS.opts.sort
+					currency: DS.opts.currency
+				onLoad: (data) ->
+					return off unless data
 
-				that.render(data)
-				DS.util.scrollUp()
+					that.render(data)
+					DS.util.scrollUp()
 
-				return
-			)
+					return
+				)
 
 			return
 
@@ -2142,21 +2168,22 @@ DS.route =
 
 		get: () ->
 			that = @
-			DS.JSONP.get(DS.opts.host + 'shop_search.asp', DS.widget.main.$el,
-				format: 'json'
-				lang: DS.opts.currentLang
-				seller_id: DS.opts.seller_id # 83991
-				currency: DS.opts.currency
-				page: @page
-				rows: @rows
-				search: @search
-			, (data) ->
-				return off unless data
+			# DS.JSONP.get(DS.opts.host + 'shop_search.asp', DS.widget.main.$el,
+			DS.ajax('GET', DS.opts.host + 'shop_search.asp',
+				$el: DS.widget.main.$el
+				data:
+					seller_id: DS.opts.seller_id # 83991
+					currency: DS.opts.currency
+					page: @page
+					rows: @rows
+					search: @search
+				onLoad: (data) ->
+					return off unless data
 
-				that.render(data)
-				DS.util.scrollUp()
+					that.render(data)
+					DS.util.scrollUp()
 
-				return
+					return
 			)
 
 			return
@@ -2249,23 +2276,26 @@ DS.route =
 			DS.widget.category.mark(@cid)
 
 			that = @
-			DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
-				format: 'json'
-				lang: DS.opts.currentLang
-				seller_id: DS.opts.seller_id
-				category_id: @cid
-				page: @page
-				rows: @rows
-				order: DS.opts.sort
-				currency: DS.opts.currency
-			, (data) ->
-				return off unless data
+			# DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el,
+			DS.ajax('GET', DS.opts.host + 'shop_products.asp',
+				$el: DS.widget.main.$el
+				data:
+				# format: 'json'
+				# lang: DS.opts.currentLang
+					seller_id: DS.opts.seller_id
+					category_id: @cid
+					page: @page
+					rows: @rows
+					order: DS.opts.sort
+					currency: DS.opts.currency
+				onLoad: (data) ->
+					return off unless data
 
-				that.render(data)
-				DS.util.scrollUp()
+					that.render(data)
+					DS.util.scrollUp()
 
-				return
-			)
+					return
+				)
 
 			return
 
@@ -2378,19 +2408,20 @@ DS.route =
 			@id = params[1] or 0
 
 			that = @
-			DS.JSONP.get(DS.opts.host + 'shop_product_info.asp', DS.widget.main.$el,
-				format: 'json'
-				lang: DS.opts.currentLang
-				seller_id: DS.opts.seller_id
-				product_id: @id
-				currency: DS.opts.currency
-			, (data) ->
-				return off unless data
+			# DS.JSONP.get(DS.opts.host + 'shop_product_info.asp', DS.widget.main.$el,
+			DS.ajax('GET', DS.opts.host + 'shop_product_info.asp',
+				$el: DS.widget.main.$el
+				data:
+					seller_id: DS.opts.seller_id
+					product_id: @id
+					currency: DS.opts.currency
+				onLoad: (data) ->
+					return off unless data
 
-				that.render(data)
-				DS.util.scrollUp()
+					that.render(data)
+					DS.util.scrollUp()
 
-				return
+					return
 			)
 
 			return
@@ -2621,20 +2652,21 @@ DS.route =
 		url: '/contacts'
 		action: (params) ->
 			that = @
-			DS.JSONP.get(DS.opts.host + 'shop_contacts.asp', DS.widget.main.$el,
-				format: 'json'
-				lang: DS.opts.currentLang
-				seller_id: DS.opts.seller_id
-			, (data) ->
-				off unless data
+			# DS.JSONP.get(DS.opts.host + 'shop_contacts.asp', DS.widget.main.$el,
+			DS.ajax('GET', DS.opts.host + 'shop_contacts.asp',
+				$el: DS.widget.main.$el
+				data:
+					seller_id: DS.opts.seller_id
+				onLoad: (data) ->
+					off unless data
 
-				DS.widget.main.$el.html( DS.tmpl(DS.tmpls.contacts,
-					d: data
-				) )
+					DS.widget.main.$el.html( DS.tmpl(DS.tmpls.contacts,
+						d: data
+					) )
 
-				DS.util.scrollUp()
+					DS.util.scrollUp()
 
-				return
+					return
 			)
 
 			return

@@ -1067,7 +1067,7 @@ DigiSeller-ru-api
         this.isInited = false;
         that = this;
         DS.ajax('GET', DS.opts.host + 'shop_categories.asp', {
-          el: this.$el,
+          $el: this.$el,
           data: {
             lang: DS.opts.currentLang,
             seller_id: DS.opts.seller_id
@@ -1263,19 +1263,21 @@ DigiSeller-ru-api
       _Class.prototype.get = function() {
         var that;
         that = this;
-        DS.JSONP.get(DS.opts.host + 'shop_reviews.asp', this.$el, {
-          format: 'json',
-          lang: DS.opts.currentLang,
-          seller_id: DS.opts.seller_id,
-          product_id: this.product_id,
-          type: this.type,
-          page: this.page,
-          rows: this.rows
-        }, function(data) {
-          if (!data) {
-            return false;
+        DS.ajax('GET', DS.opts.host + 'shop_reviews.asp', {
+          $el: this.$el,
+          data: {
+            seller_id: DS.opts.seller_id,
+            product_id: this.product_id,
+            type: this.type,
+            page: this.page,
+            rows: this.rows
+          },
+          onLoad: function(data) {
+            if (!data) {
+              return false;
+            }
+            that.render(data);
           }
-          that.render(data);
         });
       };
 
@@ -1314,12 +1316,12 @@ DigiSeller-ru-api
     calc: (function() {
       var _els, _prefix;
 
-      _els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules', 'cart'];
+      _els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules', 'cart', 'method', 'curadd'];
 
       _prefix = 'digiseller-calc';
 
       function _Class(id) {
-        var $optionsCont, $parentRules, debouncedGet, rules, that;
+        var $curAddSelects, $currencyOpts, $optionsCont, $parentRules, debouncedGet, onChangeCurAdd, onChangeCurrency, rules, that;
         this.id = id;
         this.$ = {
           container: DS.$("#" + _prefix)
@@ -1347,17 +1349,47 @@ DigiSeller-ru-api
             that.get('cnt');
           });
         }
-        this.$.currency.on('change', function() {
-          that.get();
+        onChangeCurrency = function(withoutGet) {
+          var $curAdd, index, vars;
+          index = that.$.currency.get(0).selectedIndex;
+          $curAdd = $curAddSelects.eq(index);
+          vars = parseInt($curAdd.attr('data-vars'));
+          $curAddSelects.hide();
+          if (vars > 1) {
+            $curAdd.show();
+            that.$.method.removeClass(_prefix + '-method').addClass(_prefix + '-method-two');
+          } else {
+            that.$.method.addClass(_prefix + '-method').removeClass(_prefix + '-method-two');
+          }
+          return onChangeCurAdd($curAdd, withoutGet);
+        };
+        $currencyOpts = DS.$('option', this.$.currency);
+        onChangeCurAdd = function($this, withoutGet) {
+          var index, val;
+          index = $this.attr('data-index');
+          val = $this.val();
+          that.$.currency.get(0).selectedIndex = index;
+          $currencyOpts.eq(index).val(val);
+          if (!withoutGet) {
+            that.get();
+          }
+        };
+        $curAddSelects = DS.$('select', this.$.curadd);
+        $curAddSelects.on('change', function() {
+          return onChangeCurAdd(DS.$(this));
         });
+        this.$.currency.on('change', function() {
+          return onChangeCurrency();
+        });
+        onChangeCurrency(true);
         $optionsCont = DS.$('#digiseller-calc-options');
         if ($optionsCont.length) {
           this.$.options = DS.$('input[type="radio"], input[type="checkbox"], select', $optionsCont);
           this.$.options.on('change', function() {
             that.get();
           });
-          this.get();
         }
+        this.get();
         if (that.$.rules.length) {
           $parentRules = that.$.rules.parent();
           rules = function(flag) {
@@ -1406,7 +1438,7 @@ DigiSeller-ru-api
         }
         params.x += '</response>';
         DS.ajax('GET', '//www.oplata.info/asp2/price_options.asp', {
-          el: this.$.container,
+          $el: this.$.container,
           data: params,
           onLoad: function(res) {
             if (!res) {
@@ -1508,7 +1540,7 @@ DigiSeller-ru-api
         var that;
         that = this;
         DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp', {
-          el: DS.widget.cartButton.$el,
+          $el: DS.widget.cartButton.$el,
           data: {
             lang: DS.opts.currentLang,
             cart_uid: DS.opts.cart_uid,
@@ -1641,7 +1673,7 @@ DigiSeller-ru-api
           count = 1;
         }
         DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp', {
-          el: $this.get(0),
+          $el: $this,
           data: {
             lang: DS.opts.currentLang,
             cart_uid: DS.opts.cart_uid,
@@ -1672,20 +1704,22 @@ DigiSeller-ru-api
       get: function() {
         var that;
         that = this;
-        DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el, {
-          format: 'json',
-          lang: DS.opts.currentLang,
-          seller_id: DS.opts.seller_id,
-          category_id: 0,
-          rows: 10,
-          order: DS.opts.sort,
-          currency: DS.opts.currency
-        }, function(data) {
-          if (!data) {
-            return false;
+        DS.ajax('GET', DS.opts.host + 'shop_products.asp', {
+          $el: DS.widget.main.$el,
+          data: {
+            seller_id: DS.opts.seller_id,
+            category_id: 0,
+            rows: 10,
+            order: DS.opts.sort,
+            currency: DS.opts.currency
+          },
+          onLoad: function(data) {
+            if (!data) {
+              return false;
+            }
+            that.render(data);
+            DS.util.scrollUp();
           }
-          that.render(data);
-          DS.util.scrollUp();
         });
       },
       render: function(data) {
@@ -1726,20 +1760,22 @@ DigiSeller-ru-api
       get: function() {
         var that;
         that = this;
-        DS.JSONP.get(DS.opts.host + 'shop_search.asp', DS.widget.main.$el, {
-          format: 'json',
-          lang: DS.opts.currentLang,
-          seller_id: DS.opts.seller_id,
-          currency: DS.opts.currency,
-          page: this.page,
-          rows: this.rows,
-          search: this.search
-        }, function(data) {
-          if (!data) {
-            return false;
+        DS.ajax('GET', DS.opts.host + 'shop_search.asp', {
+          $el: DS.widget.main.$el,
+          data: {
+            seller_id: DS.opts.seller_id,
+            currency: DS.opts.currency,
+            page: this.page,
+            rows: this.rows,
+            search: this.search
+          },
+          onLoad: function(data) {
+            if (!data) {
+              return false;
+            }
+            that.render(data);
+            DS.util.scrollUp();
           }
-          that.render(data);
-          DS.util.scrollUp();
         });
       },
       render: function(data) {
@@ -1814,21 +1850,23 @@ DigiSeller-ru-api
         var that;
         DS.widget.category.mark(this.cid);
         that = this;
-        DS.JSONP.get(DS.opts.host + 'shop_products.asp', DS.widget.main.$el, {
-          format: 'json',
-          lang: DS.opts.currentLang,
-          seller_id: DS.opts.seller_id,
-          category_id: this.cid,
-          page: this.page,
-          rows: this.rows,
-          order: DS.opts.sort,
-          currency: DS.opts.currency
-        }, function(data) {
-          if (!data) {
-            return false;
+        DS.ajax('GET', DS.opts.host + 'shop_products.asp', {
+          $el: DS.widget.main.$el,
+          data: {
+            seller_id: DS.opts.seller_id,
+            category_id: this.cid,
+            page: this.page,
+            rows: this.rows,
+            order: DS.opts.sort,
+            currency: DS.opts.currency
+          },
+          onLoad: function(data) {
+            if (!data) {
+              return false;
+            }
+            that.render(data);
+            DS.util.scrollUp();
           }
-          that.render(data);
-          DS.util.scrollUp();
         });
       },
       render: function(data) {
@@ -1911,18 +1949,20 @@ DigiSeller-ru-api
         var that;
         this.id = params[1] || 0;
         that = this;
-        DS.JSONP.get(DS.opts.host + 'shop_product_info.asp', DS.widget.main.$el, {
-          format: 'json',
-          lang: DS.opts.currentLang,
-          seller_id: DS.opts.seller_id,
-          product_id: this.id,
-          currency: DS.opts.currency
-        }, function(data) {
-          if (!data) {
-            return false;
+        DS.ajax('GET', DS.opts.host + 'shop_product_info.asp', {
+          $el: DS.widget.main.$el,
+          data: {
+            seller_id: DS.opts.seller_id,
+            product_id: this.id,
+            currency: DS.opts.currency
+          },
+          onLoad: function(data) {
+            if (!data) {
+              return false;
+            }
+            that.render(data);
+            DS.util.scrollUp();
           }
-          that.render(data);
-          DS.util.scrollUp();
         });
       },
       render: function(data) {
@@ -2101,18 +2141,20 @@ DigiSeller-ru-api
       action: function(params) {
         var that;
         that = this;
-        DS.JSONP.get(DS.opts.host + 'shop_contacts.asp', DS.widget.main.$el, {
-          format: 'json',
-          lang: DS.opts.currentLang,
-          seller_id: DS.opts.seller_id
-        }, function(data) {
-          if (!data) {
-            false;
+        DS.ajax('GET', DS.opts.host + 'shop_contacts.asp', {
+          $el: DS.widget.main.$el,
+          data: {
+            seller_id: DS.opts.seller_id
+          },
+          onLoad: function(data) {
+            if (!data) {
+              false;
+            }
+            DS.widget.main.$el.html(DS.tmpl(DS.tmpls.contacts, {
+              d: data
+            }));
+            DS.util.scrollUp();
           }
-          DS.widget.main.$el.html(DS.tmpl(DS.tmpls.contacts, {
-            d: data
-          }));
-          DS.util.scrollUp();
         });
       }
     }

@@ -1,7 +1,7 @@
 <div class="langs_bg <?= DS.opts.currentLang ?>-icon"></div>
 <div class="digiseller-langs-dd">
 	<span></span>
-	<? for (var i = 0, l = DS.opts.langs.length; i < l; i++) { ?>		
-		<a href="#" data-action="click-lang" data-lang="<?= DS.opts.langs[i][0] ?>"><?= DS.opts.langs[i][1] ?></a>
-	<? } ?>
+	<? DS.util.each(DS.opts.langs, function(lang) { ?>
+		<a href="#" data-action="click-lang" data-lang="<?= lang[0] ?>"><?= lang[1] ?></a>
+	<? }); ?>
 </div>
