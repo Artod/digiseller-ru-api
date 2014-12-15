@@ -4,7 +4,7 @@
 			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
 			+ ' id="digiseller-calc-buy">' + DS.opts.i18n['buy'] + '</a>'
-			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1" data-cart="1" id="digiseller-calc-cart">' + DS.opts.i18n['toCart'] + '</a>' : '')
+			+ (DS.opts.hasCart && !d.no_cart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1" data-cart="1" id="digiseller-calc-cart">' + DS.opts.i18n['toCart'] + '</a>' : '')
 		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
 	);
 ?>

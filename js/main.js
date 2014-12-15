@@ -6,11 +6,13 @@ DigiSeller-ru-api
  */
 
 (function() {
-  var DS, checkReady;
+  var DS, checkReady, _cssIsLoaded;
 
   if (window.DigiSeller != null) {
     false;
   }
+
+  _cssIsLoaded = true;
 
   DS = {};
 
@@ -404,52 +406,12 @@ DigiSeller-ru-api
 
   DS.dom = {
     getStyle: function(url, onLoad) {
-      var css, link;
+      var link;
       link = document.createElement('link');
       link.type = 'text/css';
       link.rel = 'stylesheet';
       link.href = url;
       DS.el.head.appendChild(link);
-      css = new Image();
-      css.onerror = function() {
-        if (onLoad) {
-          return onLoad();
-        }
-      };
-      css.src = url;
-    },
-    getScript: function(url, onLoad, onError, onComplete) {
-      var done, script, _onComplete;
-      script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.setAttribute('encoding', 'UTF-8');
-      script.src = url;
-      done = false;
-      _onComplete = function(e) {
-        done = true;
-        script.onload = script.onreadystatechange = null;
-        if (DS.el.head && script.parentNode) {
-          DS.el.head.removeChild(script);
-        }
-        if (onComplete) {
-          onComplete();
-        }
-      };
-      script.onload = script.onreadystatechange = function(e) {
-        if (!done && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
-          _onComplete();
-          if (onLoad) {
-            onLoad();
-          }
-        }
-      };
-      script.onerror = function(e) {
-        _onComplete();
-        if (onError) {
-          onError;
-        }
-      };
-      DS.el.head.appendChild(script);
     }
   };
 
@@ -615,7 +577,29 @@ DigiSeller-ru-api
 })();
 
   DS.ajax = (function() {
-    function createCORSRequest(method, url) {
+    var _isXdr = false,
+		createCORSRequest = function() {
+			return null;
+		};	
+	
+	if ( 'withCredentials' in new XMLHttpRequest() ) {
+		createCORSRequest = function(method, url) {
+			var xhr = new XMLHttpRequest();
+			xhr.open(method, url, true);
+			if (method === 'POST') xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			return xhr;
+		}
+	} else if (typeof XDomainRequest !== 'undefined') {
+		_isXdr = true;
+		createCORSRequest = function(method, url) {
+			var xdr = new XDomainRequest();
+			xdr.open(method, url);
+			
+			return xdr;
+		}
+	}
+	
+	/*function createCORSRequest(method, url) {
 		var xhr = new XMLHttpRequest();
 		if ('withCredentials' in xhr) {
 			xhr.open(method, url, true);
@@ -630,7 +614,7 @@ DigiSeller-ru-api
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		
 		return xhr;
-	}
+	}*/
 	
 	function toQueryString(params) {
 		var key,
@@ -653,6 +637,10 @@ DigiSeller-ru-api
         onFail: function() {},
         onComplete: function() {}
       }, opts);
+      if (_isXdr && method === 'POST') {
+        method = 'GET';
+        opts.data && (opts.data.xdr = 1);
+      }
       sign = (/\?/.test(url) ? '&' : '?');
       queryString = toQueryString(opts.data);
       xhr = createCORSRequest(method, url + sign + 'transp=cors&format=json&lang=' + DS.opts.currentLang + (method === 'GET' ? '&_=' + Math.random() + (queryString ? '&' + queryString : '') : ''));
@@ -663,7 +651,6 @@ DigiSeller-ru-api
         return DS.widget.loader.hide(uid);
       };
       if (!xhr) {
-        DS.JSONP.get(url + sign + 'transp=jsonp', opts.$el, opts.data, opts.onLoad, opts.onFail, _onComplete);
         return;
       }
       needCheck = opts.$el ? true : false;
@@ -681,65 +668,78 @@ DigiSeller-ru-api
         _onComplete(xhr);
         return opts.onFail(xhr);
       };
-      xhr.send(queryString);
+      xhr.onabort = function() {
+        console.log('abort');
+        return _onComplete(xhr);
+      };
+      if (_isXdr) {
+        setTimeout(function() {
+          xhr.send(queryString);
+        }, 0);
+      } else {
+        xhr.send(queryString);
+      }
       return xhr;
     };
   })();
 
-  DS.JSONP = (function() {
-	var _callbacks = [];
 
-	function jsonp(url, $el, params, onLoad, onFail, onComplete) {
-		var query = (url || '').indexOf('?') === -1 ? '?' : '&',
-			key;
-
-		params = params || {};
-
-		var _uid = DS.util.getUID();
-		params.queryId = _uid;
-
-		for (key in params) {
-			if ( !DS.util.hasOwnProp(params, key) ) continue;
-
-			query += DS.util.enc(key) + '=' + DS.util.enc(params[key]) + '&'
-		}
-
-		var needCheck = $el ? true : false;
-
-		if (needCheck) {
-			$el.attr('data-qid', _uid);
-		}
-
-		_callbacks[_uid] = function(data) {
-			if ( needCheck && ( !$el || data.queryId != $el.attr('data-qid') ) ) {
-				return;
-			}
-
-			onLoad(data);
-		};
-
-		DS.dom.getScript(url + query + '_' + Math.random(), null, onFail, onComplete);
-
-		return _uid;
-	}
-
-	return {
-		get: jsonp,
-		callback: function(data) {
-			if (!data || !data.queryId || !_callbacks[data.queryId]) {
-				return;
-			}
-
-			_callbacks[data.queryId](data);
-
-			try {
-				delete _callbacks[data.queryId];
-			} catch (e) {}
-
-			_callbacks[data.queryId] = null;
-		}
-	};
-})();
+  /*
+  DS.JSONP = `(function() {
+  	var _callbacks = [];
+  
+  	function jsonp(url, $el, params, onLoad, onFail, onComplete) {
+  		var query = (url || '').indexOf('?') === -1 ? '?' : '&',
+  			key;
+  
+  		params = params || {};
+  
+  		var _uid = DS.util.getUID();
+  		params.queryId = _uid;
+  
+  		for (key in params) {
+  			if ( !DS.util.hasOwnProp(params, key) ) continue;
+  
+  			query += DS.util.enc(key) + '=' + DS.util.enc(params[key]) + '&'
+  		}
+  
+  		var needCheck = $el ? true : false;
+  
+  		if (needCheck) {
+  			$el.attr('data-qid', _uid);
+  		}
+  
+  		_callbacks[_uid] = function(data) {
+  			if ( needCheck && ( !$el || data.queryId != $el.attr('data-qid') ) ) {
+  				return;
+  			}
+  
+  			onLoad(data);
+  		};
+  
+  		DS.dom.getScript(url + query + '_' + Math.random(), null, onFail, onComplete);
+  
+  		return _uid;
+  	}
+  
+  	return {
+  		get: jsonp,
+  		callback: function(data) {
+  			if (!data || !data.queryId || !_callbacks[data.queryId]) {
+  				return;
+  			}
+  
+  			_callbacks[data.queryId](data);
+  
+  			try {
+  				delete _callbacks[data.queryId];
+  			} catch (e) {}
+  
+  			_callbacks[data.queryId] = null;
+  		}
+  	};
+  })()`
+   */
 
   DS.tmpl = function(text, data) {
 	settings = {
@@ -2288,7 +2288,7 @@ DigiSeller-ru-api
   DS.inited = false;
 
   DS.init = function() {
-    var getEl;
+    var getEl, homeInited, name, route, _fn, _ref;
     if (DS.inited) {
       return false;
     }
@@ -2298,70 +2298,70 @@ DigiSeller-ru-api
     };
     DS.el.head = getEl('html');
     DS.el.body = getEl('body');
-    DS.dom.getStyle('css/default/test.css', function() {
-      var homeInited, name, route, _fn, _ref;
-      DS.opts.currency = DS.cookie.get('digiseller-currency') || DS.opts.currency;
-      DS.util.each(['sort', 'rows', 'view'], function(param) {
-        DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) || DS.opts[param];
-      });
-      DS.opts.agree = DS.cookie.get('digiseller-agree') || DS.opts.agree;
-      DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') || DS.opts.cart_uid;
-      DS.widget.category.init();
-      DS.widget.main.init();
-      DS.widget.loader.init();
-      DS.widget.search.init();
-      DS.widget.lang.init();
-      DS.widget.cartButton.init();
-      DS.$('#digiseller-logo').html(DS.tmpl(DS.tmpls.logo, {
-        logo_img: DS.opts.logo_img
-      }));
-      DS.$('#digiseller-topmenu').html(DS.tmpl(DS.tmpls.topmenu, {}));
-      if (!DS.widget.category.$el.length) {
-        DS.widget.main.$el.addClass('digiseller-main-nocategory');
-      }
-      homeInited = false;
-      DS.historyClick.addRoute('#.*', function(params) {
-        if (homeInited) {
-          return;
-        }
-        homeInited = true;
-        DS.route.home.action();
-      });
-      _ref = DS.route;
-      _fn = function(route) {
-        DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, function(params) {
-          homeInited = true;
-          route.action(params);
-        });
-      };
-      for (name in _ref) {
-        route = _ref[name];
-        if (!DS.route.hasOwnProperty(name) || !route.url || !route.action) {
-          continue;
-        }
-        _fn(route);
-      }
-      DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
-      DS.historyClick.start();
-      if (window.location.hash === '') {
-        DS.historyClick.reload();
-      }
-      DS.historyClick.onGo = function() {
-        DS.popup.close();
-      };
+    if (!DS.$('#digiseller-css').length) {
+      DS.dom.getStyle('css/default/test.css');
+    }
+    DS.opts.currency = DS.cookie.get('digiseller-currency') || DS.opts.currency;
+    DS.util.each(['sort', 'rows', 'view'], function(param) {
+      DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) || DS.opts[param];
     });
+    DS.opts.agree = DS.cookie.get('digiseller-agree') || DS.opts.agree;
+    DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') || DS.opts.cart_uid;
+    DS.widget.category.init();
+    DS.widget.main.init();
+    DS.widget.loader.init();
+    DS.widget.search.init();
+    DS.widget.lang.init();
+    DS.widget.cartButton.init();
+    DS.$('#digiseller-logo').html(DS.tmpl(DS.tmpls.logo, {
+      logo_img: DS.opts.logo_img
+    }));
+    DS.$('#digiseller-topmenu').html(DS.tmpl(DS.tmpls.topmenu, {}));
+    if (!DS.widget.category.$el.length) {
+      DS.widget.main.$el.addClass('digiseller-main-nocategory');
+    }
+    homeInited = false;
+    DS.historyClick.addRoute('#.*', function(params) {
+      if (homeInited) {
+        return;
+      }
+      homeInited = true;
+      DS.route.home.action();
+    });
+    _ref = DS.route;
+    _fn = function(route) {
+      DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, function(params) {
+        homeInited = true;
+        route.action(params);
+      });
+    };
+    for (name in _ref) {
+      route = _ref[name];
+      if (!DS.route.hasOwnProperty(name) || !route.url || !route.action) {
+        continue;
+      }
+      _fn(route);
+    }
+    DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home');
+    DS.historyClick.start();
+    if (window.location.hash === '') {
+      DS.historyClick.reload();
+    }
+    DS.historyClick.onGo = function() {
+      DS.popup.close();
+    };
   };
 
   window.DigiSeller = DS;
 
   checkReady = function() {
-    if (document.readyState !== 'loading') {
-      DS.init();
-    } else {
-      setTimeout(function() {
-        checkReady();
-      }, 1);
-    }
+    setTimeout(function() {
+      if (document.readyState !== 'loading') {
+        return DS.init();
+      } else {
+        return checkReady();
+      }
+    }, 1);
   };
 
   checkReady();

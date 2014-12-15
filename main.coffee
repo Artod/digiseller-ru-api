@@ -5,6 +5,8 @@ DigiSeller-ru-api
 
 off if window.DigiSeller?
 
+_cssIsLoaded = true
+
 DS = {}
 
 DS.el =
@@ -531,7 +533,7 @@ DS.dom =
 					# return
 
 		# return
-
+	
 	getStyle: (url, onLoad) ->
 		link = document.createElement('link')
 		link.type = 'text/css'
@@ -540,57 +542,8 @@ DS.dom =
 
 		DS.el.head.appendChild(link)
 
-		css = new Image()
-		css.onerror = () ->
-			onLoad() if onLoad
-		css.src = url
-
 		return
-
-	# jQuery.getScript
-	getScript: (url, onLoad, onError, onComplete) ->
-		script = document.createElement('script')
-		script.type = 'text/javascript'
-		script.setAttribute('encoding', 'UTF-8')
-		script.src = url
-
-		done = no
-		_onComplete = (e) ->
-			# sasas = Math.random()*10000
-			# console.log(sasas)
-			# setTimeout(() ->		
-			
-			done = yes
-			script.onload = script.onreadystatechange = null
-
-			DS.el.head.removeChild(script) if DS.el.head and script.parentNode
-			# console.log('onComplete')
-			onComplete() if onComplete
-				
-				
-			# , sasas)
-			
-			
-			
-			return
-
-		script.onload = script.onreadystatechange = (e) ->
-			if ( not done and (not this.readyState or this.readyState is 'loaded' or this.readyState is 'complete') )
-				_onComplete()
-				onLoad() if onLoad
-
-			return
-
-		script.onerror = (e) ->
-			_onComplete()
-			onError if onError
-
-			return
-
-		DS.el.head.appendChild(script)
-
-		return
-
+	
 # https://gist.githubusercontent.com/bullgare/5336154/raw/e907dd47330d2af59e0a68f6fa272b4fdaa069ba/services.js
 DS.serialize = (form, onEach) ->
 	`if (!form || form.nodeName !== "FORM") {
@@ -754,8 +707,30 @@ DS.historyClick = `(function() {
 	return historyClick;
 })()`
 
-DS.ajax = (() ->
-	`function createCORSRequest(method, url) {
+DS.ajax = (() -> 
+	`var _isXdr = false,
+		createCORSRequest = function() {
+			return null;
+		};	
+	
+	if ( 'withCredentials' in new XMLHttpRequest() ) {
+		createCORSRequest = function(method, url) {
+			var xhr = new XMLHttpRequest();
+			xhr.open(method, url, true);
+			if (method === 'POST') xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			return xhr;
+		}
+	} else if (typeof XDomainRequest !== 'undefined') {
+		_isXdr = true;
+		createCORSRequest = function(method, url) {
+			var xdr = new XDomainRequest();
+			xdr.open(method, url);
+			
+			return xdr;
+		}
+	}
+	
+	/*function createCORSRequest(method, url) {
 		var xhr = new XMLHttpRequest();
 		if ('withCredentials' in xhr) {
 			xhr.open(method, url, true);
@@ -770,7 +745,7 @@ DS.ajax = (() ->
 			xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		
 		return xhr;
-	}
+	}*/
 	
 	function toQueryString(params) {
 		var key,
@@ -794,6 +769,10 @@ DS.ajax = (() ->
 			onComplete: () ->
 		, opts)
 
+		if _isXdr and method is 'POST'
+			method = 'GET';
+			opts.data && opts.data.xdr = 1		
+		
 		sign = (if /\?/.test(url) then '&' else '?')
 
 		queryString = toQueryString(opts.data)
@@ -810,7 +789,7 @@ DS.ajax = (() ->
 			DS.widget.loader.hide(uid)
 
 		if not xhr
-			DS.JSONP.get(url + sign + 'transp=jsonp', opts.$el, opts.data, opts.onLoad, opts.onFail, _onComplete)
+			# DS.JSONP.get(url + sign + 'transp=jsonp', opts.$el, opts.data, opts.onLoad, opts.onFail, _onComplete)
 
 			return
 
@@ -834,12 +813,23 @@ DS.ajax = (() ->
 		xhr.onerror = () ->			
 			_onComplete(xhr)			
 			opts.onFail(xhr)
-
-		xhr.send(queryString)
+			
+		xhr.onabort = () ->
+			console.log('abort')
+			_onComplete(xhr)
+			
+		# http://cypressnorth.com/programming/internet-explorer-aborting-ajax-requests-fixed/
+		if _isXdr
+			setTimeout(() ->
+				xhr.send(queryString)
+				return
+			, 0)
+		else
+			xhr.send(queryString)
 
 		xhr
 )()
-
+###
 DS.JSONP = `(function() {
 	var _callbacks = [];
 
@@ -894,7 +884,7 @@ DS.JSONP = `(function() {
 		}
 	};
 })()`
-
+###
 # http://documentcloud.github.com/underscore/
 DS.tmpl = `function(text, data) {
 	settings = {
@@ -2251,7 +2241,7 @@ DS.route =
 				DS.widget.currency.init()
 
 			DS.$("##{@prefix}-query").html( @search.replace('<', '&lt;').replace('>', '&gt;') )
-			DS.$("##{@prefix}-total").html( data.totalItems )
+			DS.$("##{@prefix}-total").html(data.totalItems)
 
 			return
 
@@ -2844,118 +2834,117 @@ DS.init = ->
 	DS.el.head = getEl('html')
 	DS.el.body = getEl('body')
 
-	# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+	unless DS.$('#digiseller-css').length
+		# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+		# DS.dom.getStyle(DS.opts.host + 'shop_css_test.asp?seller_id=' + DS.opts.seller_id)		
+		DS.dom.getStyle('css/default/test.css')
+	
+	DS.opts.currency = DS.cookie.get('digiseller-currency') or DS.opts.currency
 
-	DS.dom.getStyle('css/default/test.css', () ->
-		DS.opts.currency = DS.cookie.get('digiseller-currency') or DS.opts.currency
-
-		# params = ['sort', 'rows', 'view']
-		# for param in params
-		DS.util.each(['sort', 'rows', 'view'], (param) ->
-			DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
-			
-			return
-		)
+	# params = ['sort', 'rows', 'view']
+	# for param in params
+	DS.util.each(['sort', 'rows', 'view'], (param) ->
+		DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
 		
-		DS.opts.agree = DS.cookie.get('digiseller-agree') or DS.opts.agree
-
-		DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
-		
-		DS.widget.category.init()
-		DS.widget.main.init()
-		DS.widget.loader.init()
-		DS.widget.search.init()
-		DS.widget.lang.init()
-		DS.widget.cartButton.init()
-		
-		# DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo,
-		DS.$('#digiseller-logo').html( DS.tmpl(DS.tmpls.logo,
-			logo_img: DS.opts.logo_img
-		) )
-
-		# DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, {})
-		DS.$('#digiseller-topmenu').html( DS.tmpl(DS.tmpls.topmenu, {}) )
-
-		if not DS.widget.category.$el.length
-			DS.widget.main.$el.addClass('digiseller-main-nocategory')
-
-		# $cart = DS.dom.$('#digiseller-cart-btn')
-		# if $cart
-			# DS.opts.hasCart = true
-			# $cart.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
-
-		homeInited = false
-		DS.historyClick.addRoute('#.*', (params) ->
-			if homeInited
-				return
-
-			homeInited = true
-			DS.route.home.action()
-
-			return
-		)
-
-		for name, route of DS.route
-			# continue if not route.url or not route.action
-			continue if not DS.route.hasOwnProperty(name) or not route.url or not route.action
-
-			((route) ->
-				DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
-					homeInited = true
-					route.action(params)
-
-					return
-				)
-
-				return
-			)(route)
-
-		DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home')
-		DS.historyClick.start()
-		
-		if window.location.hash is ''
-			DS.historyClick.reload()
-
-		DS.historyClick.onGo = () ->
-			DS.popup.close()			
-			return
-			
-		# DS.util.extend(DS.opts.i18n,
-			# 'required': 'Обязательно'
-			# 'toCart': 'В корзинуgg'
-			# 'cart': 'Корзина'
-			# 'nameOfArticle': 'Название товара'
-			# 'cost': 'Цена'
-			# 'count': 'Количество'
-			# 'cartIsEmpty': 'Корзина пуста'
-			# 'goToPay': 'Перейти к оплате'
-			# 'inTotal': 'Итого'
-			# 'someFieldsRequired': 'Заполнены не все поля'			
-		# )
-			
-			
 		return
 	)
 	
+	DS.opts.agree = DS.cookie.get('digiseller-agree') or DS.opts.agree
 
+	DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
 	
+	DS.widget.category.init()
+	DS.widget.main.init()
+	DS.widget.loader.init()
+	DS.widget.search.init()
+	DS.widget.lang.init()
+	DS.widget.cartButton.init()
+	
+	# DS.dom.$('#digiseller-logo')?.innerHTML = DS.tmpl(DS.tmpls.logo,
+	DS.$('#digiseller-logo').html( DS.tmpl(DS.tmpls.logo,
+		logo_img: DS.opts.logo_img
+	) )
+
+	# DS.dom.$('#digiseller-topmenu')?.innerHTML = DS.tmpl(DS.tmpls.topmenu, {})
+	DS.$('#digiseller-topmenu').html( DS.tmpl(DS.tmpls.topmenu, {}) )
+
+	if not DS.widget.category.$el.length
+		DS.widget.main.$el.addClass('digiseller-main-nocategory')
+
+	# $cart = DS.dom.$('#digiseller-cart-btn')
+	# if $cart
+		# DS.opts.hasCart = true
+		# $cart.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
+
+	homeInited = false
+	DS.historyClick.addRoute('#.*', (params) ->
+		if homeInited
+			return
+
+		homeInited = true
+		DS.route.home.action()
+
+		return
+	)
+
+	for name, route of DS.route
+		# continue if not route.url or not route.action
+		continue if not DS.route.hasOwnProperty(name) or not route.url or not route.action
+
+		((route) ->
+			DS.historyClick.addRoute(DS.opts.hashPrefix + route.url, (params) ->
+				homeInited = true
+				route.action(params)
+
+				return
+			)
+
+			return
+		)(route)
+
+	DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home')
+	DS.historyClick.start()
+	
+	if window.location.hash is ''
+		DS.historyClick.reload()
+
+	DS.historyClick.onGo = () ->
+		DS.popup.close()			
+		return
+		
 	return
 
 # alias
 window.DigiSeller = DS
 
 checkReady = () ->
-	if document.readyState isnt 'loading'
-		DS.init()		
-	else
-		setTimeout(() ->
+	setTimeout(() ->
+		if document.readyState isnt 'loading'		
+			DS.init()		
+		else
 			checkReady()
-			return
-		, 1)
+	, 1)
 	
 	return
 
 checkReady()
+
+# css = document.getElementById('digiseller-css')	
+# checkReadyCss = () ->
+	# console.log(css.readyState)
+	
+	# setTimeout(() ->
+		# if css.readyState isnt 'loading'
+			# _cssIsLoaded = true
+		# else
+			# checkReadyCss()
+			
+		# return
+	# , 1)
+	
+	# return
+
+# checkReadyCss()
 
 return
 

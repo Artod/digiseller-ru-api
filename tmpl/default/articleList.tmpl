@@ -1,6 +1,6 @@
 <div class="digiseller-product">
 	<div class="digiseller-pricelabel">
-		<span class="digiseller-article-cost"><? if (d.collection == 'unit') { ?> от <? } ?> <?= d.price ?></span>
+		<span class="digiseller-article-cost"><? if (d.collection == 'unit') { ?> <span>от</span> <? } ?> <?= d.price ?></span>
 		<span class="digiseller-currency"><?= d.currency ?></span>
 		<? if (d.is_available) { ?>
 			<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= DS.opts.i18n['buy'] ?></a>
@@ -30,6 +30,7 @@
 			} ?>
 		</a>
 		<p>
+			<span class="digiseller-descr-underbutton"></span>
 			<?= d.info ?>
 			<br /><br />
 			<a onclick="location.hash='<?= url ?>';" class="digiseller-product-details" title="<?= d.name ?>"><?= DS.opts.i18n['readMore'] ?> »</a>
