@@ -29,18 +29,6 @@
 			<a title="<?= d.breadCrumbs[l - 1].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[l - 1].id ?>';"><?= d.breadCrumbs[l - 1].name ?></a>
 		<? } ?>
 	</div>
-
-	<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
-		<div class="digiseller-product-toggle">
-			<? if (d.id_prev !== '0') { ?>
-				<span>&larr; </span><a onclick="location.hash='#!digiseller/detail/<?= d.id_prev ?>';"><?= DS.opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;
-			<? } ?>
-			|
-			<? if (d.id_next !== '0') { ?>
-				&nbsp;&nbsp; <a onclick="location.hash='#!digiseller/detail/<?= d.id_next ?>';"><?= DS.opts.i18n['nextArticle'] ?></a><span> &rarr;</span>
-			<? } ?>
-		</div>
-	<? } ?>
 	
 	<div class="digiseller-options">
 		<span class="digiseller-social">
@@ -49,8 +37,16 @@
 			<a class="digiseller-social-tw" title="<?= DS.opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
 			<a class="digiseller-social-wm" title="<?= DS.opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
 		</span>
+		
+		<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
+			<div class="digiseller-product-toggle">
+				<div<?= (d.id_prev !== '0' ? '' : ' class="digiseller-disabled"') ?>><span>&larr; </span><a<?= (d.id_prev !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_prev + '\\'"' : '') ?>><?= DS.opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;</div>
+				|
+				<div<?= (d.id_next !== '0' ? '' : ' class="digiseller-disabled"') ?>>&nbsp;&nbsp; <a<?= (d.id_next !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_next + '\\'"' : '') ?>><?= DS.opts.i18n['nextArticle'] ?></a><span> &rarr;</span></div>
+			</div>
+		<? } ?>
 
-		<div id="digiseller-currency"></div>
+		<!--div id="digiseller-currency"></div-->
 	</div>
 	
 	<div class="digiseller-product-details">		

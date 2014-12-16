@@ -1,6 +1,6 @@
 ###*
-DigiSeller-ru-api
-26.11.2014 (c) http://artod.ru
+DigiSeller shop widget v. 1.4.0
+16.12.2014 (c) http://artod.ru
 ###
 
 off if window.DigiSeller?
@@ -1867,7 +1867,7 @@ DS.widget =
 		setCount: (count) ->
 			DS.$("##{@prefix}-count").html(count)
 			# DS.dom.klass( (if count then 'remove' else 'add'), DS.dom.$('#digiseller-cart-empty'), 'digiseller-cart-btn-empty' )
-			DS.$("##{@prefix}-empty")[if count then 'removeClass' else 'addClass']('digiseller-cart-btn-empty')
+			DS.$("##{@prefix}-empty")[if count then 'removeClass' else 'addClass'](@prefix + '-btn-empty')
 			
 			return
 
@@ -1898,10 +1898,13 @@ DS.widget =
 		render: (res) ->
 			items = ''
 			tmpl = DS.tmpl(DS.tmpls.cartItem)
+			count = 0
 			
 			if res.products
 				# for product, i in res.products
 				DS.util.each(res.products, (product, i) ->
+					count++
+					
 					items += tmpl({
 						d: product
 						even: !!(i % 2)
@@ -1909,6 +1912,8 @@ DS.widget =
 					
 					return
 				)
+				
+			DS.widget.cartButton.setCount(count)
 			
 			DS.popup.open( 'text',  DS.tmpl(DS.tmpls.cart, {
 				d: res
@@ -1989,15 +1994,17 @@ DS.widget =
 			items = (if res and res.products then res.products else [])
 			idForDel = id
 			
-			@.$amount.html(res.amount)
-			DS.widget.cartButton.setCount(res.cart_cnt or 0)
+			@.$amount.html(res.amount)			
 			
 			hasError = no
+			
+			count = 0
 			
 			unless items.length
 				@.disable(yes)
 			else
 				DS.util.each(items, (item, i) ->
+					count++
 					# item.error = 'dddd'
 					if item.id is id
 						idForDel = false
@@ -2029,6 +2036,10 @@ DS.widget =
 				)
 				
 				@.disable(hasError)
+				
+			console.log('count', count)
+			
+			DS.widget.cartButton.setCount(count)
 			
 			# @.$go[if hasError then 'addClass' else 'removeClass'](_prefix + '-btn-disabled')
 				# .attr('data-disabled', if hasError then '1' else '0')

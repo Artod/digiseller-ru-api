@@ -285,9 +285,15 @@ width:100%;
 
 .digiseller-product span.digiseller-currency {
 color:#d90000;
-font-size:18px;
+display:block;
+font-size:12px;
+height:12px;
+line-height:1em;
+min-width:100px;
+position:absolute;
+right:15px;
 text-align:right;
-color:grey;
+top:35px;
 }
 
 .digiseller-product img {
@@ -315,14 +321,13 @@ text-decoration:none;
 
 .digiseller-article-cost {
 color:#d90000;
-display:inline-block;
+display:block;
+float:right;
 font-size:24px;
-margin-right:10px;
+margin-right:15px;
 padding-top:9px;
 white-space:nowrap;
 }
-
-.digiseller-article-cost > span {color:grey}
 
 .digiseller-options {
 -moz-border-radius:3px;
@@ -334,7 +339,6 @@ margin-top:2px;
 margin-bottom:10px;
 display:inline-block;
 width:100%;
-min-height:39px;
 }
 
 .digiseller-sortby {
@@ -471,20 +475,9 @@ display:inline-block;
 padding-bottom:4px;
 }
 
-.digiseller-snapshot span.digiseller-snapcurrency {color:grey!important;}
-
 .digiseller-snapimgalign a {
 display:block;
 }
-
-.digiseller-descr-underbutton {
-display:inline-block;
-width:130px;
-height:30px;
-background:none transparent;
-float:right;
-}
-
 
 .digiseller-snapimgalign {
 text-align:center;
@@ -602,16 +595,14 @@ margin-bottom:10px;
 
 .digiseller-product a.digiseller-buybutton {
 position:absolute;
-right:0px;
-text-align:center;
-top:50px;
-min-width:105px;
+right:15px;
+bottom:10px;
 }
 
 .digiseller-product a.digiseller-buybutton-empty {
 position:absolute;
-right:0;
-top:50px;
+right:15px;
+bottom:10px;
 }
 
 .digiseller-product-right a.digiseller-buybutton {
@@ -694,12 +685,12 @@ clear:both;
 color:#d90000;
 display:block;
 float:right;
-font-size:21px;
+font-size:24px;
 width:100%;
 text-align:right;
 padding-bottom:15px;
 white-space:nowrap;
-line-height:30px;
+line-height:28px;
 margin-bottom:10px;
 }
 
@@ -742,11 +733,6 @@ color:#6f6f6f;
 font-size:14px;
 font-weight:400;
 padding-top:10px;
-}
-
-.digiseller-browseProdTitle p {
-	display:block;
-	/*width:calc(100% - 120px);*/
 }
 
 .digiseller-browseprodtitle a {
@@ -1586,10 +1572,8 @@ display:inline-block;
 float:right;
 font-size:13px;
 color:#ccc;
-margin-right:10px;
+padding-top:10px;
 }
-
-.digiseller-product-toggle div {display:inline-block;}
 
 .digiseller-product-toggle span {
 color:#0B6678;
@@ -1600,20 +1584,12 @@ font-family:Arial;
 color:#0B6678;
 text-decoration:none;
 cursor:pointer;
-line-height:37px;
 }
 
 .digiseller-product-toggle a:hover {
 color:#0B6678;
 text-decoration:underline;
-}
-
-div.digiseller-disabled a,
-div.digiseller-disabled a:hover,
-div.digiseller-disabled span {
-	color:#9b9b9b;
-	text-decoration:none;
-	cursor:default;
+text-decoration:underline;
 }
 
 /* Calculator */
@@ -1629,8 +1605,6 @@ right:-10px;
 min-height:30px;
 border:1px solid #9a9a9a;
 }
-
-#digiseller-calc-curadd select {min-width:48px;}
 
 .digiseller-calc select {
 width:100%;
@@ -1973,8 +1947,6 @@ width:100%;
 border-collapse:collapse;
 }
 
-.digiseller-table .digiseller-table-right span span {color:grey; padding-right:0;}
-
 .digiseller-table .digiseller-browseprodtitle a {
 font-size:14px;
 }
@@ -2296,13 +2268,12 @@ text-decoration:none;
 line-height:16px;
 }
 
-.digiseller-cart-popup td div a  {
-display:inline-block;
-padding-top:3px;
-}
-
 .digiseller-cart-popup td a:hover {
 text-decoration:underline;
+}
+
+.digiseller-cart-popup tr:last-child td {
+padding-top:10px;
 }
 
 .digiseller-cart-footer a {
@@ -2385,17 +2356,7 @@ border:1px solid #ebebeb;
 border-bottom:1px solid silver;
 }
 
-.digiseller-cart-price {}
-
-.digiseller-cart-header td:first-child + td + td + td {min-width:17px;}
-.digiseller-cart-header td:first-child + td + td {min-width:70px; text-align:right;}
-
-.digiseller-cart-header td:first-child {max-width:311px;}
-.digiseller-cart-items tr td:first-child  {max-width:311px;}
-#digiseller-cart-items div {max-width:311px; white-space:pre-wrap; overflow-x:auto;}
-
-.digiseller-cart-header .digiseller-cart-price {padding-right:0px;}
-
+.digiseller-cart-header .digiseller-cart-price {padding-right:18px;}
 
 .digiseller-cart-header td {
 font-weight:bold;
@@ -2660,16 +2621,6 @@ border:1px solid #0b6678!important;
 }
 
 /* #0b6678 */
-
-.digiseller-no-img {
-border: 1px solid #ccc;
-box-shadow: 2px 2px 5px #ebebeb;
-display: inline-block;
-margin-bottom: 20px;
-padding: 5px;
-margin-right:20px;
-}
-
 .digiseller-left-thumbs div {
 position:relative;
 }
@@ -2703,4 +2654,8 @@ opacity:.5;
 }
 
 .digiseller-hidden{display:none;}
+
+
+
+
 /**/
