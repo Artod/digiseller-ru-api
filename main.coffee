@@ -1,5 +1,5 @@
 ###*
-DigiSeller shop widget v. 1.4.0
+DigiSeller shop widget v. 1.4.01
 16.12.2014 (c) http://artod.ru
 ###
 
@@ -1141,10 +1141,12 @@ DS.share =
 			'url=' + DS.util.enc(document.location)
 
 	fb: (title, img) ->
-		return '//www.facebook.com/sharer.php?s=100&' +
-			'p[url]=' + DS.util.enc(document.location) + '&' +
-			'p[title]=' + DS.util.enc(title) + '&' +
-			'p[images][0]=' + DS.util.enc(img)
+		# return '//www.facebook.com/sharer.php?s=100&' +
+			# 'p[url]=' + DS.util.enc(document.location) + '&' +
+			# 'p[title]=' + DS.util.enc(title) + '&' +
+			# 'p[images][0]=' + DS.util.enc(img)
+			
+		return '//www.facebook.com/sharer.php?u=' + DS.util.enc(document.location)
 
 	wme: (title, img) ->
 		return '//events.webmoney.ru/sharer.aspx?' +
@@ -2036,16 +2038,13 @@ DS.widget =
 				)
 				
 				@.disable(hasError)
-				
-			console.log('count', count)
 			
 			DS.widget.cartButton.setCount(count)
 			
 			# @.$go[if hasError then 'addClass' else 'removeClass'](_prefix + '-btn-disabled')
 				# .attr('data-disabled', if hasError then '1' else '0')
 				
-			# @.$amountCont[if hasError then 'hide' else 'show']()
-			
+			# @.$amountCont[if hasError then 'hide' else 'show']()			
 			
 			if idForDel
 				DS.$("##{_prefix}-item-#{idForDel}").remove()
@@ -2067,19 +2066,21 @@ DS.widget =
 			$item = DS.$("##{_prefix}-item-#{id}")
 			$count = if isDel then DS.$("##{_prefix}-item-count-#{id}") else $this
 			count = if isDel then 0 else $count.val()
+			parsedCnt = parseInt( $count.val() )
 			that = @
 
-			if not isDel and count is ''
-				$count.val(1)
-				count = 1
-			
+			if not isDel and not parsedCnt and `parsedCnt != count` #( `count == 0` or not /^[0-9]*$/.test(count) )
+				newCount = parsedCnt || 1
+				$count.val(newCount)
+				parsedCnt = newCount
+				
 			DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
 				$el: $this
 				data:
 					lang: DS.opts.currentLang
 					cart_uid: DS.opts.cart_uid
 					product_id: id
-					product_cnt: count
+					product_cnt: parsedCnt
 				onLoad: (res) ->					
 					return off unless res				
 					
