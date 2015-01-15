@@ -46,7 +46,7 @@ $(function($) {
 			
 			if (name === 'menu') {						
 				$preview.parent()[_data[name] ? 'removeClass' : 'addClass']('preview-menu-hide')[_data[name] && _data.menutype === 'h' ? 'addClass' : 'removeClass']('preview-menu-h');	
-				$radio[_data[name] ? 'removeAttr' : 'attr']('disabled', 'disabled');
+				$radio[_data[name] ? 'removeAttr' : 'attr']('disabled', 'disabled').closest('ul')[_data[name] ? 'removeClass' : 'addClass']('categories-checkbox-disabled');
 			} else {
 				$preview[_data[name] ? 'show' : 'hide']();
 			}

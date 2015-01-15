@@ -122,4 +122,6 @@
 		.yellow_bg {background:#ffcc66;border-radius:3px; box-shadow:0 0 0px 3px #ffcc66}
 		.yellow_bg > div {border-radius:3px;}
 		
-		
+		.preview-options .categories-checkbox-disabled label {
+			color:#b2b2b2;
+		}
