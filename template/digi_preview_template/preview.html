@@ -1,0 +1,170 @@
+﻿<!doctype html>
+<html>
+<head>
+	<title>Digiseller Design Preview</title>
+	
+	<link href="preview.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>	
+	
+	<script type="text/javascript">
+		window.sid = 18728;
+	</script>
+	
+	<script type="text/javascript" src="preview.js"></script>
+
+	
+	
+</head>
+<body>
+
+
+<div class="preview-page">
+	<div class="preview-page-left">
+		<div class="preview-options">
+			<h2>1. Выберите, что нужно отображать на сайте:</h2>
+			<form id="preview-form">
+				<ul>					
+					<li><input id="logo" name="logo" type="checkbox" checked="checked" /><label for="logo">Логотип</label></li>
+					<li><input id="topmenu" name="topmenu" type="checkbox" checked="checked" /><label for="topmenu">Верхнее меню <span>*</span></label></li>
+					<li><input id="search" name="search" type="checkbox" checked="checked" /><label for="search">Поиск</label></li>
+					<li><input id="cart" name="cart" type="checkbox" checked="checked" /><label for="cart">Корзина</label></li>
+					<li><input id="langs" name="langs" type="checkbox" checked="checked" /><label for="langs">Язык</label></li>
+					<li>
+						<input id="menu" name="menu" type="checkbox" checked="checked" /><label for="menu">Категории</label>
+						<ul>
+							<li><input id="hmenu" type="radio" name="menutype" value="h" checked="checked" /><label for="hmenu">Горизонтальное</label></li>
+							<li><input id="vmenu" type="radio" name="menutype" value="v" /><label for="vmenu">Вертикальное</label></li>
+						</ul>
+					</li>
+					<li><input id="catalog" name="catalog" type="checkbox" checked="checked" disabled="disabled" /><label for="catalog">Основная область</label></li>
+				</ul>
+			</form>
+			<p><span>*</span> Cостав горизонтального меню можно изменить в <a href="?view=settings">настройках</a></p>
+		</div>
+	</div>
+
+	<div class="preview-page-right preview-bg">
+		<div class="preview" id="preview">
+
+			<div class="preview-top">
+				<!-- 
+					что бы скрыть какой-нить блок, добавляем ему класс .preview-hide 
+					( относится ко всем элементам, кроме меню категорий )
+				-->
+				<table>
+					<tr>
+					<td>
+						<div class="preview-logo" data-preview="logo"><img src="logo.png" /></div>
+					</td>
+					<td>
+						<div class="preview-topmenu" data-preview="topmenu"><a>Мои покупки</a> | <a>Отзывы</a> | <a>Контакты</a></div>
+					</td>
+					<td>
+						<div class="preview-search" data-preview="search"><input type="text" /><span></span></div>			
+					</td>
+					<td>
+						<div class="preview-cart" data-preview="cart"><span></span></div>
+					</td>
+					<td>
+						<div class="preview-langs" data-preview="langs"><span></span></div>
+					</td>
+					</tr>
+				</table>
+				
+				
+				
+			</div>
+			
+			
+			<div class="preview-menu preview-menu-h">
+				<!-- если вертикальное    <div class="preview-menu">    -->
+				<!-- если горизонтальное    <div class="preview-menu preview-menu-h">    -->
+				<!-- если никакого не надо  <div class="preview-menu preview-menu-hide">      -->
+				
+				<div data-preview="menu">
+					<ul>
+					<li><a href="#">Книги</a></li>
+					<li>
+						<a href="#"><strong>Игры</strong> <i>▼</i></a>
+						<ul>
+							<li><a>Second Ninja</a></li>
+							<li><a>1954 Alcatraz</a></li>
+							<li><a>A Bird Story</a></li>
+							<li><a>1HEART</a></li>
+							<li><a>Age of Wonders III</a></li>
+							<li><a>Ace Combat: Infinity</a></li>
+							<li><a>A New Reckoning</a></li>
+							<li><a>Ancient Space</a></li>
+							<li><a>Ascendant</a></li>
+							<li><a>Astebreed</a></li>
+							<li><a>Back to Bed</a></li>
+						</ul>						
+					</li>
+					<li><a href="#">Музыка</a></li>
+					<li><a href="#">Софт</a></li>
+					<li><a href="#">Ключи</a></li>
+					</ul>
+				</div>
+				
+				<div class="preview-content"  data-preview="catalog">			
+					<div class="preview-content-item"><span class="preview-img1"></span><br />Asassin Creed</div>
+					<div class="preview-content-item"><span class="preview-img2"></span><br />Gear of War</div>
+					<div class="preview-content-item"><span class="preview-img3"></span><br />Rise Guardians</div>
+					<div class="preview-content-item"><span class="preview-img4"></span><br />Crysis</div>
+					<br/>                                                              
+					<div class="preview-content-item"><span class="preview-img5"></span><br />Mass Effect</div>
+					<div class="preview-content-item"><span class="preview-img6"></span><br />NFS Worls</div>
+					<div class="preview-content-item"><span class="preview-img7"></span><br />Lord Of Rings</div>
+					<div class="preview-content-item"><span class="preview-img8"></span><br />Bioshock</div>					
+				</div>
+				
+			</div> 
+
+		
+		</div>
+	</div>
+
+</div>
+
+<div class="preview-page">
+	<h2>Скопируйте HTML-код магазина и вставьте его на нужную страницу Вашего сайта:</h2>
+	
+	<textarea id="preview-textarea"></textarea>
+</div>
+
+<script type="text/template" id="template-code"><{script}>
+    (function(e){var t=function(t){return e.cookie.match(new RegExp("(?:^|; )digiseller-"+t+"=([^;]*)"))},n=t("lang"),r=t("cart_uid"),i=n?"&lang="+n[1]:"",s=r?"&cart_uid="+r[1]:"",o=e.getElementsByTagName("head")[0]||e.documentElement,u=e.createElement("link"),a=e.createElement("script");u.type="text/css";u.rel="stylesheet";u.id="digiseller-css";u.href="//shop.digiseller.ru/xml/shop_css.asp?seller_id={sid}";a.async=true;a.src="//www.digiseller.ru/digiseller-api.js.asp?seller_id={sid}"+i+s;o.appendChild(u);o.appendChild(a)})(document);
+</{script}>
+</script>
+<script type="text/template" id="template-logo">
+<!-- Логотип -->
+<div id="digiseller-logo" class="digiseller-logo"></div>
+</script>
+<script type="text/template" id="template-langs">
+<!-- Язык -->
+<div id="digiseller-langs" class="digiseller-langs"></div>
+</script>
+<script type="text/template" id="template-cart">
+<!-- Корзина -->
+<div id="digiseller-cart-btn" class="digiseller-cart-btn"></div>
+</script>
+<script type="text/template" id="template-search">
+<!-- Поиск -->
+<div id="digiseller-search" class="digiseller-search"></div>
+</script>
+<script type="text/template" id="template-topmenu">
+<!-- Верхнее меню -->
+<div id="digiseller-topmenu" class="digiseller-topmenu"></div>
+</script>
+<script type="text/template" id="template-menu">
+<!-- Категории -->
+<div id="digiseller-category" class="digiseller-category{hmenu}"></div>
+</script>
+<script type="text/template" id="template-catalog">
+<!-- Основная область -->
+<div id="digiseller-main" class="digiseller-main{fullwidth}">
+    <div style="text-align:center;"><img src="http://www.digiseller.ru/shop/img/preloader.gif" alt="..." /></div>
+</div></script>
+
+</body>
+</html>
