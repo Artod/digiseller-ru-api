@@ -20,7 +20,10 @@ $(function($) {
 	};
 	
 	var refreshData = function() {
-		var serAr = $form.serializeArray();
+		var $disabled = $form.find('input:disabled').removeAttr('disabled'),
+			serAr = $form.serializeArray();
+			
+		$disabled.attr('disabled', 'disabled');
 		
 		_data = {};
 
@@ -38,13 +41,13 @@ $(function($) {
 	
 	var render = function() {
 		refreshData();
-		
+
 		var code = '';
 		
 		$.each(names, function(i, name) {
 			var $preview = $previews.filter('[data-preview="' + name + '"]');
 			
-			if (name === 'menu') {						
+			if (name === 'menu') {				
 				$preview.parent()[_data[name] ? 'removeClass' : 'addClass']('preview-menu-hide')[_data[name] && _data.menutype === 'h' ? 'addClass' : 'removeClass']('preview-menu-h');	
 				$radio[_data[name] ? 'removeAttr' : 'attr']('disabled', 'disabled').closest('ul')[_data[name] ? 'removeClass' : 'addClass']('categories-checkbox-disabled');
 			} else {
