@@ -1,9 +1,9 @@
 ###*
-DigiSeller shop widget v. 1.4.01
-16.12.2014 (c) http://artod.ru
+DigiSeller shop widget v. 1.4.02
+21.01.2015 (c) http://artod.ru
 ###
 
-off if window.DigiSeller?
+return off if window.DigiSeller?
 
 _cssIsLoaded = true
 
@@ -2660,7 +2660,7 @@ DS.route =
 				data:
 					seller_id: DS.opts.seller_id
 				onLoad: (data) ->
-					off unless data
+					return off unless data
 
 					DS.widget.main.$el.html( DS.tmpl(DS.tmpls.contacts,
 						d: data
@@ -2847,9 +2847,9 @@ DS.init = ->
 	DS.el.body = getEl('body')
 
 	unless DS.$('#digiseller-css').length
-		# DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id, () ->
+		DS.dom.getStyle(DS.opts.host + 'shop_css.asp?seller_id=' + DS.opts.seller_id) #, () ->
 		# DS.dom.getStyle(DS.opts.host + 'shop_css_test.asp?seller_id=' + DS.opts.seller_id)		
-		DS.dom.getStyle('css/default/test.css')
+		# DS.dom.getStyle('css/default/test.css')
 	
 	DS.opts.currency = DS.cookie.get('digiseller-currency') or DS.opts.currency
 
