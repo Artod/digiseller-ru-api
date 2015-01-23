@@ -16,7 +16,7 @@ DS.el =
 DS.opts =
 	seller_id: null
 	cart_uid: ''
-	host: '//shop.digiseller.ru/xml/new/'
+	host: '//shop.digiseller.ru/xml/'
 	hashPrefix: '#!digiseller'
 	currency: 'RUR'
 	currentLang: ''

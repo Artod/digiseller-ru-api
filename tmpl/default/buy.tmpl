@@ -63,10 +63,6 @@
 					
 					<div class="digiseller-calc-limit digiseller-hidden" id="digiseller-calc-limit"></div>
 				<? } ?>
-		
-				
-				
-				<!-- если селекта 2, то добавляем постфикс -two   class="digiseller-calc-method-two"-->
 				
 				<div class="digiseller-calc-method-two" id="digiseller-calc-method">					
 					<span><?= DS.opts.i18n['paymentVia'] ?>:</span><br />
@@ -95,50 +91,7 @@
 						</div>
 					<? } ?>
 				</div>
-				
-				
-				
-				
-				<!-- 
-				<div>					
-					<span><?= DS.opts.i18n['paymentVia'] ?>:</span><br />
-					
-					<div>
-						<div>
-							<select>
-								<option>PaymentSystem 1</option>
-								<option>PaymentSystem 2</option>
-								<option>PaymentSystem 3</option>
-								<option>PaymentSystem 4</option>
-							</select>
-						</div>
-						
 
-						
-						<div>
-							<select>
-								<option>RUR</option>
-								<option>USD</option>
-								<option>EUR</option>
-								<option>UAH</option>
-							</select>
-						</div>
-					</div>
-					
-				</div>
-
-
-				-->
-
-				
-				
-				
-				
-				
-				
-				
-				
-				
 				<? if (d.options && d.options.length) { ?>
 					<div id="digiseller-calc-options">
 						<? DS.util.each(d.options, function(option, i) { ?>							
@@ -208,45 +161,3 @@
 		</div>
 	<? } ?>
 </div>
-
-
-<!--
-
-				<div class="digiseller-calc-line">
-					<div>Input</div>
-					<input type="text">
-				</div>
-
-				<div class="digiseller-calc-line">
-					<div>Textarea</div>
-					<textarea></textarea>
-				</div>
-
-				<div class="digiseller-calc-line">
-					<div>Select</div>
-					<select>
-						<option>option 1</option>
-						<option>option 2</option>
-						<option>option 3</option>
-						<option>option 4</option>
-						<option>option 5</option>
-						<option>option 6</option>
-					</select>
-				</div> 
-
-				<div class="digiseller-calc-line"> 
-					<div>Radio</div>
-					<input type="radio" id="radio1"><label for="radio1">radio 1 label</label><br>
-					<input type="radio" id="radio2"><label for="radio2">radio 2 label</label><br>
-					<input type="radio" id="radio3"><label for="radio3">radio 3 label</label><br>
-					<input type="radio" id="radio4"><label for="radio4">radio 4 label</label><br>
-				</div>
-
-				<div class="digiseller-calc-line">
-					<div>Checkbox</div>
-					<input type="checkbox" id="checkbox1"><label for="checkbox1">check 1 label</label><br>
-					<input type="checkbox" id="checkbox2"><label for="checkbox2">check 2 label</label><br>
-					<input type="checkbox" id="checkbox3"><label for="checkbox3">check 3 label</label><br>
-					<input type="checkbox" id="checkbox4"><label for="checkbox4">check 4 label</label><br>
-				</div>
--->

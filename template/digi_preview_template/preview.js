@@ -1,6 +1,10 @@
 $(function($) {			
+	var $form = $('#preview-form');
+	if (!$form.length) {
+		return;
+	}
+	
 	var _data,
-		$form = $('#preview-form'),
 		$inputs = $form.find('input'),		
 		$radio = $inputs.filter('[type="radio"]'),
 		$previews = $('#preview [data-preview]'),
