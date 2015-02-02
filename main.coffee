@@ -3026,6 +3026,7 @@ return
 	# 'max': 'Максимум',
 	# 'min': 'Минимум',
 	# 'nothingFound': 'Ничего не найдено',
+	# 'articlesNotFound': 'Товаров не найдено',
 	# 'displayedOnThePage': 'Выводить на странице',
 	# 'search': 'Поиск',
 	# 'onRequest': 'По запросу',

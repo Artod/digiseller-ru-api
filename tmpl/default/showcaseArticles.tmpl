@@ -19,5 +19,5 @@
 <? } ?>
 
 <div class="digiseller-productList digiseller-homepage">
-	<?= out ?>
+	<?= (out ? out : (categories && categories.length ? '' : DS.opts.i18n['articlesNotFound'])) ?>
 </div>
