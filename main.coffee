@@ -1,6 +1,6 @@
 ###*
-DigiSeller shop widget v. 1.4.02
-21.01.2015 (c) http://artod.ru
+DigiSeller shop widget v. 1.4.03
+04.02.2015 http://artod.ru
 ###
 
 return off if window.DigiSeller?
@@ -1303,7 +1303,6 @@ DS.widget =
 			DS.ajax('GET', DS.opts.host + 'shop_categories.asp'
 				$el: @$el
 				data:
-					lang: DS.opts.currentLang
 					seller_id: DS.opts.seller_id
 				onLoad: (res) ->					
 					return off unless res
@@ -1884,7 +1883,6 @@ DS.widget =
 			DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
 				$el: DS.widget.cartButton.$el
 				data:
-					lang: DS.opts.currentLang
 					cart_uid: DS.opts.cart_uid
 					cart_curr: @currency or ''
 				onLoad: (res) ->					
@@ -2077,7 +2075,6 @@ DS.widget =
 			DS.ajax('GET', DS.opts.host + 'shop_cart_lst.asp'
 				$el: $this
 				data:
-					lang: DS.opts.currentLang
 					cart_uid: DS.opts.cart_uid
 					product_id: id
 					product_cnt: parsedCnt
