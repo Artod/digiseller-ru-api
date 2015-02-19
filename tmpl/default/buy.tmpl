@@ -96,7 +96,7 @@
 					<div id="digiseller-calc-options">
 						<? DS.util.each(d.options, function(option, i) { ?>							
 							<div class="digiseller-calc-line"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
-								<div><?= option.label ?> <?= option.required == 1 ? '<span title="' + DS.opts.i18n['required'] + '">*</span>' : '' ?></div>
+								<div><?= option.label ?> <?= option.required == 1 ? '<span title="' + DS.opts.i18n['required'] + '">*</span>' : '' ?> <?= option.comment ? '<span class="digiseller-form-help">?</span><i class="digiseller-form-tip">' + option.comment + '</i>' : '' ?></div>
 								
 								<? switch(option.type) {
 									case 'text': ?>
