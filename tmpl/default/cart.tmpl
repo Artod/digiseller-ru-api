@@ -8,12 +8,6 @@
 			</td>
 			<td class="digiseller-cart-price">
 				<?= DS.opts.i18n['cost'] ?>&nbsp;
-				<!--select id="digiseller-cart-currency">
-					<option value="RUR">RUR</option>
-					<option value="USD">USD</option>
-					<option value="EUR">EUR</option>
-					<option value="UAH">UAH</option>
-				</select-->
 			</td>
 			<td>
 				<?= DS.opts.i18n['count'] ?>
@@ -48,6 +42,11 @@
 	</form>
 
 	<span id="digiseller-cart-amount-cont"<?= !items ? ' class="digiseller-hidden"' : '' ?>><?= DS.opts.i18n['inTotal'] ?>:&nbsp;&nbsp;
-		<span id="digiseller-cart-amount"><?= d.amount ?></span> <?= d.currency ?>
+		<span id="digiseller-cart-amount"><?= d.amount ?></span>
+		<select id="digiseller-cart-currency">
+			<? DS.util.each(d.cart_curr, function(curr) { ?>
+				<option value="<?= curr ?>"><?= curr ?></option>
+			<? }); ?>
+		</select>
 	</span>
 </div>

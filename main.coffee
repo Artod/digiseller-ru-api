@@ -1,6 +1,6 @@
 ###*
-DigiSeller shop widget v. 1.4.03
-04.02.2015 http://artod.ru
+DigiSeller shop widget v. 1.4.04
+05.03.2015 http://artod.ru
 ###
 
 return off if window.DigiSeller?
@@ -2064,7 +2064,7 @@ DS.widget =
 			$item = DS.$("##{_prefix}-item-#{id}")
 			$count = if isDel then DS.$("##{_prefix}-item-count-#{id}") else $this
 			count = if isDel then 0 else $count.val()
-			parsedCnt = parseInt( $count.val() )
+			parsedCnt = parseInt( count )
 			that = @
 
 			if not isDel and not parsedCnt and `parsedCnt != count` #( `count == 0` or not /^[0-9]*$/.test(count) )
