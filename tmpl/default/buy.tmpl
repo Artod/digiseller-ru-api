@@ -128,7 +128,7 @@
 									case 'checkbox': case 'radio':									
 										if (option.variants && option.variants.length) {
 											DS.util.each(option.variants, function(variant, ii) { ?>										
-												<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>" value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' checked' : '' ?> />
+												<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name + (option.type === 'checkbox' ? '-' + variant.value : '') ?>" value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' checked' : '' ?> />
 												<label for="<?= option.name ?>_<?= ii ?>"><?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?></label><br />
 											<? });											
 										}

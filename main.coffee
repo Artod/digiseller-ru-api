@@ -1,6 +1,6 @@
 ###*
-DigiSeller shop widget v. 1.4.04
-05.03.2015 http://artod.ru
+DigiSeller shop widget v. 1.4.06
+10.03.2015 http://artod.ru
 ###
 
 return off if window.DigiSeller?
@@ -1742,7 +1742,8 @@ DS.widget =
 						params.x += '<option O="' + el.name.replace('option_select_', '') + '" V="' + DS.$(el).val() + '"/>'
 					else
 						if el.checked
-							params.x += '<option O="' + el.name.replace('option_checkbox_', '').replace('option_radio_', '') + '" V="' + DS.$(el).val() + '"/>'
+							val = DS.$(el).val()
+							params.x += '<option O="' + el.name.replace('option_checkbox_', '').replace('-' + val, '').replace('option_radio_', '') + '" V="' + DS.$(el).val() + '"/>'
 						
 				return
 			)
@@ -2006,11 +2007,11 @@ DS.widget =
 				DS.util.each(items, (item, i) ->
 					count++
 					# item.error = 'dddd'
-					if item.id is id
+					if item.item_id is id
 						idForDel = false
 				
-					$item = DS.$("##{_prefix}-item-#{item.id}")				
-					$error = DS.$("##{_prefix}-item-error-#{item.id}")
+					$item = DS.$("##{_prefix}-item-#{item.item_id}")				
+					$error = DS.$("##{_prefix}-item-error-#{item.item_id}")
 					
 					# $item[if item.error then 'addClass' else 'removeClass'](_prefix + '-error')
 					# $error[if item.error then 'show' else 'hide']()
@@ -2020,7 +2021,7 @@ DS.widget =
 						$item.attr('data-error', 1)
 						$error.show()
 						DS.$('td', $error).html(item.error)
-					else if item.id is id
+					else if item.item_id is id
 						$item.removeClass(_prefix + '-error')
 						$item.attr('data-error', 0)
 						$error.hide()
@@ -2030,7 +2031,7 @@ DS.widget =
 						
 					# if item.error
 						# hasError = yes
-						# DS.$("##{_prefix}-item-count-#{item.id}").val(item.cnt_item)
+						# DS.$("##{_prefix}-item-count-#{item.item_id}").val(item.cnt_item)
 						
 					return
 				)
@@ -2076,7 +2077,7 @@ DS.widget =
 				$el: $this
 				data:
 					cart_uid: DS.opts.cart_uid
-					product_id: id
+					item_id: id
 					product_cnt: parsedCnt
 				onLoad: (res) ->					
 					return off unless res				

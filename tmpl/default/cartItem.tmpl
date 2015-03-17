@@ -1,4 +1,4 @@
-	<tr id="digiseller-cart-item-<?= d.id ?>"<?= d.error ? ' class="digiseller-cart-error" ' : '' ?>>
+	<tr id="digiseller-cart-item-<?= d.item_id ?>"<?= d.error ? ' class="digiseller-cart-error" ' : '' ?>>
 		<td>
 			<? if (d.options) { ?>
 				<a class="digiseller-cart-params-toggle">12</a>
@@ -21,122 +21,17 @@
 			<? } ?>
 		</td>
 		<td class="digiseller-cart-price">
-			<span id="digiseller-cart-item-cost-<?= d.id ?>"><?= d.price ?></span> <?= d.currency ?>
+			<span id="digiseller-cart-item-cost-<?= d.item_id ?>"><?= d.price ?></span> <?= d.currency ?>
 		</td>
 		<td>
-			<input type="number" min="1" step="1" value="<?= d.cnt_item ?>" id="digiseller-cart-item-count-<?= d.id ?>" data-id="<?= d.id ?>"<?= d.cnt_lock == 1 ? ' disabled="disabled"' : '' ?> />
+			<input type="number" min="1" step="1" value="<?= d.cnt_item ?>" id="digiseller-cart-item-count-<?= d.item_id ?>" data-id="<?= d.item_id ?>"<?= d.cnt_lock == 1 ? ' disabled="disabled"' : '' ?> />
 		</td>
 		<td>
-			<a target="_blank" class="digiseller-cart-del-product" href="#" data-id="<?= d.id ?>">x</a>
+			<a target="_blank" class="digiseller-cart-del-product" href="#" data-id="<?= d.item_id ?>">x</a>
 		</td>
 	</tr>
-	<tr class="digiseller-cart-error<?= d.error ? '' : ' digiseller-hidden' ?>" id="digiseller-cart-item-error-<?= d.id ?>"> <!-- и рисуем вот эту tr -->
+	<tr class="digiseller-cart-error<?= d.error ? '' : ' digiseller-hidden' ?>" id="digiseller-cart-item-error-<?= d.item_id ?>"> <!-- и рисуем вот эту tr -->
 		<td colspan="4">
 			<?= d.error || '' ?>
 		</td>
 	</tr>
-
-<!-- 		
-	<tr class="digiseller-cart-row-even digiseller-cart-error"> 
-		<td>
-      <a class="digiseller-cart-params-toggle digiseller-cart-params-toggle-arrup">12</a>
-			<a href="#">Игровая валюта такая-то</a>
-      <div class="digiseller-cart-row-params">
-        <strong>Цвет:</strong> Зелёный<br>
-        <strong>С наклейками:</strong> да<br>
-        <strong>Цвет наклеек:</strong> Белый<br>
-        <strong>Размер:</strong> XL  
-        
-      </div>
-		</td>
-		<td class="digiseller-cart-price">
-			1145.00 RUR
-		</td>
-		<td>
-			<input type="number">
-		</td>
-		<td>
-			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
-		</td>
-	</tr>	
-	<tr class="digiseller-cart-error"> 
-		<td colspan="4">
-			Максимально доступное количество товарова: 60
-		</td>
-	</tr>
-    <tr class="digiseller-cart-row-odd">
-		<td>
-			<a href="#">Product name Product name</a>
-		</td>
-		<td class="digiseller-cart-price">
-			1145.00 RUR
-		</td>
-		<td>
-			<input type="number">
-		</td>
-		<td>
-			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
-		</td>
-	</tr>    
-
-
-	
-      
-	<tr class="digiseller-cart-row-even">
-		<td>
-      <a class="digiseller-cart-params-toggle">12</a>
-			<a href="#">Игровая валюта такая-то</a>
-		</td>
-		<td class="digiseller-cart-price">
-			1145.00 RUR
-		</td>
-		<td>
-			<input type="number">
-		</td>
-		<td>
-      
-			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
-		</td>
-	</tr>
-	
-	
-		
-      
-    <tr class="digiseller-cart-error digiseller-cart-row-odd">
-		<td>
-			<a href="#">Карта на покупку чего-то</a>
-		</td>
-		<td class="digiseller-cart-price">
-			1145.00 RUR
-		</td>
-		<td>
-			<input type="number">
-		</td>
-		<td>
-			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
-		</td>
-	</tr>      
-	<tr class="digiseller-cart-error">
-		<td colspan="4">
-			o_Ops! Вышло неловко!
-		</td>
-	</tr>
-			
-
-	
-	  
-    <tr class="digiseller-cart-row-even">
-		<td>
-			<a href="#">Product name Product name Product name Product name Product name</a>
-		</td>
-		<td class="digiseller-cart-price">
-			1145.00 RUR
-		</td>
-		<td>
-			<input type="number">
-		</td>
-		<td>
-			<a target="_blank" class="digiseller-cart-del-product" href="#">x</a>
-		</td>
-	</tr> 
-	 -->
