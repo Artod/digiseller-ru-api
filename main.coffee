@@ -81,8 +81,8 @@ DS.cookie =
 
 DS.util =
 	getUID: (() ->
-		id = 1
-		return () -> id++
+		_id = 1
+		return () -> _id++
 	)()
 
 	enc: (t) ->
@@ -829,6 +829,7 @@ DS.ajax = (() ->
 
 		xhr
 )()
+
 ###
 DS.JSONP = `(function() {
 	var _callbacks = [];
@@ -885,6 +886,7 @@ DS.JSONP = `(function() {
 	};
 })()`
 ###
+
 # http://documentcloud.github.com/underscore/
 DS.tmpl = `function(text, data) {
 	settings = {
@@ -1154,41 +1156,15 @@ DS.share =
 			'title=' + DS.util.enc(title) + '&' +
 			'image=' + DS.util.enc(img) + '&' +
 			'noparse=0'
-
-DS.agree = (flag, onAgree) ->
-	$rules = DS.$('#digiseller-calc-rules')
-	$rules.get(0).checked = flag if $rules.length
-
-	DS.opts.agree = if flag then 1 else 0
-	DS.cookie.set('digiseller-agree', DS.opts.agree)
-
-	DS.popup.close()
-
-	onAgree() if onAgree
-
-	return
 	
 DS.widget =
 	main:
 		$el: null
 		init: () ->
 			@$el = DS.$('#digiseller-main')
-			@$el
-				.html('') # сбрасываем лоадер
-				.on('click', (e) ->
-					callback(e, 'click')
-					
-					return
-				)
+			@$el.html('') # сбрасываем лоадер
 			
-			callback = (e, type) ->
-				$el = DS.$(e.originalTarget or e.srcElement)
-				action = $el.attr('data-action')
-
-				if action and typeof DS.eventsDisp[type + '-' + action] is 'function'
-					DS.eventsDisp[type + '-' + action]($el, e)
-
-
+			DS.eventsDisp.setEventsDisp(@$el)
 
 			return
 
@@ -1213,7 +1189,7 @@ DS.widget =
 
 			show: (uid) ->
 				that = @
-				# console.log('show = ', uid)
+
 				_timeouts[uid] = setTimeout(() ->
 					_timeouts[uid] = 0
 					_counter++
@@ -1591,19 +1567,57 @@ DS.widget =
 			return
 			
 	calc: class
-		_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules', 'cart', 'method', 'curadd']
+		_els = ['amount', 'cnt', 'cntSelect', 'currency', 'amountR', 'price', 'buy', 'limit', 'rules', 'cart', 'method', 'curadd', 'agreement']
 		_prefix = 'digiseller-calc'
+		_index = 0
 
-		constructor: (@id) ->
-			@$ = container: DS.$("##{_prefix}")
+		constructor: (@$context, data) ->
+			@index = _index++
+			@id = if data then data.id else $context.attr('data-id')
+			
+			if data
+				@renderInit(data)
+				@init()
+			else
+				that = @
+				
+				DS.ajax('GET', DS.opts.host + 'shop_product_info.asp',
+					$el: $context
+					data:
+						seller_id: DS.opts.seller_id
+						product_id: @id
+						currency: DS.opts.currency
+					onLoad: (data) ->
+						return off unless data
+
+						that.renderInit(data.product)						
+						that.init()
+
+						return
+				)
+
+			return
+			
+		renderInit: (data) ->
+			@$context.html( DS.tmpl(DS.tmpls.buy,
+				d: data
+				index: @index
+				failPage: DS.util.enc(window.location)
+				agree: DS.opts.agree
+			) )
+		
+			return
+			
+		init: () ->
+			@$ =
+				container: DS.$("##{_prefix}-#{@index}")
 
 			return unless @$.container.length				
 
 			that = @
 			
-			# for el in _els
 			DS.util.each(_els, (el) ->
-				that.$[el] = DS.$("##{_prefix}-#{el}")
+				that.$[el] = DS.$("##{_prefix}-#{el}-#{that.index}")
 				
 				return
 			)
@@ -1613,6 +1627,22 @@ DS.widget =
 				
 				return
 			)
+			
+			DS.$('.digiseller-buyButton', @$context).on('click', (e) ->
+				DS.util.prevent(e)
+			
+				that.buy( DS.$(@) )
+
+				return
+			)
+			
+			@$.agreement.on('click', (e) ->
+				DS.util.prevent(e)
+			
+				that.showAgreement()
+
+				return
+			)		
 			
 			if @$.amount.length
 				if @$.cnt.length
@@ -1674,7 +1704,7 @@ DS.widget =
 			
 			onChangeCurrency(true)
 			
-			$optionsCont = DS.$('#digiseller-calc-options')
+			$optionsCont = DS.$("#digiseller-calc-options-#{@index}")
 			if $optionsCont.length
 				@$.options = DS.$('input[type="radio"], input[type="checkbox"], select', $optionsCont) # 
 				@$.options.on('change', () ->
@@ -1710,9 +1740,7 @@ DS.widget =
 					
 					return
 				)
-
-			return
-
+			
 		get: (type) ->
 			that = @
 			params =
@@ -1841,6 +1869,136 @@ DS.widget =
 			go(@.$.cart)
 			
 			return
+			
+		showAgreement: (onOk) ->
+			DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
+			
+			that = @
+			
+			agree = (flag, onAgree) ->
+				$rules = DS.$('#digiseller-calc-rules-' + that.index)
+				$rules.get(0).checked = flag if $rules.length
+
+				DS.opts.agree = if flag then 1 else 0
+				DS.cookie.set('digiseller-agree', DS.opts.agree)
+
+				DS.popup.close()
+
+				onAgree() if onAgree
+
+				return
+			
+			DS.$('#digiseller-agree').on('click', () ->
+				agree(true, onOk)
+				
+				return
+			)
+			DS.$('#digiseller-disagree').on('click', () ->
+				agree(false)
+				
+				return
+			)
+			
+			return
+			
+		buy: ($el) ->
+			id = $el.attr('data-id')
+			isForm = parseInt( $el.attr('data-form') )
+			isCart = parseInt( $el.attr('data-cart') )
+			
+			prefixBuy = 'digiseller-buy'
+			prefixCalc = 'digiseller-calc'
+
+			if isForm
+				$form = DS.$("##{prefixBuy}-form-#{id}-#{@index}")
+				$error = DS.$("##{prefixBuy}-error-#{id}-#{@index}")
+				$rules = DS.$("##{prefixCalc}-rules-#{@index}")
+
+				if $rules.length
+					isChecked = $rules.get(0).checked
+					DS.opts.agree = if isChecked then 1 else 0
+					DS.cookie.set('digiseller-agree', DS.opts.agree)
+
+					if !isChecked
+						return
+				
+				required$Els = {}
+				data = DS.serialize($form.get(0), (el) ->
+					$parent = DS.$(el).parent()
+					
+					if $parent.attr('data-required')
+						required$Els[el.name] = $parent
+				)
+
+				error = no
+				# DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
+				DS.$(".#{prefixCalc}-line", $form).removeClass(prefixCalc + '-line-err')
+				
+				for name, $parent of required$Els
+					continue unless DS.util.hasOwnProp(required$Els, name)
+					
+					if not data[name]
+						error = yes
+						$parent.addClass(prefixCalc + '-line-err')
+				
+				$error.html(if error then DS.opts.i18n['someFieldsRequired'] else '')
+				# $error.style.display = if error then '' else 'none'
+				$error[if error then 'show' else 'hide']()
+				
+				return if error
+				
+				if not isCart
+					$form.get(0).submit()
+				else
+					# console.log(data.cart_uid)
+					# console.log(DS.opts.cart_uid)
+					data.cart_uid = DS.opts.cart_uid
+					DS.ajax('POST', DS.opts.host + 'shop_cart_add.asp',
+						data: data,
+						onLoad: (res, xhr) ->
+							if res.cart_err and res.cart_err isnt ''
+								$error.html(res.cart_err).show()
+								
+								#!!!!!!!!!!!!!!!!!!!! return
+							
+							DS.opts.cart_uid = res.cart_uid || ''
+							
+							DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
+							DS.widget.cartButton.setCount(res.cart_cnt)
+							
+							new DS.widget.cart()
+							
+							return
+						# onFail: (xhr) ->
+							# console.log('Ошибка:', xhr.responseText)
+					)
+			else
+				ai = $el.attr('data-ai')
+
+				buy = () ->
+					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')				
+					return
+
+				if (DS.opts.agreement_text)
+					@showAgreement(buy)
+				
+					# DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
+
+					# DS.$('#digiseller-agree').on('click', () ->
+						# DS.agree(true, buy)
+
+						# return
+					# )
+
+					# DS.$('#digiseller-disagree').on('click', () ->
+						# DS.agree(false)
+						
+						# return
+					# )
+				else
+					buy()
+
+			return
 		
 	cartButton:
 		$el: null
@@ -1887,7 +2045,7 @@ DS.widget =
 					cart_uid: DS.opts.cart_uid
 					cart_curr: @currency or ''
 				onLoad: (res) ->					
-					return off if not res
+					return off if not res or not res.products
 					
 					that.render(res)
 					
@@ -2435,14 +2593,16 @@ DS.route =
 			DS.widget.category.mark(data.product.category_id)
 			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.articleDetail,
 				d: data.product
-				buy: DS.tmpl(DS.tmpls.buy,
-					d: data.product
-					failPage: DS.util.enc(window.location)
-					agree: DS.opts.agree
-				)
+				# buy: DS.tmpl(DS.tmpls.buy,
+					# d: data.product
+					# failPage: DS.util.enc(window.location)
+					# agree: DS.opts.agree
+				# )
 			) )
 
-			new DS.widget.calc(data.product.id, data.product.prices_unit)
+			# new DS.widget.calc(data.product.id, data.product.prices_unit)
+
+			new DS.widget.calc(DS.$("##{@prefix}-buy-context"), data.product)
 
 			DS.widget.currency.init()
 
@@ -2672,6 +2832,22 @@ DS.route =
 			return
 
 DS.eventsDisp =
+	setEventsDisp: ($context) ->
+		$context.on('click', (e) ->
+			callback(e, 'click')
+			
+			return
+		)
+		
+		callback = (e, type) ->
+			$el = DS.$(e.originalTarget or e.srcElement)
+			action = $el.attr('data-action')
+
+			if action and typeof DS.eventsDisp[type + '-' + action] is 'function'
+				DS.eventsDisp[type + '-' + action]($el, e)
+	
+		return
+		
 	'click-comments-page': ($el, e) ->
 		DS.util.prevent(e)
 
@@ -2679,103 +2855,6 @@ DS.eventsDisp =
 
 		DS.route.article.comments.page = page
 		DS.route.article.comments.get()
-
-		return
-
-	'click-buy': ($el, e) ->
-		DS.util.prevent(e)
-
-		id = $el.attr('data-id')
-		isForm = parseInt( $el.attr('data-form') )
-		isCart = parseInt( $el.attr('data-cart') )
-		
-		prefixBuy = 'digiseller-buy'
-		prefixCalc = 'digiseller-calc'
-
-		if isForm
-			$form = DS.$("##{prefixBuy}-form-#{id}")
-			$error = DS.$("##{prefixBuy}-error-#{id}")
-			$rules = DS.$("##{prefixCalc}-rules")
-
-			if $rules.length
-				isChecked = $rules.get(0).checked
-				DS.opts.agree = if isChecked then 1 else 0
-				DS.cookie.set('digiseller-agree', DS.opts.agree)
-
-				if !isChecked
-					return
-			
-			required$Els = {}
-			data = DS.serialize($form.get(0), (el) ->
-				$parent = DS.$(el).parent()
-				
-				if $parent.attr('data-required')
-					required$Els[el.name] = $parent
-			)
-
-			error = no
-			# DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
-			DS.$(".#{prefixCalc}-line", $form).removeClass(prefixCalc + '-line-err')
-			
-			for name, $parent of required$Els
-				continue unless DS.util.hasOwnProp(required$Els, name)
-				
-				if not data[name]
-					error = yes
-					$parent.addClass(prefixCalc + '-line-err')
-			
-			$error.html(if error then DS.opts.i18n['someFieldsRequired'] else '')
-			# $error.style.display = if error then '' else 'none'
-			$error[if error then 'show' else 'hide']()
-			
-			return if error
-			
-			if not isCart
-				$form.get(0).submit()
-			else
-				# console.log(data.cart_uid)
-				# console.log(DS.opts.cart_uid)
-				data.cart_uid = DS.opts.cart_uid
-				DS.ajax('POST', DS.opts.host + 'shop_cart_add.asp',
-					data: data,
-					onLoad: (res, xhr) ->
-						if res.cart_err and res.cart_err isnt ''
-							$error.html(res.cart_err).show()
-							
-							#!!!!!!!!!!!!!!!!!!!! return
-						
-						DS.opts.cart_uid = res.cart_uid || ''
-						
-						DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
-						DS.widget.cartButton.setCount(res.cart_cnt)
-						
-						new DS.widget.cart()
-						
-						return
-					# onFail: (xhr) ->
-						# console.log('Ошибка:', xhr.responseText)
-				)
-		else
-			ai = $el.attr('data-ai')
-
-			buy = () ->
-				window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')				
-				return
-
-			if (DS.opts.agreement_text)
-				DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
-
-				DS.$('#digiseller-agree').on('click', () ->
-					DS.agree(true, buy)					
-					return
-				)
-
-				DS.$('#digiseller-disagree').on('click', () ->
-					DS.agree(false)					
-					return
-				)
-			else
-				buy()
 
 		return
 
@@ -2817,22 +2896,6 @@ DS.eventsDisp =
 
 		return
 
-	'click-agreement': ($el, e) ->
-		DS.util.prevent(e)
-
-		DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
-
-		DS.$('#digiseller-agree').on('click', () ->
-			DS.agree(true)
-			return
-		)
-		DS.$('#digiseller-disagree').on('click', () ->
-			DS.agree(false)
-			return
-		)
-		
-		return
-
 DS.inited = no
 DS.init = ->
 	return off if DS.inited
@@ -2851,8 +2914,6 @@ DS.init = ->
 	
 	DS.opts.currency = DS.cookie.get('digiseller-currency') or DS.opts.currency
 
-	# params = ['sort', 'rows', 'view']
-	# for param in params
 	DS.util.each(['sort', 'rows', 'view'], (param) ->
 		DS.opts[param] = DS.cookie.get(DS.route.articles.prefix + '-' + param) or DS.opts[param]
 		
@@ -2885,7 +2946,15 @@ DS.init = ->
 	# if $cart
 		# DS.opts.hasCart = true
 		# $cart.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
+	
+	DS.$('.digiseller-productBuy').each( (el) ->
+		# that.$[el] = DS.$("##{_prefix}-#{el}-#{that.index}")
 
+		new DS.widget.calc( DS.$(el) )
+		
+		return
+	)
+	
 	homeInited = false
 	DS.historyClick.addRoute('#.*', (params) ->
 		if homeInited
@@ -2913,14 +2982,16 @@ DS.init = ->
 		)(route)
 
 	DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home')
-	DS.historyClick.start()
-	
-	if window.location.hash is ''
-		DS.historyClick.reload()
-
 	DS.historyClick.onGo = () ->
-		DS.popup.close()			
+		DS.popup.close()
+		
 		return
+	
+	if DS.widget.main.$el.length
+		DS.historyClick.start()
+	
+		if window.location.hash is ''
+			DS.historyClick.reload()
 		
 	return
 
