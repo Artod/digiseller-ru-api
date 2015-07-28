@@ -1301,22 +1301,26 @@ DigiSeller shop widget v. 1.4.06
         var that;
         this.$context = $context;
         this.index = _index++;
-        this.id = data ? data.id : $context.attr('data-id');
+        this.id = data ? data.id : this.$context.attr('data-id');
         if (data) {
           this.renderInit(data);
           this.init();
         } else {
           that = this;
           DS.ajax('GET', DS.opts.host + 'shop_product_info.asp', {
-            $el: $context,
+            $el: this.$context,
             data: {
               seller_id: DS.opts.seller_id,
               product_id: this.id,
               currency: DS.opts.currency
             },
             onLoad: function(data) {
+              var _ref;
               if (!data) {
                 return false;
+              }
+              if ((_ref = data.product) != null) {
+                _ref.no_cart = 1;
               }
               that.renderInit(data.product);
               that.init();
@@ -1330,6 +1334,11 @@ DigiSeller shop widget v. 1.4.06
         this.$context.html(DS.tmpl(DS.tmpls.buy, {
           d: data,
           index: this.index,
+          ai: this.$context.attr('data-ai'),
+          imgSize: this.$context.attr('data-img-size'),
+          needImg: this.$context.attr('data-img') === '1' ? true : false,
+          needName: this.$context.attr('data-name') === '1' ? true : false,
+          noPrice: this.$context.attr('data-no-price') === '1' ? true : false,
           failPage: DS.util.enc(window.location),
           agree: DS.opts.agree
         }));
@@ -1501,7 +1510,7 @@ DigiSeller shop widget v. 1.4.06
           return false;
         }
         this.$.amount.val(data.amount);
-        this.$.price.html(data.amount + ' ' + data.curr);
+        this.$.price.html(data.amount + ' <span>' + data.curr + '</span>');
         if (this.$.cnt.length && data.cnt) {
           this.checkMinMax(data.cnt);
           this.$.cnt.val(data.cnt);
@@ -1554,6 +1563,7 @@ DigiSeller shop widget v. 1.4.06
         id = $el.attr('data-id');
         isForm = parseInt($el.attr('data-form'));
         isCart = parseInt($el.attr('data-cart'));
+        ai = $el.attr('data-ai');
         prefixBuy = 'digiseller-buy';
         prefixCalc = 'digiseller-calc';
         if (isForm) {
@@ -1611,9 +1621,8 @@ DigiSeller shop widget v. 1.4.06
             });
           }
         } else {
-          ai = $el.attr('data-ai');
           buy = function() {
-            window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id + "&ai=" + ai + "&dsn=limit", '_blank');
+            window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", '_blank');
           };
           if (DS.opts.agreement_text) {
             this.showAgreement(buy);
@@ -2366,7 +2375,7 @@ DigiSeller shop widget v. 1.4.06
     if (!DS.widget.category.$el.length) {
       DS.widget.main.$el.addClass('digiseller-main-nocategory');
     }
-    DS.$('.digiseller-productBuy').each(function(el) {
+    DS.$('.digiseller-buy-standalone').each(function(el) {
       new DS.widget.calc(DS.$(el));
     });
     homeInited = false;

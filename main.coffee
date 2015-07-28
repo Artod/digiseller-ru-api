@@ -1573,7 +1573,7 @@ DS.widget =
 
 		constructor: (@$context, data) ->
 			@index = _index++
-			@id = if data then data.id else $context.attr('data-id')
+			@id = if data then data.id else @$context.attr('data-id')
 			
 			if data
 				@renderInit(data)
@@ -1582,7 +1582,7 @@ DS.widget =
 				that = @
 				
 				DS.ajax('GET', DS.opts.host + 'shop_product_info.asp',
-					$el: $context
+					$el: @$context
 					data:
 						seller_id: DS.opts.seller_id
 						product_id: @id
@@ -1590,6 +1590,8 @@ DS.widget =
 					onLoad: (data) ->
 						return off unless data
 
+						data.product?.no_cart = 1 # временно, пока не нужна корзина в стенделоне
+						
 						that.renderInit(data.product)						
 						that.init()
 
@@ -1602,6 +1604,12 @@ DS.widget =
 			@$context.html( DS.tmpl(DS.tmpls.buy,
 				d: data
 				index: @index
+				# isStandAlone: isStandAlone
+				ai: @$context.attr('data-ai')
+				imgSize: @$context.attr('data-img-size')
+				needImg: if @$context.attr('data-img') is '1' then true else false
+				needName: if @$context.attr('data-name') is '1' then true else false
+				noPrice: if @$context.attr('data-no-price') is '1' then true else false				
 				failPage: DS.util.enc(window.location)
 				agree: DS.opts.agree
 			) )
@@ -1841,7 +1849,7 @@ DS.widget =
 			@$.amount.val(data.amount)
 				# else if @$.price.length
 					# console.log(data.amount + ' ' + data.curr)
-			@$.price.html(data.amount + ' ' + data.curr)
+			@$.price.html(data.amount + ' <span>' + data.curr + '</span>')
 
 			# if @$.cnt.length && data.unit_Cnt
 			if @$.cnt.length && data.cnt
@@ -1905,6 +1913,7 @@ DS.widget =
 			id = $el.attr('data-id')
 			isForm = parseInt( $el.attr('data-form') )
 			isCart = parseInt( $el.attr('data-cart') )
+			ai = $el.attr('data-ai')
 			
 			prefixBuy = 'digiseller-buy'
 			prefixCalc = 'digiseller-calc'
@@ -1973,10 +1982,8 @@ DS.widget =
 							# console.log('Ошибка:', xhr.responseText)
 					)
 			else
-				ai = $el.attr('data-ai')
-
 				buy = () ->
-					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}&ai=#{ai}&dsn=limit", '_blank')				
+					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')					
 					return
 
 				if (DS.opts.agreement_text)
@@ -2947,7 +2954,7 @@ DS.init = ->
 		# DS.opts.hasCart = true
 		# $cart.innerHTML = DS.tmpl(DS.tmpls.cartButton, {})
 	
-	DS.$('.digiseller-productBuy').each( (el) ->
+	DS.$('.digiseller-buy-standalone').each( (el) ->
 		# that.$[el] = DS.$("##{_prefix}-#{el}-#{that.index}")
 
 		new DS.widget.calc( DS.$(el) )

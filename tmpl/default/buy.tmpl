@@ -3,23 +3,42 @@
 		? '<a class="digiseller-buyButton" data-id="' + d.id + '" data-form="1"'
 			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
+			+ (ai ? ' data-ai="' + ai + '"' : '')
 			+ ' id="digiseller-calc-buy-' + index + '">' + DS.opts.i18n['buy'] + '</a>'
 			+ (DS.opts.hasCart && d.no_cart != 1 ? ' <a class="digiseller-buyButton" data-id="' + d.id + '" data-form="1" data-cart="1" id="digiseller-calc-cart-' + index + '">' + DS.opts.i18n['toCart'] + '</a>' : '')
 		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
 	);
 ?>
 
-<? if (d.is_available) { ?>
-	<div id="digiseller-calc-<?= index ?>" class="digiseller-calc">
+<div <?= d.is_available ? 'id="digiseller-calc-' + index + '"' : '' ?> class="digiseller-calc <?= d.is_available ? '' : 'digiseller-notinstock' ?>">
+	<? if (needImg) { ?>
+		<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
+
+		<div class="digiseller-product-0-image">
+			<? if (mainImg) { ?>					
+				<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
+			<? } else { ?>
+				<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
+			<? } ?>
+		</div>
+	<? } ?>
+
+	<? if (needName) { ?>			
+		<div class="digiseller-product-0-digiseller-name">
+			<span><?= d.name ?></span>
+		</div>
+	<? } ?>
+	
+	<? if (d.is_available) { ?>	
 		<form method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>-<?= index ?>">
-			<input type="hidden" name="Agent" value="<?= d.agency_id ?>" />
+			<input type="hidden" name="Agent" value="<?= (ai === null /*нету аттрибута*/ ? d.agency_id : ai) ?>" />
 			<input type="hidden" name="product_id" value="<?= d.id ?>" />
 			<input type="hidden" name="ID_D" value="<?= d.id ?>" />
 			<input type="hidden" name="seller_id" value="<?= DS.opts.seller_id ?>" />
 			<input type="hidden" name="FailPage" value="<?= failPage ?>" />
 				
 			<? if (!d.prices_unit) { ?>	
-				<span class="digiseller-prod-cost" id="digiseller-calc-price-<?= index ?>"><?= d.price ?> <?= d.currency ?></span>
+				<span class="digiseller-prod-cost" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <span><?= d.currency ?></span></span>
 			<? } else { ?>
 				<div class="digiseller-calc-quanity">
 					<table>
@@ -128,7 +147,7 @@
 									if (option.variants && option.variants.length) {
 										DS.util.each(option.variants, function(variant, ii) { ?>										
 											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>-<?= index ?>" name="<?= option.name + (option.type === 'checkbox' ? '-' + variant.value : '') ?>" value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' checked' : '' ?> />
-											<label for="<?= option.name ?>_<?= ii ?>"><?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?></label><br />
+											<label for="<?= option.name ?>_<?= ii ?>-<?= index ?>"><?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?></label><br />
 										<? });											
 									}
 									
@@ -152,10 +171,8 @@
 			
 			<div class="digiseller-calc-line-err digiseller-hidden" id="digiseller-buy-error-<?= d.id ?>-<?= index ?>"></div>
 		</form>
-	</div>
-<? } else { ?>
-	<div class="digiseller-calc digiseller-notinstock">
-		<span class="digiseller-prod-cost" id="digiseller-calc-price-<?= index ?>"><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
+	<? } else { ?>
+		<span class="digiseller-prod-cost" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="visibility:hidden;"' : '') ?>><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <span><?= d.currency ?></span></span>
 		<?= button ?>
-	</div>
-<? } ?>
+	<? } ?>
+</div>
