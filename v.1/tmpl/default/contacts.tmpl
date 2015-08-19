@@ -1,0 +1,31 @@
+<div class="digiseller-contacts">
+	<h1><?= DS.opts.i18n['contactInfo'] ?></h1>
+
+	<div class="digiseller-breadcrumbs">
+		<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt; <strong><?= DS.opts.i18n['contactInfo'] ?></strong>
+	</div>
+	
+	<div class="digiseller-contacts-block">
+		<? if (d.email) { ?>
+			<span class="digiseller-contacts-label">e-Mail</span>: <span class="digiseller-contacts-value"><a href="mailto:<?= d.email ?>"><?= d.email ?></a></span><br />
+		<? } ?>
+		
+		<? if (d.icq) { ?>
+			<span class="digiseller-contacts-label">ICQ</span>: <span class="digiseller-contacts-value"><img src="http://status.icq.com/online.gif?icq=<?= d.icq ?>&img=5" title="<?= DS.opts.i18n['statusIcqUser'] ?>" /> <?= d.icq ?></span><br />
+		<? } ?>
+		
+		<? if (d.skype) { ?>
+			<span class="digiseller-contacts-label">Skype</span>: <span class="digiseller-contacts-value"><a href="skype:<?= d.skype ?>?chat"><?= d.skype ?></a></span><br />
+		<? } ?>
+		
+		<? if (d.wmid) { ?>
+			<span class="digiseller-contacts-label">wmid</span>: <span class="digiseller-contacts-value"><a href="//events.webmoney.ru/user.aspx?<?= d.wmid ?>"><?= d.wmid ?></a></span><br />
+		<? } ?>	
+		
+		<? if (d.wmid) { ?>
+			<span class="digiseller-contacts-label"><?= DS.opts.i18n['phone'] ?></span>: <span class="digiseller-contacts-value"><?= d.phone ?></span><br />
+		<? } ?>
+		
+		<p><?= d.comment ?></p>
+	</div>	
+</div>

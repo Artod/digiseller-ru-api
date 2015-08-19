@@ -1,0 +1,21 @@
+<div class="digiseller-reviewList">
+	<h1><?= DS.opts.i18n['customerReviews'] ?></h1>
+
+	<div class="digiseller-breadcrumbs">
+		<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt; <strong><?= DS.opts.i18n['reviews'] ?></strong>
+	</div>
+	
+	<div class="digiseller-options">
+		<div class="digiseller-filtersort" id="digiseller-reviews-type">
+			<span><?= DS.opts.i18n['show'] ?>: </span>
+			<select>
+				<option value="all" selected="selected"><?= DS.opts.i18n['allReviews'] ?></option>
+				<option value="good"><?= DS.opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
+				<option value="bad"><?= DS.opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
+			</select>
+		</div>
+	</div>
+	
+	<div class="digiseller-comments" id="<?= id ?>"></div>
+	
+	<div class="digiseller-paging"></div>

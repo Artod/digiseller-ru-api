@@ -1,0 +1,23 @@
+<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=0&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
+
+<? if (categories && categories.length) { ?>
+	<div class="digiseller-category-blocks">
+		<? DS.util.each(categories, function(category) { ?>
+			<div>			
+				<a onclick="location.hash='<?= DS.opts.hashPrefix ?>/articles/<?= category.id ?>';">
+					<img src="//graph.digiseller.ru/img.ashx?idn=<?= category.hasImg == 1 ? category.id : 1?>&maxlength=<?= DS.opts.imgsize_category ?>" alt="<?= name ?>" />
+				</a>
+				
+				<a onclick="location.hash='<?= DS.opts.hashPrefix ?>/articles/<?= category.id ?>';" style="max-width:<?= DS.opts.imgsize_category ?>px;">
+					<?= category.name ?><span>&nbsp;(<?= category.cnt ?>)</span>
+				</a>
+			</div>
+		<? }); ?>
+	</div>
+	<div class="digiseller-both"></div>
+	<br />
+<? } ?>
+
+<div class="digiseller-productList digiseller-homepage">
+	<?= (out ? out : (categories && categories.length ? '' : DS.opts.i18n['articlesNotFound'])) ?>
+</div>

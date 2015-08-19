@@ -1,0 +1,11 @@
+<div class="digiseller-topmenu">
+	<? if (DS.opts.menu_purchases) { ?>
+		<a href="https://www.oplata.info" title="<?= DS.opts.i18n['myPurchases'] ?>" class="digiseller-myorderslnk"><?= DS.opts.i18n['myPurchases'] ?></a>
+	<? }
+	if (DS.opts.menu_reviews) { ?>
+		<a onclick="location.hash='#!digiseller/reviews';" title="<?= DS.opts.i18n['customerReviews'] ?>" class="digiseller-reviewslnk"><?= DS.opts.i18n['customerReviews'] ?></a>
+	<? }
+	if (DS.opts.menu_contacts) { ?>
+		<a onclick="location.hash='#!digiseller/contacts';" title="<?= DS.opts.i18n['contacts'] ?>" class="digiseller-contactslnk"><?= DS.opts.i18n['contacts'] ?></a>
+	<? } ?>
+</div>
