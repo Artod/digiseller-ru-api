@@ -1,0 +1,8 @@
+<!--div<?= parseInt(DS.opts.cart_cnt) ? '' : ' class="digiseller-cart-btn-empty"' ?> id="digiseller-cart-empty">
+	<a href="#" title="<?= DS.opts.i18n.showCart ?>"><span id="digiseller-cart-count"><?= DS.opts.cart_cnt || 0 ?></span></a>
+</div-->
+
+<div class="digiseller-basket-box">
+	<a href="" title="<?= DS.opts.i18n.showCart ?>"></a>
+	<span class="count"><?= DS.opts.cart_cnt || 0 ?></span>
+</div>

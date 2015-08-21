@@ -1,0 +1,17 @@
+<div class="digiseller-review">
+	<span class="digiseller-reviewdate"><?= d.date ?></span>
+	<p>
+		<?= (d.type == "good" ? '<span class="digiseller-reviewgood">+</span>' : '<span class="digiseller-reviewbad">-</span>') ?>&nbsp;
+		<?= d.info ?>
+	</p>	
+	<? if (d.comment !== '') { ?>
+		<div class="digiseller-reviewcomment">
+			<span class="digiseller-reviewcommentarrow">&#9650;</span>
+			<span class="digiseller-reviewcommentadmintxt">
+				<span class="digiseller-reviewdate"><?= DS.opts.i18n['adminComment'] ?></span>
+				<?= d.comment ?>
+			</span>
+		</div>
+	<? } ?>
+</div>
+<div class="digiseller-both"></div>

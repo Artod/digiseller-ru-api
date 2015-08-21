@@ -1,0 +1,189 @@
+<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
+<? var reviewsCount = parseInt(d.statistics.good_reviews) + parseInt(d.statistics.bad_reviews); ?>
+<? var price = (d.collection == 'unit' ? 'от ' : '') + d.price + ' ' + d.currency ?>
+
+<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
+
+<div class="digiseller-productpge">
+	<h1>
+		<?= d.name ?>&nbsp;
+		<? switch(d.label) {
+			case 'top': ?>
+				<span class="digiseller-labellider"><?= DS.opts.i18n['leader!'] ?></span>
+				<? break;
+			case 'sale': ?>
+				<span class="digiseller-labelaction"><?= DS.opts.i18n['action!'] ?></span>
+				<? break;
+			case 'new': ?>
+				<span class="digiseller-labelnew"><?= DS.opts.i18n['new!'] ?></span>
+				<? break;
+		} ?>
+	</h1>
+	
+	<div class="digiseller-breadcrumbs">
+		<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt;&nbsp;
+		<? if (d.breadCrumbs) {			
+			for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
+				<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
+			<? } ?>
+			<a title="<?= d.breadCrumbs[l - 1].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[l - 1].id ?>';"><?= d.breadCrumbs[l - 1].name ?></a>
+		<? } ?>
+	</div>
+	
+	<div class="digiseller-options">
+		<span class="digiseller-social">
+			<a class="digiseller-social-fb" title="<?= DS.opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-vk" title="<?= DS.opts.i18n['shareInVK'] ?>" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+			<a class="digiseller-social-tw" title="<?= DS.opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
+			<a class="digiseller-social-wm" title="<?= DS.opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
+		</span>
+		
+		<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
+			<div class="digiseller-product-toggle">
+				<div<?= (d.id_prev !== '0' ? '' : ' class="digiseller-disabled"') ?>><span>&larr; </span><a<?= (d.id_prev !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_prev + '\\'"' : '') ?>><?= DS.opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;</div>
+				|
+				<div<?= (d.id_next !== '0' ? '' : ' class="digiseller-disabled"') ?>>&nbsp;&nbsp; <a<?= (d.id_next !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_next + '\\'"' : '') ?>><?= DS.opts.i18n['nextArticle'] ?></a><span> &rarr;</span></div>
+			</div>
+		<? } ?>
+
+		<!--div id="digiseller-currency"></div-->
+	</div>
+	
+	<div class="digiseller-product-details">		
+		<div class="digiseller-product-left">
+
+			<div>		
+				<div class="digiseller-productdetails-tabs">
+					<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= DS.opts.i18n['description'] ?></a>	
+					<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
+						<a data-action="article-tab" data-tab="1"><?= DS.opts.i18n['discounts'] ?></a>	
+					<? } ?>
+					<? if (reviewsCount) { ?>
+						<a data-action="article-tab" data-tab="2"><?= DS.opts.i18n['reviews'] ?></a>
+					<? } ?>
+				</div>
+				<div>
+					<div class="digiseller-description_content">
+						<div class="digiseller-prod-info">
+							<? if (mainImg) {
+								var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
+								
+								<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" style="min-width:<?= imgSize ?>px; min-height:<?= imgSize ?>px; background: url(//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>) no-repeat scroll center center transparent;" title="<?= name ?>">
+									<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
+									<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
+								</a>
+							<? } else { ?>
+								<img class="digiseller-no-img" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
+							<? } ?>
+							
+							<? if (d.preview_imgs || d.preview_videos) { ?>
+								<div class="digiseller-left-thumbs" id="digiseller-article-thumbs">
+									<? if (d.preview_imgs) { ?>
+										<div class="digiseller-image-view">
+											<? var index = 0;
+											
+											DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
+												<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>"<?=  d.preview_imgs.length == 1 ? ' style="display:none;"' : '' ?>>
+													<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
+												</a>
+												
+												<? index++;
+											}); ?>
+										</div>
+									<? } ?>					
+									
+									<? if (d.preview_videos) { ?>
+										<div class="digiseller-video-view">
+											<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
+												<a class="digiseller-videothumb" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
+													<img src="<?= preview_video.preview ?>" alt="" />
+													<span></span>
+												</a>
+												
+												<? index++;
+											}); ?>
+										</div>
+									<? } ?>					
+								</div>
+							<? } ?>
+						</div>
+					
+						<div class="digiseller-prod-info">
+							<?= d.info ?>
+						</div>
+
+						<? if (d.add_info !== "") { ?>
+							<div class="digiseller-prod-info">
+								<h3><?= DS.opts.i18n['addInformation'] ?>:</h3>
+								<?= d.add_info ?>
+							</div>
+						<? } ?>
+					</div>
+					
+					<div class="digiseller-reviews_content digiseller-discounttable2 digiseller-hidden">
+						<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
+						
+							<? if (d.units && d.units.discounts) { ?>
+								<h3><?= DS.opts.i18n['discountsOnQuantityPurchases'] ?></h3>
+								<table class="digiseller-discounttable1">
+									<thead>
+										<tr class="digiseller-discounttabbe-head">	
+											<td><?= DS.opts.i18n['whenBuyingFrom'] ?></td>
+											<td><?= DS.opts.i18n['discount'] ?></td>
+											<td><?= DS.opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
+										</tr>
+									</thead>
+									<tbody>
+										<? DS.util.each(d.units.discounts, function(discount, i) { ?>
+											<tr>
+												<td><?= discount.desc ?></td>
+												<td><?= discount.percent ?>%</td>
+												<td><?= discount.price ?> <?= d.currency ?></td>
+											</tr>
+										<? }); ?>
+									</tbody>
+								</table><br />
+							<? } ?> 
+						
+							<? if (d.discounts && d.discounts.length) { ?>
+								<h3><?= DS.opts.i18n['discountLoyalCustomers'] ?></h3>
+								<table class="digiseller-discounttable1">
+									<thead>
+										<tr class="digiseller-discounttabbe-head">	
+											<td><?= DS.opts.i18n['amountOfPurchasesFrom'] ?></td>
+											<td><?= DS.opts.i18n['discount'] ?></td>
+										</tr>
+									</thead>
+									<tbody>
+										<? DS.util.each(d.discounts, function(discount, i) { ?>
+											<tr>
+												<td><?= discount.summa ?> <?= d.currency ?></td>
+												<td><?= discount.percent ?>%</td>
+											</tr>
+										<? }); ?>
+									</tbody>
+								</table><br />
+							<? } ?> 
+						<? } ?>
+					</div>
+					
+					<div class="digiseller-reviews_content digiseller-hidden" id="digiseller-article-comments-<?= d.id ?>"></div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="digiseller-product-right">
+			<div class="digiseller-productBuy" id="digiseller-article-buy-context"></div>
+			
+			<? if (d.statistics.sales && d.statistics.sales != '0') { ?>
+				<div class="digiseller-prod-info">
+					<span><?= DS.opts.i18n['numberOfSales'] ?>:&nbsp;</span><?= d.statistics.sales ?>
+				</div>
+			<? } ?>
+		</div>
+	</div>
+	
+	<div class="digiseller-both"></div>
+
+</div>
+<br />

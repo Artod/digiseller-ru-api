@@ -1,0 +1,69 @@
+<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=0&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
+
+<div class="digiseller-wrapper-name-category">
+	<h2><?= d.breadCrumbs ? d.breadCrumbs[d.breadCrumbs.length - 1].name : '' ?></h2>
+</div>
+
+<section class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<ul class="digiseller-breadcrumbs">
+		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+			<li><a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a></li>
+			<? if (d.breadCrumbs) {
+				for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
+					<li><a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a></li>
+				<? } ?>
+			
+				<li class="digiseller-current"><a><?= d.breadCrumbs[l - 1].name ?> (<?= d.totalItems ?>)</a></li>
+			<? } ?>
+		</div>				  					
+	</ul>
+</section>
+
+<? if (hasCategories) { ?>
+	<!--div class="digiseller-category-blocks">
+		<? DS.util.each(d.categories, function(category, i) { ?>
+			<div>			
+				<a onclick="location.hash='#!digiseller/articles/<?= category.id ?>';">
+					<img src="//graph.digiseller.ru/img.ashx?idn=<?= category.hasImg == 1 ? category.id : 1?>&maxlength=<?= DS.opts.imgsize_category ?>" alt="<?= name ?>" />
+				</a>
+				
+				<a onclick="location.hash='#!digiseller/articles/<?= category.id ?>';" style="max-width:<?= DS.opts.imgsize_category ?>px;">
+					<?= category.name ?><span>&nbsp;(<?= category.cnt ?>)</span>
+				</a>
+			</div>
+		<? }); ?>
+	</div>
+	<div class="digiseller-both"></div-->
+	
+	
+	
+	<div class="digiseller-row digiseller-category-row">
+		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+			<? DS.util.each(d.categories, function(category) { ?>
+				<div class="digiseller-wrapper-category digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns">
+					<div class="digiseller-wrapper-img">
+						<a onclick="location.hash='<?= DS.opts.hashPrefix ?>/articles/<?= category.id ?>';">
+							<img src="//graph.digiseller.ru/img.ashx?idn=<?= category.hasImg == 1 ? category.id : 1?>&maxlength=<?= DS.opts.imgsize_category ?>" alt="<?= name ?>" />
+						</a>
+						
+						<p class="digiseller-description-category">
+							<a onclick="location.hash='<?= DS.opts.hashPrefix ?>/articles/<?= category.id ?>';"><?= category.name ?></a>
+						</p>
+					</div>
+				</div>
+			<? }); ?>
+		</div>
+	</div>
+<? } ?>
+
+<?= (d.totalPages ? articlesPanel : '') ?>
+
+<? if (d.totalPages || !d.totalPages && !hasCategories) { ?>
+	<div id="<?= id ?>">
+		<?= DS.opts.view === 'table' ? '<table class="digiseller-table" id="' + id + '-table">' + out + '</table>' : out ?>
+	</div>
+	
+	<div id="<?= id ?>-paging"></div>
+<? } ?>
+
+<br />

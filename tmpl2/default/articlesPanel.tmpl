@@ -1,0 +1,23 @@
+<div class="digiseller-options-filter digiseller-options-filter-v digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<div id="digiseller-sort">
+		<span><?= DS.opts.i18n['sortBy'] ?>: </span>
+		<select>
+			<option value="" disabled="disabled"></option>
+			<option value="name"><?= DS.opts.i18n['nameFromAToZ'] ?></option>
+			<option value="nameDESC"><?= DS.opts.i18n['nameFromZToA'] ?></option>
+			<option value="price"><?= DS.opts.i18n['priceFromLowToHigh'] ?></option>
+			<option value="priceDESC"><?= DS.opts.i18n['priceFromHighToLow'] ?></option>
+		</select>
+	</div>
+	
+	<div id="digiseller-view">
+		<span><?= DS.opts.i18n['view'] ?>: </span>
+		<select>
+			<option value="tile"><?= DS.opts.i18n['tile'] ?></option>
+			<option value="list"><?= DS.opts.i18n['list'] ?></option>
+			<option value="table"><?= DS.opts.i18n['table'] ?></option>
+		</select>
+	</div>
+
+	<div id="digiseller-currency"></div>
+</div>

@@ -1,0 +1,9 @@
+<button class="digiseller-button digiseller-dropdown digiseller-flag-<?= cur ?>" href="#"><?= cur ?></button>
+
+<br />
+
+<ul class="digiseller-f-dropdown">
+	<? DS.util.each(DS.opts.langs, function(lang) { ?>
+		<li><a href="#" data-action="click-lang" data-lang="<?= lang[0] ?>"><?= lang[1] ?></a></li>
+	<? }); ?>
+</ul>
