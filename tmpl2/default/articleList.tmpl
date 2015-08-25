@@ -1,4 +1,4 @@
-<div class="digiseller-product">
+<!--div class="digiseller-product">
 	<div class="digiseller-pricelabel">
 		<span class="digiseller-article-cost"><? if (d.collection == 'unit') { ?> <span>от</span> <? } ?> <?= d.price ?></span>
 		<span class="digiseller-currency"><?= d.currency ?></span>
@@ -35,5 +35,29 @@
 			<br /><br />
 			<a onclick="location.hash='<?= url ?>';" class="digiseller-product-details" title="<?= d.name ?>"><?= DS.opts.i18n['readMore'] ?> »</a>
 		</p>
+	</div>
+</div-->
+
+
+
+<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<div class="digiseller-clearfix digiseller-wrapper-product">
+		<div class="digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-wrapper-img">
+			<a onclick="location.hash='<?= url ?>';">
+				<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize ?>" alt="" />
+			</a>
+		</div>
+		<div class="digiseller-large-9 digiseller-medium-9 digiseller-small-12 digiseller-columns digiseller-wrapper-img">	
+			<p class="digiseller-description-category"><a onclick="location.hash='<?= url ?>';"><?= d.name ?></a></p>
+			<p class="digiseller-description-price"><a onclick="location.hash='<?= url ?>';"><? if (d.collection == 'unit') { ?> <span>от</span> <? } ?> <?= d.price ?> <span><?= d.currency ?></span></a></p>
+			
+			<p><?= d.info ?></p>
+			
+			<? if (d.is_available) { ?>
+				<a class="digiseller-description-buyButton-spisok" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= DS.opts.i18n['buy'] ?></a>
+			<? } else { ?>
+				<a class="digiseller-description-buyButton-empty"><?= DS.opts.i18n['notAvailable'] ?></a>
+			<? } ?>
+		</div>
 	</div>
 </div>

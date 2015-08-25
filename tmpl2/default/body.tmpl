@@ -58,12 +58,13 @@
 				<section class="digiseller-top-bar-section" id="digiseller-category-dup"></section>
 			</nav>
 			<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
-			<!--div class="right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-				<div class="right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-					<a href="https://www.oplata.info/"><span title="Мои покупки" class="has-tip" aria-haspopup="true" data-tooltip=""><button class="digiseller-button-packet" href="#"></button></span>
-					</a>
+
+			<? if (DS.opts.menu_purchases) { ?>
+				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
+					<a href="https://www.oplata.info/"><span title="Мои покупки"><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
-			</div-->
+			<? } ?>
+
 			<div id="digiseller-cart-btn" class="digiseller-right digiseller-basket-box-wrapper digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
 			<div id="digiseller-search" class="digiseller-right digiseller-search-box digiseller-large-3 digiseller-medium-5 digiseller-small-1 digiseller-columns"></div>
 		</div>

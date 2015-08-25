@@ -1118,9 +1118,11 @@ DS.widget =
 			return unless @$el.length
 
 			@$el.html(DS.tmpls.search)
-
-			@$input = DS.$("input.#{@prefix}-input", @$el)
-			$form = DS.$("form.#{@prefix}-form", @$el)
+			
+			$inputs = DS.$('input', @$el)
+			
+			@$input = $inputs.eq(0) # DS.$("input.#{@prefix}-input", @$el)
+			$form = DS.$('form', @$el)
 
 			that = @
 			$form.on('submit', (e) ->
@@ -1177,8 +1179,8 @@ DS.widget =
 		prefix: 'digiseller-category'
 		init: () ->
 			@$el = DS.$("##{@prefix}")
-			# @$elDup = DS.$("##{@prefix}-dup")
-			# @$elG = DS.$("##{@prefix}-g")
+			@$elDup = DS.$("##{@prefix}-dup")
+			@$elG = DS.$("##{@prefix}-g")
 			
 			return unless @$el.length
 
@@ -1193,8 +1195,8 @@ DS.widget =
 					return off unless res
 					
 					that.$el.html( that.render(res.category, null, '') )
-					that.$elDup.html( that.render(res.category, null, 'dup') )
-					that.$elG.html( that.render(res.category, null, 'g') )
+					# that.$elDup.html( that.render(res.category, null, 'dup') )
+					# that.$elG.html( that.render(res.category, null, 'g') )
 
 					that.isInited = true
 
@@ -1583,7 +1585,6 @@ DS.widget =
 					
 					return
 				)
-
 		
 			onChangeCurrency = (withoutGet) ->
 				index = that.$.currency.get(0).selectedIndex
@@ -1618,7 +1619,7 @@ DS.widget =
 			$curAddSelects.on('change', ()->
 				onChangeCurAdd( DS.$(@) )
 			)
-			
+
 			@$.currency.on('change', () ->
 				onChangeCurrency()
 			)
@@ -2218,7 +2219,7 @@ DS.route =
 				)
 
 			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.showcaseArticles,
-				out: if DS.opts.main_view is 'table' then '<table class="digiseller-table">' + out + '</table>' else out
+				out: if DS.opts.main_view is 'table' and false then '<table class="digiseller-table">' + out + '</table>' else out
 				categories: data.categories
 			) )
 			
@@ -2401,7 +2402,7 @@ DS.route =
 
 			$container = DS.$("##{@prefix}-#{@cid}")
 			if $container.length
-				$container.html(if DS.opts.view is 'table' then '<table class="digiseller-table">' + out + '</table>' else out)
+				$container.html(if DS.opts.view is 'table' and false then '<table class="digiseller-table">' + out + '</table>' else out)
 
 				@pager.page = @page
 				@pager.rows = @rows
@@ -2784,23 +2785,28 @@ DS.eventsDisp =
 
 		index = $el.attr('data-tab')
 
-		$panels = $el.parent().next().children()
+		# $panels = $el.parent().parent().next().children()
+		
+		$tabs = DS.$('#digiseller-tabs').children()
+		$panels = DS.$('#digiseller-tabs-panels').children()
 
 		# DS.dom.klass('remove', $el.parentNode.children, 'digiseller-activeTab', true)
-		$el.parent().children().removeClass('digiseller-activeTab')
 		# DS.dom.klass('add', $el, 'digiseller-activeTab')
-		$el.addClass('digiseller-activeTab')
+		
+		cl = 'digiseller-active'
+		$tabs.removeClass(cl)
+		$el.parent().addClass(cl)
 
 		change = () ->
 			# for $panel in $panels
 				# $panel.style.display = 'none'
-			$panels.hide().eq(index).show()
+			$panels.removeClass(cl).eq(index).addClass(cl)
 
 			# $panels.eq(index).style.display = ''
 			
 			return
 		
-		if index is '2'
+		if index is '1'
 			DS.route.article.initComments(change)
 		else
 			change()

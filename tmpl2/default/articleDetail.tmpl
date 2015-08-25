@@ -4,186 +4,232 @@
 
 <img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
 
-<div class="digiseller-productpge">
-	<h1>
-		<?= d.name ?>&nbsp;
-		<? switch(d.label) {
-			case 'top': ?>
-				<span class="digiseller-labellider"><?= DS.opts.i18n['leader!'] ?></span>
-				<? break;
-			case 'sale': ?>
-				<span class="digiseller-labelaction"><?= DS.opts.i18n['action!'] ?></span>
-				<? break;
-			case 'new': ?>
-				<span class="digiseller-labelnew"><?= DS.opts.i18n['new!'] ?></span>
-				<? break;
-		} ?>
-	</h1>
-	
-	<div class="digiseller-breadcrumbs">
-		<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt;&nbsp;
-		<? if (d.breadCrumbs) {			
-			for (var i = 0, l = d.breadCrumbs.length; i < l - 1; i++) { ?>
-				<a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a> &gt;&nbsp;
-			<? } ?>
-			<a title="<?= d.breadCrumbs[l - 1].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[l - 1].id ?>';"><?= d.breadCrumbs[l - 1].name ?></a>
-		<? } ?>
-	</div>
-	
-	<div class="digiseller-options">
-		<span class="digiseller-social">
-			<a class="digiseller-social-fb" title="<?= DS.opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-			<a class="digiseller-social-vk" title="<?= DS.opts.i18n['shareInVK'] ?>" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-			<a class="digiseller-social-tw" title="<?= DS.opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= price ?>"></a>
-			<a class="digiseller-social-wm" title="<?= DS.opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= price ?>" data-img="<?= mainImg ?>"></a>
-		</span>
-		
-		<? if (d.id_prev !== '0' || d.id_next !== '0') { ?>
-			<div class="digiseller-product-toggle">
-				<div<?= (d.id_prev !== '0' ? '' : ' class="digiseller-disabled"') ?>><span>&larr; </span><a<?= (d.id_prev !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_prev + '\\'"' : '') ?>><?= DS.opts.i18n['prevArticle'] ?></a> &nbsp;&nbsp;</div>
-				|
-				<div<?= (d.id_next !== '0' ? '' : ' class="digiseller-disabled"') ?>>&nbsp;&nbsp; <a<?= (d.id_next !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_next + '\\'"' : '') ?>><?= DS.opts.i18n['nextArticle'] ?></a><span> &rarr;</span></div>
-			</div>
-		<? } ?>
-
-		<!--div id="digiseller-currency"></div-->
-	</div>
-	
-	<div class="digiseller-product-details">		
-		<div class="digiseller-product-left">
-
-			<div>		
-				<div class="digiseller-productdetails-tabs">
-					<a class="digiseller-activeTab" data-action="article-tab" data-tab="0"><?= DS.opts.i18n['description'] ?></a>	
-					<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
-						<a data-action="article-tab" data-tab="1"><?= DS.opts.i18n['discounts'] ?></a>	
-					<? } ?>
-					<? if (reviewsCount) { ?>
-						<a data-action="article-tab" data-tab="2"><?= DS.opts.i18n['reviews'] ?></a>
-					<? } ?>
-				</div>
-				<div>
-					<div class="digiseller-description_content">
-						<div class="digiseller-prod-info">
-							<? if (mainImg) {
-								var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
-								
-								<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" style="min-width:<?= imgSize ?>px; min-height:<?= imgSize ?>px; background: url(//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>) no-repeat scroll center center transparent;" title="<?= name ?>">
-									<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
-									<!--img src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&<?= d.preview_imgs[0].height > d.preview_imgs[0].width ? 'h' : 'w' ?>=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /-->
-								</a>
-							<? } else { ?>
-								<img class="digiseller-no-img" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
-							<? } ?>
-							
-							<? if (d.preview_imgs || d.preview_videos) { ?>
-								<div class="digiseller-left-thumbs" id="digiseller-article-thumbs">
-									<? if (d.preview_imgs) { ?>
-										<div class="digiseller-image-view">
-											<? var index = 0;
-											
-											DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
-												<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>"<?=  d.preview_imgs.length == 1 ? ' style="display:none;"' : '' ?>>
-													<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
-												</a>
-												
-												<? index++;
-											}); ?>
-										</div>
-									<? } ?>					
-									
-									<? if (d.preview_videos) { ?>
-										<div class="digiseller-video-view">
-											<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
-												<a class="digiseller-videothumb" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
-													<img src="<?= preview_video.preview ?>" alt="" />
-													<span></span>
-												</a>
-												
-												<? index++;
-											}); ?>
-										</div>
-									<? } ?>					
-								</div>
-							<? } ?>
-						</div>
-					
-						<div class="digiseller-prod-info">
-							<?= d.info ?>
-						</div>
-
-						<? if (d.add_info !== "") { ?>
-							<div class="digiseller-prod-info">
-								<h3><?= DS.opts.i18n['addInformation'] ?>:</h3>
-								<?= d.add_info ?>
-							</div>
-						<? } ?>
-					</div>
-					
-					<div class="digiseller-reviews_content digiseller-discounttable2 digiseller-hidden">
-						<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>
-						
-							<? if (d.units && d.units.discounts) { ?>
-								<h3><?= DS.opts.i18n['discountsOnQuantityPurchases'] ?></h3>
-								<table class="digiseller-discounttable1">
-									<thead>
-										<tr class="digiseller-discounttabbe-head">	
-											<td><?= DS.opts.i18n['whenBuyingFrom'] ?></td>
-											<td><?= DS.opts.i18n['discount'] ?></td>
-											<td><?= DS.opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
-										</tr>
-									</thead>
-									<tbody>
-										<? DS.util.each(d.units.discounts, function(discount, i) { ?>
-											<tr>
-												<td><?= discount.desc ?></td>
-												<td><?= discount.percent ?>%</td>
-												<td><?= discount.price ?> <?= d.currency ?></td>
-											</tr>
-										<? }); ?>
-									</tbody>
-								</table><br />
-							<? } ?> 
-						
-							<? if (d.discounts && d.discounts.length) { ?>
-								<h3><?= DS.opts.i18n['discountLoyalCustomers'] ?></h3>
-								<table class="digiseller-discounttable1">
-									<thead>
-										<tr class="digiseller-discounttabbe-head">	
-											<td><?= DS.opts.i18n['amountOfPurchasesFrom'] ?></td>
-											<td><?= DS.opts.i18n['discount'] ?></td>
-										</tr>
-									</thead>
-									<tbody>
-										<? DS.util.each(d.discounts, function(discount, i) { ?>
-											<tr>
-												<td><?= discount.summa ?> <?= d.currency ?></td>
-												<td><?= discount.percent ?>%</td>
-											</tr>
-										<? }); ?>
-									</tbody>
-								</table><br />
-							<? } ?> 
-						<? } ?>
-					</div>
-					
-					<div class="digiseller-reviews_content digiseller-hidden" id="digiseller-article-comments-<?= d.id ?>"></div>
-				</div>
-			</div>
+<section class="digiseller-row">
+	<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+			<h2 class="digiseller-name-product"><?= d.breadCrumbs ? d.breadCrumbs[d.breadCrumbs.length - 1].name : '' ?></h2>	
 		</div>
 		
-		<div class="digiseller-product-right">
-			<div class="digiseller-productBuy" id="digiseller-article-buy-context"></div>
+		<section class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+			<ul class="digiseller-breadcrumbs digiseller-breadcrumbs-arrow">
+			  <div class="digiseller-large-9 digiseller-medium-9 digiseller-small-9 digiseller-columns">
+				<li><a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a></li>
+				<? if (d.breadCrumbs) {
+					for (var i = 0, l = d.breadCrumbs.length; i < l; i++) { ?>
+						<li><a title="<?= d.breadCrumbs[i].name ?>" onclick="location.hash='#!digiseller/articles/<?= d.breadCrumbs[i].id ?>';"><?= d.breadCrumbs[i].name ?></a></li>
+					<? } ?>
+				<? } ?>
+			  </div>
+			  <div class="digiseller-large-3 digiseller-medium-3 digiseller-small-3 digiseller-columns">	
+				<? if (d.id_next !== '0') { ?>
+					<a class="digiseller-prev-next <?= (d.id_next !== '0' ? 'digiseller-next' : 'digiseller-next-disabled') ?>" <?= (d.id_next !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_next + '\\'"' : '') ?> title="<?= DS.opts.i18n['prevArticle'] ?>"></a>
+				<? }
+				if (d.id_prev !== '0') { ?>
+					<a class="digiseller-prev-next <?= (d.id_prev !== '0' ? 'digiseller-prev' : 'digiseller-next-disabled') ?>" <?= (d.id_prev !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_prev + '\\'"' : '') ?> title="<?= DS.opts.i18n['nextArticle'] ?>"></a>
+				<? } ?>
+			  </div>					  					
+			</ul>
+		</section>
+		
+		<section class="digiseller-pricing-dection digiseller-large-5 digiseller-medium-5 digiseller-small-12 digiseller-columns">			
+			<aside class="digiseller-calc digiseller-hide-for-small digiseller-large-5 digiseller-medium-5 digiseller-small-12 digiseller-large-offset-2 digiseller-medium-offset-2 digiseller-columns" id="digiseller-article-buy-context"></aside>			
 			
-			<? if (d.statistics.sales && d.statistics.sales != '0') { ?>
-				<div class="digiseller-prod-info">
-					<span><?= DS.opts.i18n['numberOfSales'] ?>:&nbsp;</span><?= d.statistics.sales ?>
+			<? if (mainImg) {
+				var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
+				
+				<a href="<?= mainImg ?>" target="_blank" id="digiseller-article-img-preview" data-type="img" data-index="0" ><img alt="product" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" /></a>
+			<? } else { ?>
+				<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
+			<? } ?>
+			
+			<? if (d.preview_imgs || d.preview_videos) { ?>
+				<div class="digiseller-prockrutka" id="digiseller-article-thumbs">
+					<div style="cursor: pointer; " class="digiseller-more-views-arrow digiseller-next">&nbsp;</div>
+					<div style="cursor: pointer; " class="digiseller-more-views-arrow digiseller-prev">&nbsp;</div>
+					
+					<ul class="digiseller-inline-list digiseller-details-product digiseller-details-product-v">	
+						
+						<? if (d.preview_imgs) { ?>							
+							<? var index = 0;
+							
+							DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
+								<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns" <?=  d.preview_imgs.length == 1 ? 'style="display:none;"' : '' ?>>
+									<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>">
+										<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
+									</a>
+								</li>
+								
+								<? index++;
+							}); ?>							
+						<? } ?>
+						
+						<? if (d.preview_videos) { ?>							
+							<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
+								<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns">
+									<a class="digiseller-video" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
+										<img src="<?= preview_video.preview ?>" alt="" />									
+									</a>
+								</li>
+								
+								<? index++;
+							}); ?>
+						<? } ?>
+						
+					</ul>
 				</div>
 			<? } ?>
-		</div>
-	</div>
-	
-	<div class="digiseller-both"></div>
+			
+			<aside class="digiseller-show-for-small digiseller-large-5 digiseller-medium-5 digiseller-small-12 digiseller-large-offset-2 digiseller-medium-offset-2 digiseller-columns">
+				<ul class="digiseller-pricing-table">
+				  <!-- <li class="title">Оплата</li> -->
+				  <li class="digiseller-price">1574,77 RUR</li>
+				  <li class="digiseller-description">Оплата через:</li>
+				  <li class="digiseller-bullet-item digiseller-clearfix">
+					<select class="digiseller-calc-option" name="TypeCurr">
+						<option value="WMR" class="digiseller-calc-option digiseller-calc-wmr">WebMoney</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-qsr">QIWI</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-pcr">Яндекс.Деньги</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-rcc">Кредитная карта</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-mts">МТС</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-bln">БИЛАЙН</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-mgf">МЕГАФОН</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-rub">Терминалы</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-bnk">Интернет-банкинг</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-prr">Почта России</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-ppr">WM-карта</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-gcr">Подарочная карта</option>
+						<option value="" class="digiseller-calc-option digiseller-calc-rbx">другой способ</option>
+					</select>
+					<select class="digiseller-calc-valuta" data-index="0" data-vars="4">
+						<option selected="selected" value="WMR">RUR</option>
+						<option value="WMZ">USD</option>
+						<option value="WME">EUR</option>
+						<option value="WMU">UAH</option>
+					</select>
+				  </li>
+				  <li class="digiseller-bullet-item digiseller-param">						  	
+					<p>параметр №1</p>  
+					<input type="text" name="">			
+				  </li>
+				  <li class="digiseller-bullet-item digiseller-param">	
+					<p>параметр №2</p>  
+					<textarea name="option_textarea_4386"></textarea>		
+				  </li>	
+				  <li class="digiseller-bullet-item digiseller-param digiseller-param-3">	
+					<p>параметр №3</p>  
+					<input type="checkbox" value="3791" name="option_checkbox_4387-3791" id="option_checkbox_4387_0-17"><label for="option_checkbox_4387_0-17">вариант 3-1 [+0.01] (+0,01 RUR)</label><br><input type="checkbox" value="3792" name="option_checkbox_4387-3792" id="option_checkbox_4387_1-17"><label for="option_checkbox_4387_1-17">вариант 3-2 [+0.02] (+0,02 RUR)</label><br><input type="checkbox" value="3793" name="option_checkbox_4387-3793" id="option_checkbox_4387_2-17"><label for="option_checkbox_4387_2-17">вариант 3-3 [+0.03] (+0,03 RUR)</label>		
+				  </li>	
+				  <li class="digiseller-bullet-item digiseller-param">	
+					<p>параметр №4</p>  
+					<select name="option_select_4388"><option selected="" value="3794">вариант 4-1 [+0.01] (+0,01 RUR)</option><option value="3795">вариант 4-2 [+0.02] (+0,02 RUR)</option><option value="3796">вариант 4-3 [+0.03] (+0,03 RUR)</option><option value="3797">вариант 4-4 [+0.04] (+0,04 RUR)</option></select>	
+				  </li>	
+				  <li class="digiseller-bullet-item digiseller-param">	
+					<p>параметр №5</p>  
+					<input type="radio" checked="" value="3798" name="option_radio_4389" id="option_radio_4389_0-17"><label for="option_radio_4389_0-17">вариант 5-1 [-0.01] (-0,01 RUR)</label><br><input type="radio" value="3799" name="option_radio_4389" id="option_radio_4389_1-17"><label for="option_radio_4389_1-17">вариант 5-2 [-0.02] (-0,02 RUR)</label><br><input type="radio" value="3800" name="option_radio_4389" id="option_radio_4389_2-17"><label for="option_radio_4389_2-17">вариант 5-3 [-0.03] (-0,03 RUR)</label><br><input type="radio" value="3801" name="option_radio_4389" id="option_radio_4389_3-17"><label for="option_radio_4389_3-17">вариант 5-4 [-0.04] (-0,04 RUR)</label>
+				  </li>		  
+				  <li class="digiseller-bullet-item digiseller-agree">
+					<input type="checkbox">с «<a href="#" data-action="agreement">Условиями предоставления сервиса</a><br>» ознакомлен и согласен.
+				  </li>						  
+				  <li class="digiseller-cta-button">
+					<a href="#" class="digiseller-button">Купить</a>
+					<a href="#" class="digiseller-button">В корзину</a>
+				  </li>						  
+				  <li class="digiseller-clearfix digiseller-follow-wrapper">						  	
+						<a href="#">Поделиться</a>		
+						<ul class="digiseller-social-wrapper digiseller-social-list digiseller-inline-list digiseller-large-12 digiseller-large-uncentered digiseller-medium-12 digiseller-small-12 digiseller-columns">
+							<li><a href=""><img alt="" src="./img/vk-digiseller.png"></a></li>
+							<li><a href=""><img alt="" src="./img/fb-digiseller.png"></a></li>
+							<li><a href=""><img alt="" src="./img/tw-digiseller.png"></a></li>
+							<li><a href=""><img alt="" src="./img/wb-digiseller.png"></a></li>
+						</ul>					
+				  </li>						  
+				</ul>
+			</aside>			
+			
+			<div class="digiseller-product-buy">
+				<?= d.info ?>
+			</div>
+			
+			<? if (d.add_info !== "") { ?>	
+				<div class="digiseller-product-buy">					
+					<h3><?= DS.opts.i18n['addInformation'] ?>:</h3>
+					<?= d.add_info ?>					
+				</div>
+			<? } ?>
 
-</div>
-<br />
+		</section>									
+	</div>	
+</section>
+
+<? var templHasDiscounts = ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)); ?>
+
+<? if (templHasDiscounts || reviewsCount) { ?>
+	<section class="digiseller-description digiseller-row">
+		<ul class="digiseller-tabs digiseller-large-12 digiseller-medium-12 digiseller-small-12" id="digiseller-tabs">
+			<? if (templHasDiscounts) { ?>
+				<li class="digiseller-tab-title digiseller-large-4 digiseller-medium-4 digiseller-small-4 digiseller-active"><a tabindex="0" data-action="article-tab" data-tab="0"><?= DS.opts.i18n['discounts'] ?></a></li>
+			<? } ?>
+
+			<? if (reviewsCount) { ?>
+				<li class="digiseller-tab-title digiseller-large-4 digiseller-medium-4 digiseller-small-4 <?= !templHasDiscounts ? 'digiseller-active' : '' ?>"><a tabindex="0"  data-action="article-tab" data-tab="1"><?= DS.opts.i18n['reviews'] ?></a></li>
+			<? } ?>
+		</ul>
+
+		<div class="digiseller-tabs-content" id="digiseller-tabs-panels">
+			<? if (templHasDiscounts) { ?>
+				<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns digiseller-content digiseller-active">
+					<? if ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)) { ?>					
+						<? if (d.units && d.units.discounts) { ?>
+							<p class="digiseller-sale-par"><?= DS.opts.i18n['discountsOnQuantityPurchases'] ?></p>
+							
+							<table class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+								<thead>
+									<tr class="digiseller-discounttabbe-head">	
+										<td><?= DS.opts.i18n['whenBuyingFrom'] ?></td>
+										<td><?= DS.opts.i18n['discount'] ?></td>
+										<td><?= DS.opts.i18n['priceFor'] ?> <?= d.units.desc ?></td>
+									</tr>
+								</thead>
+								<tbody>
+									<? DS.util.each(d.units.discounts, function(discount, i) { ?>
+										<tr>
+											<td><?= discount.desc ?></td>
+											<td><?= discount.percent ?>%</td>
+											<td><?= discount.price ?> <?= d.currency ?></td>
+										</tr>
+									<? }); ?>
+								</tbody>
+							</table><br />
+						<? } ?> 
+					
+						<? if (d.discounts && d.discounts.length) { ?>
+							<p class="digiseller-sale-par"><?= DS.opts.i18n['discountLoyalCustomers'] ?></p>
+							
+							<table class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+								<thead>
+									<tr class="digiseller-discounttabbe-head">	
+										<td><?= DS.opts.i18n['amountOfPurchasesFrom'] ?></td>
+										<td><?= DS.opts.i18n['discount'] ?></td>
+									</tr>
+								</thead>
+								<tbody>
+									<? DS.util.each(d.discounts, function(discount, i) { ?>
+										<tr>
+											<td><?= discount.summa ?> <?= d.currency ?></td>
+											<td><?= discount.percent ?>%</td>
+										</tr>
+									<? }); ?>
+								</tbody>
+							</table><br />
+						<? } ?> 
+					<? } ?>
+					
+				</div>
+			<? } ?>
+			
+			<? if (reviewsCount) { ?>
+				<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns digiseller-content <?= !templHasDiscounts ? 'digiseller-active' : '' ?>" id="digiseller-article-comments-<?= d.id ?>"></div>
+			<? } ?>
+		</div>
+	</section>
+<? } ?>

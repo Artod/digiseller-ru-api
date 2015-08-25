@@ -1,15 +1,19 @@
-<tr>
-	<td class="digiseller-table-left">
-		<a onclick="location.hash='<?= url ?>'"><?= d.name ?>                      
-	</td>
-	<td class="digiseller-table-right">
-		<div>
-			<span><? if (d.collection == 'unit') { ?> <span>от</span> <? } ?> <?= d.price ?> <span><?= d.currency ?></span></span>
-			<? if (d.is_available) { ?>
-				<a class="digiseller-buyButton" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= DS.opts.i18n['buy'] ?></a>
-			<? } else { ?>
-				<a class="digiseller-buyButton-empty"><?= DS.opts.i18n['notAvailable'] ?></a>
-			<? } ?>
-		</div>
-	</td>
-</tr>
+<table class="digiseller-table digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<tbody class="digiseller-table digiseller-wrapper-product">
+		<tr>
+			<td class="digiseller-large-7 digiseller-medium-7 digiseller-small-12 digiseller-columns">
+				<p class="digiseller-description-category"><a onclick="location.hash='<?= url ?>'"><?= d.name ?></a></p>
+			</td>
+			<td class="digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns">									
+				<p class="digiseller-description-price"><a onclick="location.hash='<?= url ?>'"><? if (d.collection == 'unit') { ?> <span>от</span> <? } ?> <?= d.price ?> <span><?= d.currency ?></span></a></p>
+			</td>
+			<td class="digiseller-large-2 digiseller-medium-2 digiseller-small-12 digiseller-columns">									
+				<? if (d.is_available) { ?>
+					<a class="digiseller-description-buyButton-spisok" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= DS.opts.i18n['buy'] ?></a>
+				<? } else { ?>
+					<a class="digiseller-description-buyButton-empty"><?= DS.opts.i18n['notAvailable'] ?></a>
+				<? } ?>				
+			</td>
+		</tr>
+	</tbody>
+</table>

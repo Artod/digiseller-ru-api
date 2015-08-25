@@ -60,7 +60,7 @@
 
 <? if (d.totalPages || !d.totalPages && !hasCategories) { ?>
 	<div id="<?= id ?>">
-		<?= DS.opts.view === 'table' ? '<table class="digiseller-table" id="' + id + '-table">' + out + '</table>' : out ?>
+		<?= DS.opts.view === 'table' && false ? '<table class="digiseller-table" id="' + id + '-table">' + out + '</table>' : out ?>
 	</div>
 	
 	<div id="<?= id ?>-paging"></div>
