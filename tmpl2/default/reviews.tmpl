@@ -1,21 +1,28 @@
-<div class="digiseller-reviewList">
-	<h1><?= DS.opts.i18n['customerReviews'] ?></h1>
+<div class="digiseller-wrapper-name-category digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<h2><?= DS.opts.i18n['customerReviews'] ?></h2>
+</div>
 
-	<div class="digiseller-breadcrumbs">
-		<a title="<?= DS.opts.i18n['shop'] ?>" onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a> &gt; <strong><?= DS.opts.i18n['reviews'] ?></strong>
+<section class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<ul class="digiseller-breadcrumbs">
+	  <div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+		  <li><a onclick="location.hash='#!digiseller/home';"><?= DS.opts.i18n['shop'] ?></a></li>
+		  <li class="digiseller-current"><a><?= DS.opts.i18n['reviews'] ?></a></li>
+	  </div>				  					
+	</ul>
+</section>
+
+<div class="digiseller-options-filter digiseller-options-filter-reviews digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<div class="digiseller-sortby digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns" id="digiseller-reviews-type">
+		<span><?= DS.opts.i18n['show'] ?>: </span>
+		<select>
+			<option value="all" selected="selected"><?= DS.opts.i18n['allReviews'] ?></option>
+			<option value="good"><?= DS.opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
+			<option value="bad"><?= DS.opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
+		</select>
 	</div>
-	
-	<div class="digiseller-options">
-		<div class="digiseller-filtersort" id="digiseller-reviews-type">
-			<span><?= DS.opts.i18n['show'] ?>: </span>
-			<select>
-				<option value="all" selected="selected"><?= DS.opts.i18n['allReviews'] ?></option>
-				<option value="good"><?= DS.opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
-				<option value="bad"><?= DS.opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
-			</select>
-		</div>
-	</div>
-	
-	<div class="digiseller-comments" id="<?= id ?>"></div>
-	
-	<div class="digiseller-paging"></div>
+</div>	
+
+<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<div class="digiseller-js-comments"></div>	
+	<div class="digiseller-js-paging digiseller-options digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns"></div>
+</div>

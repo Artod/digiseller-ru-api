@@ -1007,7 +1007,7 @@ DS.popup = (() ->
 					setup.$img.addClass('digiseller-popup-video')
 
 					show(() ->
-						resize(200, 500, true)
+						# resize(200, 500, true)
 						return
 					)
 
@@ -1159,17 +1159,17 @@ DS.widget =
 				return
 			)
 			
-			# $menu = DS.$('ul', @$el)
+			$menu = DS.$('ul', @$el)
 			
-			# visible = false
+			visible = false
 			
-			# DS.$('button', @$el).on('click', (e) ->
-				# $menu[if visible then 'show' else 'hide']()
+			DS.$('button', @$el).on('click', (e) ->
+				$menu[if visible then 'hide' else 'show']()
+				# console.log(if visible then 'show' else 'hide')
+				visible = not visible
 				
-				# visible = not visible
-				
-				# return
-			# )
+				return
+			)
 			
 			return
 
@@ -1413,7 +1413,7 @@ DS.widget =
 			return @
 
 	comments: class
-		constructor: (@$el, @product_id, @init) ->
+		constructor: (@$el, @product_id, @beforeRender) ->
 			@isInited = false
 			@type = ''
 			@page = 1
@@ -1473,8 +1473,8 @@ DS.widget =
 				
 				@pager.render()
 			else
-				@init(data)
-				@container = DS.$('.digiseller-comments', @$el)
+				@beforeRender(data)
+				@container = DS.$('.digiseller-js-comments', @$el)
 				@isInited = true
 
 			@container.html(out)
@@ -2017,8 +2017,8 @@ DS.widget =
 				
 				return
 			)
-			
-			DS.$(".#{_prefix}-del-product", $context).on('click', (e) ->
+			# alert(DS.$('.digiseller-delete-bag', $context).length)
+			DS.$('.digiseller-delete-bag', $context).on('click', (e) ->
 				DS.util.prevent(e)
 				
 				that.changeCount(DS.$(@), yes)
@@ -2096,12 +2096,15 @@ DS.widget =
 					# $error[if item.error then 'show' else 'hide']()
 					
 					if item.error
-						$item.addClass(_prefix + '-error')
+						# $item.addClass(_prefix + '-error')
+						$item.addClass('digiseller-not-available')
 						$item.attr('data-error', 1)
 						$error.show()
-						DS.$('td', $error).html(item.error)
+						# DS.$('td', $error).html(item.error)
+						$error.html(item.error)
 					else if item.item_id is id
-						$item.removeClass(_prefix + '-error')
+						# $item.removeClass(_prefix + '-error')
+						$item.removeClass('digiseller-not-available')
 						$item.attr('data-error', 0)
 						$error.hide()
 					
@@ -2303,7 +2306,8 @@ DS.route =
 
 				that = @
 				tmpl = DS.tmpl(DS.tmpls.page)
-				@pager = new DS.widget.pager(DS.$('.digiseller-paging', DS.widget.main.$el),
+				# @pager = new DS.widget.pager(DS.$('.digiseller-paging', DS.widget.main.$el),
+				@pager = new DS.widget.pager(DS.$('#digiseller-search-paging'),
 					page: @page
 					rows: @rows
 					total: data.totalPages
@@ -2511,16 +2515,22 @@ DS.route =
 				DS.widget.main.$el.html( DS.tmpl(DS.tmpls.nothing, {}) )
 
 				return
+				
+			templHasDiscounts = (data.product.units && data.product.units.discounts) or (data.product.discounts && data.product.discounts.length)
 
 			DS.widget.category.mark(data.product.category_id)
 			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.articleDetail,
 				d: data.product
+				templHasDiscounts: templHasDiscounts
+				thCount: ( (data.product.preview_imgs && data.product.preview_imgs.length) || 0) + ( (data.product.preview_videos && data.product.preview_videos.length) || 0 )
 				# buy: DS.tmpl(DS.tmpls.buy,
 					# d: data.product
 					# failPage: DS.util.enc(window.location)
 					# agree: DS.opts.agree
 				# )
-			) )
+			) )			
+			
+			DS.route.article.initComments() unless templHasDiscounts
 
 			# new DS.widget.calc(data.product.id, data.product.prices_unit)
 
@@ -2534,6 +2544,7 @@ DS.route =
 			if $container.length				
 				$thumbs  = DS.$('a', $container)
 				$preview = DS.$("##{@prefix}-img-preview")
+				$previewImg = DS.$('img', $preview)
 				activeClass = 'digiseller-left-thumbs-active'
 				onClick = ($el) ->
 					type = $el.attr('data-type')
@@ -2592,6 +2603,43 @@ DS.route =
 					return
 				)
 				
+				$wrapper = DS.$('#digiseller-thumbs-wrapper')
+				$slider = DS.$('#digiseller-thumbs-slider')
+				thWidth = 70
+				thCount	= parseInt( $wrapper.attr('data-count') )
+				sliderWidth = thWidth * thCount
+				
+				onSlide = (isNext)->
+					wrWidth = $wrapper.get(0).offsetWidth
+					curLeft = $slider.css('left') || 0
+					
+					if isNext
+						showed = Math.floor( (curLeft + wrWidth) / thWidth )
+						
+						if showed > thCount
+							showed = thCount
+							
+						left = showed * thWidth + thWidth						
+					else
+						showed = Math.floor( curLeft / thWidth )
+						
+						if showed < 0
+							showed = 0
+							
+						left = showed * thWidth
+						
+					$slider.css('left', left + 'px')
+					
+				DS.$('.digiseller-more-views-arrow', $container).on('click', (e) ->
+					DS.util.prevent(e)
+					
+					isNext = parseInt( DS.$(@).attr('data-next') ) is '1'
+					
+					onSlide(isNext)
+					
+					return
+				)
+				
 				# if $preview.length
 					#$previewImg = DS.dom.$('img', $preview)[0]
 
@@ -2628,7 +2676,7 @@ DS.route =
 				)
 
 				tmpl = DS.tmpl(DS.tmpls.pageComment)
-				that.comments.pager = new DS.widget.pager(DS.$('.digiseller-paging', that.comments.$el), {
+				that.comments.pager = new DS.widget.pager(DS.$('.digiseller-js-paging', that.comments.$el), {
 					page: that.comments.page
 					rows: that.comments.rows
 					total: data.totalPages
@@ -2661,12 +2709,13 @@ DS.route =
 		comments: null
 		id: ""
 		prefix: 'digiseller-reviews'
-		action: (params) ->
+		action: (params) ->			 
 			if not @id or DS.$('#' + @id).length is 0
 				@id = @prefix + "-#{DS.util.getUID()}"
+				
 				that = @
 				@comments = new DS.widget.comments(DS.widget.main.$el, '', (data) ->
-					that.initComments(data)
+					that.beforeRender(data)
 					DS.util.scrollUp()
 					
 					return
@@ -2678,8 +2727,8 @@ DS.route =
 
 			return
 
-		initComments: (data) ->
-			@comments.$el.html( DS.tmpl(DS.tmpls.reviews,
+		beforeRender: (data) ->
+			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.reviews,
 				id: @id
 				totalGood: data.totalGood
 				totalBad: data.totalBad
@@ -2688,11 +2737,11 @@ DS.route =
 			that = @
 			tmpl = DS.tmpl(DS.tmpls.pageReview)
 			goToFirstPage = () ->
-				DS.historyClick.changeHashSilent(DS.opts.hashPrefix + "/reviews/1")
+				DS.historyClick.changeHashSilent(DS.opts.hashPrefix + '/reviews/1')
 				
 				return
 			
-			@comments.pager = new DS.widget.pager(DS.$('.digiseller-paging', @comments.$el), {
+			@comments.pager = new DS.widget.pager(DS.$('.digiseller-js-paging', @comments.$el), {
 				page: @comments.page
 				rows: @comments.rows
 				total: data.totalPages

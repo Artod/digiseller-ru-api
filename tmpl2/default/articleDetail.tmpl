@@ -21,11 +21,9 @@
 				<? } ?>
 			  </div>
 			  <div class="digiseller-large-3 digiseller-medium-3 digiseller-small-3 digiseller-columns">	
-				<? if (d.id_next !== '0') { ?>
-					<a class="digiseller-prev-next <?= (d.id_next !== '0' ? 'digiseller-next' : 'digiseller-next-disabled') ?>" <?= (d.id_next !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_next + '\\'"' : '') ?> title="<?= DS.opts.i18n['prevArticle'] ?>"></a>
-				<? }
-				if (d.id_prev !== '0') { ?>
-					<a class="digiseller-prev-next <?= (d.id_prev !== '0' ? 'digiseller-prev' : 'digiseller-next-disabled') ?>" <?= (d.id_prev !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_prev + '\\'"' : '') ?> title="<?= DS.opts.i18n['nextArticle'] ?>"></a>
+				<? if (d.id_next !== '0' || d.id_prev !== '0') { ?>
+					<a class="digiseller-prev-next digiseller-next <?= (d.id_next !== '0' ? '' : 'digiseller-next-disabled') ?>" <?= (d.id_next !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_next + '\\'"' : '') ?> title="<?= DS.opts.i18n['prevArticle'] ?>" data-next="1"></a>
+					<a class="digiseller-prev-next digiseller-prev <?= (d.id_prev !== '0' ? '' : 'digiseller-next-disabled') ?>" <?= (d.id_prev !== '0' ? ' onclick="location.hash=\\'#!digiseller/detail/' + d.id_prev + '\\'"' : '') ?> title="<?= DS.opts.i18n['nextArticle'] ?>"></a>
 				<? } ?>
 			  </div>					  					
 			</ul>
@@ -43,39 +41,43 @@
 			<? } ?>
 			
 			<? if (d.preview_imgs || d.preview_videos) { ?>
-				<div class="digiseller-prockrutka" id="digiseller-article-thumbs">
-					<div style="cursor: pointer; " class="digiseller-more-views-arrow digiseller-next">&nbsp;</div>
-					<div style="cursor: pointer; " class="digiseller-more-views-arrow digiseller-prev">&nbsp;</div>
+				<div class="digiseller-prockrutka" id="digiseller-article-thumbs">					
+					<? if (thCount > 4) { ?>
+						<div style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-next" id="digiseller-photo-next">&nbsp;</div>
+						<div style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-prev" id="digiseller-photo-prev">&nbsp;</div>
+					<? } ?>
 					
-					<ul class="digiseller-inline-list digiseller-details-product digiseller-details-product-v">	
-						
-						<? if (d.preview_imgs) { ?>							
-							<? var index = 0;
+					<div id="digiseller-thumbs-wrapper" data-count="<?= thCount ?>">
+						<ul class="digiseller-inline-list digiseller-details-product" id="digiseller-thumbs-slider">	
 							
-							DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
-								<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns" <?=  d.preview_imgs.length == 1 ? 'style="display:none;"' : '' ?>>
-									<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>">
-										<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
-									</a>
-								</li>
+							<? if (d.preview_imgs) { ?>							
+								<? var index = 0;
 								
-								<? index++;
-							}); ?>							
-						<? } ?>
-						
-						<? if (d.preview_videos) { ?>							
-							<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
-								<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns">
-									<a class="digiseller-video" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
-										<img src="<?= preview_video.preview ?>" alt="" />									
-									</a>
-								</li>
-								
-								<? index++;
-							}); ?>
-						<? } ?>
-						
-					</ul>
+								DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
+									<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns" <?=  d.preview_imgs.length == 1 ? 'style="display:none;"' : '' ?>>
+										<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>">
+											<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
+										</a>
+									</li>
+									
+									<? index++;
+								}); ?>							
+							<? } ?>
+							
+							<? if (d.preview_videos) { ?>							
+								<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
+									<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns">
+										<a class="digiseller-video" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
+											<img src="<?= preview_video.preview ?>" alt="" />									
+										</a>
+									</li>
+									
+									<? index++;
+								}); ?>
+							<? } ?>
+							
+						</ul>
+					</div>
 				</div>
 			<? } ?>
 			
@@ -161,8 +163,6 @@
 	</div>	
 </section>
 
-<? var templHasDiscounts = ((d.units && d.units.discounts) || (d.discounts && d.discounts.length)); ?>
-
 <? if (templHasDiscounts || reviewsCount) { ?>
 	<section class="digiseller-description digiseller-row">
 		<ul class="digiseller-tabs digiseller-large-12 digiseller-medium-12 digiseller-small-12" id="digiseller-tabs">
@@ -225,6 +225,8 @@
 					<? } ?>
 					
 				</div>
+			<? } else { ?>
+				<div class="digiseller-hidden"></div>
 			<? } ?>
 			
 			<? if (reviewsCount) { ?>

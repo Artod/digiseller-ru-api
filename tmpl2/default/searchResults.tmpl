@@ -1,20 +1,24 @@
-<h1><?= DS.opts.i18n['search'] ?></h1>
-
-<div class="digiseller-breadcrumbs">
-	<a onclick="location.hash='#!digiseller/home';" title="<?= DS.opts.i18n['shop'] ?>"><?= DS.opts.i18n['shop'] ?></a> &gt; <strong><?= DS.opts.i18n['search'] ?></strong>
+<div class="digiseller-wrapper-name-category">
+	<h2><?= DS.opts.i18n['search'] ?></h2>
 </div>
 
-<div class="digiseller-options">					
-	<div class="digiseller-sortby">
-		<?= DS.opts.i18n['onRequest'] ?>&nbsp;"<span class="digiseller-bold" id="digiseller-search-query"></span>"&nbsp;<?= DS.opts.i18n['foundArticles'] ?>:&nbsp;<span class="digiseller-bold" id="digiseller-search-total"></span>
-	</div>
+<section class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<ul class="digiseller-breadcrumbs">
+	  <div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+		  <li><a onclick="location.hash='#!digiseller/home';" title="<?= DS.opts.i18n['shop'] ?>"><?= DS.opts.i18n['shop'] ?></a></li>
+		  <li class="digiseller-current"><a><?= DS.opts.i18n['search'] ?></a></li>
+	  </div>				  					
+	</ul>
+</section>
 
-	<div id="digiseller-currency"></div>
+<div class="digiseller-options-search digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<?= DS.opts.i18n['onRequest'] ?>&nbsp;"<strong id="digiseller-search-query"></strong>"&nbsp;<?= DS.opts.i18n['foundArticles'] ?>:&nbsp;<strong id="digiseller-search-total"></strong>
+	
+	<!--div id="digiseller-currency"></div-->
 </div>
 
-<div class="digiseller-productList">
-	<div id="digiseller-search-results">
-		<?= out ?>
-	</div>
-	<div class="digiseller-paging"></div>
+<div id="digiseller-search-results">
+	<?= out ?>
 </div>
+
+<div class="digiseller-options digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns" id="digiseller-search-paging"></div>

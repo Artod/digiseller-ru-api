@@ -11,9 +11,9 @@
 ?>
 
 <div <?= d.is_available ? 'id="digiseller-calc-' + index + '"' : '' ?> class="digiseller-calc <?= d.is_available ? '' : 'digiseller-notinstock' ?>">
-	<? if (needImg) { ?>
-		<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
+	<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
 
+	<? if (needImg) { ?>
 		<div class="digiseller-product-0-image">
 			<? if (mainImg) { ?>					
 				<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
@@ -108,66 +108,85 @@
 						</div>
 					<? } ?>
 				</li>
-			</ul>
-			
-			<? if (d.options && d.options.length) { ?>
-				<ul class="digiseller-pricing-table" id="digiseller-calc-options-<?= index ?>">
-					<? DS.util.each(d.options, function(option, i) { ?>							
-						<div class="digiseller-calc-line"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
-							<div><?= option.label ?> <?= option.required == 1 ? '<span title="' + DS.opts.i18n['required'] + '">*</span>' : '' ?> <?= option.comment ? '<span class="digiseller-form-help">?</span><i class="digiseller-form-tip">' + option.comment + '</i>' : '' ?></div>
-							
-							<? switch(option.type) {
-								case 'text': ?>
+
+				<ul id="digiseller-calc-options-<?= index ?>">
+					<? if (d.options && d.options.length) { ?>				
+						<? DS.util.each(d.options, function(option, i) { ?>							
+							<li class="digiseller-bullet-item digiseller-param"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
+								<p><?= option.label ?> <?= option.required == 1 ? '<span title="' + DS.opts.i18n['required'] + '">*</span>' : '' ?> <?= option.comment ? '<span class="digiseller-form-help">?</span><i class="digiseller-form-tip">' + option.comment + '</i>' : '' ?></p>
 								
-									<input type="text" name="<?= option.name ?>" />						
+								<? switch(option.type) {
+									case 'text': ?>
 									
-									<? break;									
-								case 'textarea': ?>		
-								
-									<textarea name="<?= option.name ?>"></textarea>
-									
-									<? break;									
-								case 'select': ?>
-								
-									<select name="<?= option.name ?>">
-									<? if (option.variants && option.variants.length)
-										if (option.required != 1) { ?>
-											<option></option>
-										<? }
+										<input type="text" name="<?= option.name ?>" />						
 										
-										DS.util.each(option.variants, function(variant, ii) { ?>										
-											<option value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' selected' : '' ?>>
-												<?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?>
-											</option>
-										<? }); ?>										
-									</select>
+										<? break;									
+									case 'textarea': ?>		
 									
-									<? break;
-								case 'checkbox': case 'radio':									
-									if (option.variants && option.variants.length) {
-										DS.util.each(option.variants, function(variant, ii) { ?>										
-											<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>-<?= index ?>" name="<?= option.name + (option.type === 'checkbox' ? '-' + variant.value : '') ?>" value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' checked' : '' ?> />
-											<label for="<?= option.name ?>_<?= ii ?>-<?= index ?>"><?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?></label><br />
-										<? });											
-									}
+										<textarea name="<?= option.name ?>"></textarea>
+										
+										<? break;									
+									case 'select': ?>
 									
-									break;
-							} ?>
-						</div> 
-					<? }); ?>
+										<select name="<?= option.name ?>">
+										<? if (option.variants && option.variants.length)
+											if (option.required != 1) { ?>
+												<option></option>
+											<? }
+											
+											DS.util.each(option.variants, function(variant, ii) { ?>										
+												<option value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' selected' : '' ?>>
+													<?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?>
+												</option>
+											<? }); ?>										
+										</select>
+										
+										<? break;
+									case 'checkbox': case 'radio':									
+										if (option.variants && option.variants.length) {
+											DS.util.each(option.variants, function(variant, ii) { ?>										
+												<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>-<?= index ?>" name="<?= option.name + (option.type === 'checkbox' ? '-' + variant.value : '') ?>" value="<?= variant.value ?>"<?= variant['default'] == 1 ? ' checked' : '' ?> />
+												<label for="<?= option.name ?>_<?= ii ?>-<?= index ?>"><?= variant.text ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?></label><br />
+											<? });											
+										}
+										
+										break;
+								} ?>
+							</li> 
+						<? }); ?>
+
+					<? } ?>
 				</ul>
-			<? } ?>
 				
 				<? if (DS.opts.agreement_text) { ?>
-					<div class="digiseller-calc-confirmation">
+					<li class="digiseller-bullet-item digiseller-agree">
 						<input type="checkbox" id="digiseller-calc-rules-<?= index ?>"<?= agree == 1 ? ' checked="checked"' : '' ?> />
 						<?= DS.opts.i18n['iAgreeWithTerms'].replace('data-action="agreement"', 'id="digiseller-calc-agreement-' + index + '"') ?>
-					</div>
-				<? } ?>
+					</li>
+				<? } ?>				
 
-				<div class="digiseller-calc-buy">
+				<li class="digiseller-cta-button">
 					<?= button ?>
-				</div>
+				</li>
+				
+				<li class="digiseller-clearfix digiseller-follow-wrapper">						  	
+					<a href="#">Поделиться</a>
+					
+					<ul class="digiseller-social-list digiseller-inline-list digiseller-large-12 digiseller-large-uncentered digiseller-medium-12 digiseller-small-12 digiseller-columns">
+						<li><a class="digiseller-social-fb" title="<?= DS.opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= d.price ?>" data-img="<?= mainImg ?>">
+							<img alt="" src="./img/fb-digiseller.png" />
+						</a></li>
+						<li><a class="digiseller-social-vk" title="<?= DS.opts.i18n['shareInVK'] ?>" data-action="share" data-type="vk" data-title="<?= d.name ?> / <?= d.price ?>" data-img="<?= mainImg ?>">
+							<img alt="" src="./img/vk-digiseller.png" />
+						</a></li>
+						<li><a class="digiseller-social-tw" title="<?= DS.opts.i18n['shareInTwitter'] ?>" data-action="share" data-type="tw" data-title="<?= d.name ?> / <?= d.price ?>">
+							<img alt="" src="./img/tw-digiseller.png" />
+						</a></li>
+						<li><a class="digiseller-social-wm" title="<?= DS.opts.i18n['shareInWME'] ?>" data-action="share" data-type="wme" data-title="<?= d.name ?> / <?= d.price ?>" data-img="<?= mainImg ?>">
+							<img alt="" src="./img/wb-digiseller.png">
+						</a></li>
+					</ul>					
+				</li>
 			</ul>
 			
 			<div class="digiseller-calc-line-err digiseller-hidden" id="digiseller-buy-error-<?= d.id ?>-<?= index ?>"></div>

@@ -1,4 +1,4 @@
-<div class="digiseller-product">
+<!--div class="digiseller-product">
 	<div class="digiseller-pricelabel">
 		<span class="digiseller-article-cost"><?= d.price ?></span>
 		<span class="digiseller-currency"><?= d.currency ?></span>
@@ -17,5 +17,32 @@
 			<br /><br />
 			<a onclick="location.hash='<?= url ?>';" title="<?= DS.opts.i18n['readMore'] ?>" class="digiseller-product-details"><?= DS.opts.i18n['readMore'] ?> »</a>
 		</p>
+	</div>
+</div-->
+
+
+
+<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<div class="digiseller-clearfix digiseller-wrapper-product">
+		<div class="digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-wrapper-img">
+			<a onclick="location.hash='<?= url ?>';">
+				<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.id ?>&maxlength=<?= DS.opts.imgsize_listpage ?>" alt="<?= d.name ?>" />
+			</a>
+		</div>
+		<div class="digiseller-large-9 digiseller-medium-9 digiseller-small-12 digiseller-columns digiseller-wrapper-img">	
+			<p class="digiseller-description-category">
+				<a onclick="location.hash='<?= url ?>';" title=""><?= d.snippet_name ?></a>
+			</p>
+			<p class="digiseller-description-price">
+				<a href=""><?= d.price ?> <span><?= d.currency ?></span></a>
+			</p>
+			<p><?= d.snippet_info ?></p>
+			<? if (d.is_available) { ?>
+				<a class="digiseller-description-buyButton-spisok" data-action="buy" data-id="<?= d.id ?>" data-ai="<?= d.agency_id ?>"><?= DS.opts.i18n['buy'] ?></a>
+			<? } else { ?>
+				<!--a class="digiseller-description-buyButton-empty"><?= DS.opts.i18n['notAvailable'] ?></a-->
+				<a onclick="location.hash='<?= url ?>';" title="<?= DS.opts.i18n['readMore'] ?>" class="digiseller-product-details"><?= DS.opts.i18n['readMore'] ?> »</a>
+			<? } ?>
+		</div>
 	</div>
 </div>

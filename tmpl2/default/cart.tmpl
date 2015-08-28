@@ -1,37 +1,63 @@
 <h2><?= DS.opts.i18n['cart'] ?></h2>
 
-<table class="digiseller-cart-popup">
-	<tbody>
-		<tr class="digiseller-cart-header">
-			<td>
-				<?= DS.opts.i18n['nameOfArticle'] ?>
+<table class="digiseller-hide-for-small digiseller-table digiseller-table-head digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<tbody class="digiseller-table">
+		<tr>
+			<td class="digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns">
+				<p class="digiseller-description-category"><?= DS.opts.i18n['nameOfArticle'] ?></p>
 			</td>
-			<td class="digiseller-cart-price">
-				<?= DS.opts.i18n['cost'] ?>&nbsp;
+			<td class="digiseller-large-2 digiseller-medium-2 digiseller-small-12 digiseller-columns">									
+				<p class="digiseller-description-price"><?= DS.opts.i18n['cost'] ?></p>							
 			</td>
-			<td>
-				<?= DS.opts.i18n['count'] ?>
+			<td class="digiseller-large-2 digiseller-medium-2 digiseller-small-12 digiseller-columns">									
+				<p class="digiseller-description-buyButton-spisok"><?= DS.opts.i18n['count'] ?></p>							
 			</td>
-			<td>&nbsp;</td>
+			<td class="digiseller-large-2 digiseller-medium-2 digiseller-small-12 digiseller-columns">									
+				<p class="digiseller-description-buyButton-spisok">&nbsp;</p>							
+			</td>
 		</tr>
 	</tbody>
 </table>
 
-<div class="digiseller-cart-content">
-	<? if (items) { ?>
-			<table class="digiseller-cart-popup" id="digiseller-cart-items">
-				<tbody>			
-					<?= items ?>
-				</tbody>
-			</table>
-	<? } else { ?>
-		<?= DS.opts.i18n['cartIsEmpty'] ?>
-	<? } ?>
-</div>
+<? if (items) { ?>
+	<div id="digiseller-cart-items">
+		<?= items ?>
+	</div>
+<? } else { ?>
+	<?= DS.opts.i18n['cartIsEmpty'] ?>
+<? } ?>
 
 <br />
 
-<div class="digiseller-cart-footer">
+<table class="digiseller-table digiseller-bag-table digiseller-medium-12 digiseller-small-12 digiseller-columns">
+	<tbody class="digiseller-table">
+		<tr>
+			<td class="digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns">
+				<form action="https://www.oplata.info/asp2/pay.asp" method="POST">
+					<input type="hidden" name="TypeCurr" value="<?= d.currency ?>" />
+					<input type="hidden" name="FailPage" value="<?= failPage ?>" />
+					<input type="hidden" name="Cart_UID" value="<?= DS.opts.cart_uid ?>" />
+					<input type="hidden" name="Lang" value="<?= DS.opts.currentLang ?>" />
+					
+					<a class="digiseller-description-buyButton-spisok-oplata <?= !items ? 'class="digiseller-hidden"' : '' ?>" id="digiseller-cart-go"<?= !items ? ' data-disabled="1" class="digiseller-cart-btn-disabled"' : '' ?>><?= DS.opts.i18n['goToPay'] ?></a>	
+				</form>
+			</td>
+			
+			<td colspan="2" class="digiseller-large-4 digiseller-medium-4 digiseller-small-12 digiseller-columns" id="digiseller-cart-amount-cont">									
+				<p class="digiseller-description-price digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns"><?= DS.opts.i18n['inTotal'] ?>: <span id="digiseller-cart-amount"><?= d.amount ?></span></p>	
+				<select class="digiseller-cart-currency digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns" id="digiseller-cart-currency">
+					<? DS.util.each(d.cart_curr, function(curr) { ?>
+						<option value="<?= curr ?>"><?= curr ?></option>
+					<? }); ?>
+				</select>				
+			</td>
+
+			<td class="digiseller-large-2 digiseller-medium-2 digiseller-small-12 digiseller-columns"></td>
+		</tr>
+	</tbody>
+</table>
+
+<!--div class="digiseller-cart-footer">
 	<form action="https://www.oplata.info/asp2/pay.asp" method="POST">
 		<input type="hidden" name="TypeCurr" value="<?= d.currency ?>" />
 		<input type="hidden" name="FailPage" value="<?= failPage ?>" />
@@ -49,4 +75,4 @@
 			<? }); ?>
 		</select>
 	</span>
-</div>
+</div-->
