@@ -1,4 +1,7 @@
 <h2><?= DS.opts.i18n['termsOfService'] ?></h2>
 <div ><?= DS.opts.agreement_text ?></div> <!--style="height:200px; width:550px; overflow-y:scroll; text-align:left;"-->
 <br />
-<a id='digiseller-agree'><?= DS.opts.i18n['accept'] ?></a> <a id='digiseller-disagree'><?= DS.opts.i18n['refuse'] ?></a> 
+<div class="digiseller-modal-button">
+	<a class="digiseller-modal-button" id='digiseller-agree'><?= DS.opts.i18n['accept'] ?></a> 
+	<a class="digiseller-modal-button-disabled" id='digiseller-disagree'><?= DS.opts.i18n['refuse'] ?></a> 
+</div>

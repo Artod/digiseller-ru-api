@@ -922,15 +922,15 @@ DS.popup = (() ->
 				else
 					w1 = Math.round(h1 / scale0)
 
-			img.style.height = h1 + 'px'
-			img.style.width = w1 + 'px'
+			# img.style.height = h1 + 'px'
+			# img.style.width = w1 + 'px'
 
-		setup.$container.css('width', ( (if isHard then w else w1) + 50 ) + 'px')
+		# setup.$container.css('width', ( (if isHard then w else w1) + 50 ) + 'px')
 
 		doc = document.documentElement
 		body = document.body
 		topScroll = (doc && doc.scrollTop or body && body.scrollTop or 0)
-		setup.$container.css('top', (hs - (if isHard then h else h1) + 20)/3 + topScroll + 'px')
+		setup.$container.parent().css('top', (hs - (if isHard then h else h1) + 20)/3 + topScroll + 'px')
 
 		return
 
@@ -958,6 +958,15 @@ DS.popup = (() ->
 	return {
 		open: (type, id, onLeft, onRight) ->
 			not setup.$main and  init()
+			
+			if (type is 'img' or type is 'video')
+				setup.$container.html(DS.tmpl(DS.tmpls.photo, {}))
+				
+				DS.util.each(['img', 'left', 'right'], (param) ->
+					setup['$' + param] = DS.$("##{prefix}#{param}")
+					
+					return
+				)
 
 			isClosed = false
 
@@ -988,9 +997,9 @@ DS.popup = (() ->
 
 						h = img.height
 						w = img.width
-
-						# DS.dom.removeEvent(window, 'resize', wrCallback)
+						
 						DS.$(window).off('resize')
+
 						show(() ->							
 							resize(h, w)
 							return
@@ -1002,16 +1011,19 @@ DS.popup = (() ->
 
 					img.src = id
 
-				else
-					# DS.dom.klass('add', setup.$img, 'digiseller-popup-video')
-					setup.$img.addClass('digiseller-popup-video')
+				else						
+					if (type is 'video')						
+						setup.$img.addClass('digiseller-popup-video')
 
 					show(() ->
-						# resize(200, 500, true)
+						resize(200, 500, true)
 						return
 					)
-
-					setup.$img.html(id)
+					
+					if (type is 'text')
+						setup.$container.html(id)
+					else
+						setup.$img.html(id)					
 
 			return
 
@@ -1226,8 +1238,10 @@ DS.widget =
 				# DS.dom.klass('remove', $cats, "#{@prefix}-active", true)
 				# DS.dom.klass('remove', $cats, "#{@prefix}-active-hmenu", true)
 				
-				$cats.removeClass(@prefix + '-active')
-					.removeClass(@prefix + '-active-hmenu')
+				# $cats.removeClass(@prefix + '-active')
+					# .removeClass(@prefix + '-active-hmenu')
+					
+				$cats.removeClass('digiseller-moved')
 
 				return unless cid
 
@@ -1235,19 +1249,22 @@ DS.widget =
 				return unless $cat.length
 
 				# DS.dom.klass('add', $cat, @prefix + '-active')
-				$cat.addClass(@prefix + '-active')
+				# $cat.addClass(@prefix + '-active')
+				$cat.addClass('digiseller-moved')
 
 				$parent = $ancestor = $cat
 
 				while $parent.get(0).id isnt @prefix
 					# $parent.style.display = ''
 					$parent.show()
+
 					# $parent = DS.$($parent.get(0).parentNode)
 					$parent = $parent.parent()
 
 					if /li/i.test($parent.get(0).nodeName)
 						# DS.dom.klass('add', $parent, @prefix + '-active-hmenu')
-						$parent.addClass(@prefix + '-active-hmenu')
+						# $parent.addClass(@prefix + '-active-hmenu')
+						$parent.addClass('digiseller-moved')
 
 				# DS.dom.$("##{@prefix}-sub-#{cid}")?.style.display = ''
 				DS.$("##{@prefix}-sub-#{cid}").show()
@@ -1288,7 +1305,7 @@ DS.widget =
 				out += tmpl(
 					d: category
 					url: DS.opts.hashPrefix + "/articles/#{category.id}"
-					id: that.prefix + prefix + "-#{category.id}"
+					id: that.prefix + (prefix or '') + "-#{category.id}"
 					sub: that.render(category.sub, category.id)
 				)
 				
@@ -1296,7 +1313,7 @@ DS.widget =
 			)
 			
 			return DS.tmpl(DS.tmpls.categories,
-				id: if parent_cid then @prefix + prefix + "-sub-#{parent_cid}" else ''
+				id: if parent_cid then @prefix + (prefix or '') + "-sub-#{parent_cid}" else ''
 				out: out
 			)
 
@@ -1641,7 +1658,7 @@ DS.widget =
 				$parentRules = that.$.rules.parent()
 				
 				rules = (flag) ->
-					$parentRules[if flag and not that.$.rules.get(0).checked then 'addClass' else 'removeClass'](_prefix + '-confirmation-error')
+					$parentRules[if flag and not that.$.rules.get(0).checked then 'addClass' else 'removeClass']('digiseller-agree-error')					
 
 				@$.buy.on('mouseover', () ->
 					rules(true)
@@ -2583,12 +2600,13 @@ DS.route =
 					index = $this.attr('data-index')
 					id = $this.attr('data-id')
 
-					$preview
-						.attr('data-index', index)
-						.css( 'backgroundImage', $preview.css('backgroundImage').replace(/idp=[0-9]+&/, "idp=#{id}&") )
-						
-					# $previewImg.src = $previewImg.src.replace(/idp=[0-9]+&/, "idp=#{id}&")
-					# console.dir($preview.style)
+					# $preview
+						# .attr('data-index', index)
+						# .css( 'backgroundImage', $preview.css('backgroundImage').replace(/idp=[0-9]+&/, "idp=#{id}&") )
+					
+					$preview.attr('data-index', index)
+					previewImg = $previewImg.get(0)
+					previewImg.src = previewImg.src.replace(/idp=[0-9]+&/, "idp=#{id}&")
 					
 					return
 				)
@@ -2605,36 +2623,32 @@ DS.route =
 				
 				$wrapper = DS.$('#digiseller-thumbs-wrapper')
 				$slider = DS.$('#digiseller-thumbs-slider')
-				thWidth = 70
+				thWidth = 90
 				thCount	= parseInt( $wrapper.attr('data-count') )
 				sliderWidth = thWidth * thCount
 				
 				onSlide = (isNext)->
 					wrWidth = $wrapper.get(0).offsetWidth
-					curLeft = $slider.css('left') || 0
+					curLeft = Math.abs( parseInt( $slider.css('left') ) || 0)				
+
+					showed = Math[ (if isNext then 'floor' else 'ceil') ]( ( curLeft + (if isNext then wrWidth else 0) ) / thWidth )
+					
+					toShow = showed + (if isNext then 1 else -1)
 					
 					if isNext
-						showed = Math.floor( (curLeft + wrWidth) / thWidth )
-						
-						if showed > thCount
-							showed = thCount
-							
-						left = showed * thWidth + thWidth						
+						toShow = thCount if toShow >= thCount							
 					else
-						showed = Math.floor( curLeft / thWidth )
+						toShow = 0 if toShow <= 0
 						
-						if showed < 0
-							showed = 0
-							
-						left = showed * thWidth
+					left = - ( curLeft + ( toShow * thWidth - ( curLeft + (if isNext then wrWidth else 0) ) ) )
 						
 					$slider.css('left', left + 'px')
 					
 				DS.$('.digiseller-more-views-arrow', $container).on('click', (e) ->
 					DS.util.prevent(e)
 					
-					isNext = parseInt( DS.$(@).attr('data-next') ) is '1'
-					
+					isNext = DS.$(@).attr('data-next') is '1'
+
 					onSlide(isNext)
 					
 					return

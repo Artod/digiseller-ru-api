@@ -43,12 +43,12 @@
 			<? if (d.preview_imgs || d.preview_videos) { ?>
 				<div class="digiseller-prockrutka" id="digiseller-article-thumbs">					
 					<? if (thCount > 4) { ?>
-						<div style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-next" id="digiseller-photo-next">&nbsp;</div>
+						<div style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-next" id="digiseller-photo-next" data-next="1">&nbsp;</div>
 						<div style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-prev" id="digiseller-photo-prev">&nbsp;</div>
 					<? } ?>
-					
-					<div id="digiseller-thumbs-wrapper" data-count="<?= thCount ?>">
-						<ul class="digiseller-inline-list digiseller-details-product" id="digiseller-thumbs-slider">	
+
+					<div  id="digiseller-thumbs-wrapper" data-count="<?= thCount ?>">
+						<ul style="position:relative;" class="digiseller-inline-list digiseller-details-product" id="digiseller-thumbs-slider">	
 							
 							<? if (d.preview_imgs) { ?>							
 								<? var index = 0;
