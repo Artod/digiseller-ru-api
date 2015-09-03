@@ -1,16 +1,16 @@
 <?
 	var button = (d.is_available
-		? '<a class="digiseller-buyButton" data-id="' + d.id + '" data-form="1"'
+		? '<a class="digiseller-button" data-id="' + d.id + '" data-form="1"'
 			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
 			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
 			+ (ai ? ' data-ai="' + ai + '"' : '')
 			+ ' id="digiseller-calc-buy-' + index + '">' + DS.opts.i18n['buy'] + '</a>'
-			+ (DS.opts.hasCart && d.no_cart != 1 ? ' <a class="digiseller-buyButton" data-id="' + d.id + '" data-form="1" data-cart="1" id="digiseller-calc-cart-' + index + '">' + DS.opts.i18n['toCart'] + '</a>' : '')
+			+ (DS.opts.hasCart && d.no_cart != 1 ? ' <a id="digiseller-calc-cart-' + index + '" class="digiseller-button" data-id="' + d.id + '" data-form="1" data-cart="1">' + DS.opts.i18n['toCart'] + '</a>' : '')
 		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
 	);
 ?>
 
-<div <?= d.is_available ? 'id="digiseller-calc-' + index + '"' : '' ?> class="digiseller-calc <?= d.is_available ? '' : 'digiseller-notinstock' ?>">
+<div <?= d.is_available ? 'id="digiseller-calc-' + index + '"' : '' ?>> <!--class="digiseller-calc <?= d.is_available ? '' : 'digiseller-notinstock' ?>" -->
 	<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
 
 	<? if (needImg) { ?>
@@ -39,7 +39,7 @@
 			
 			<ul class="digiseller-pricing-table">
 				<? if (!d.prices_unit) { ?>	
-					<li class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <span><?= d.currency ?></span></li>
+					<li class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <?= d.currency ?></li>
 				<? } else { ?>
 					<div class="digiseller-calc-quanity">
 						<table>
@@ -160,19 +160,19 @@
 				
 				<? if (DS.opts.agreement_text) { ?>
 					<li class="digiseller-bullet-item digiseller-agree">
-						<input type="checkbox" id="digiseller-calc-rules-<?= index ?>"<?= agree == 1 ? ' checked="checked"' : '' ?> />
+						<input id="digiseller-calc-rules-<?= index ?>" type="checkbox" <?= agree == 1 ? 'checked="checked"' : '' ?> />
 						<?= DS.opts.i18n['iAgreeWithTerms'].replace('data-action="agreement"', 'id="digiseller-calc-agreement-' + index + '"') ?>
 					</li>
 				<? } ?>				
 
-				<li class="digiseller-cta-button">
+				<li class="digiseller-cta-button-v">
 					<?= button ?>
 				</li>
 				
 				<li class="digiseller-clearfix digiseller-follow-wrapper">						  	
 					<a href="#">Поделиться</a>
 					
-					<ul class="digiseller-social-list digiseller-inline-list digiseller-large-12 digiseller-large-uncentered digiseller-medium-12 digiseller-small-12 digiseller-columns">
+					<ul class="digiseller-social-list digiseller-inline-list digiseller-large-12 digiseller-large-uncentered digiseller-medium-12 digiseller-small-12 digiseller-columns digiseller-social-wrapper-v">
 						<li><a class="digiseller-social-fb" title="<?= DS.opts.i18n['shareInFacebook'] ?>" data-action="share" data-type="fb" data-title="<?= d.name ?> / <?= d.price ?>" data-img="<?= mainImg ?>">
 							<img alt="" src="./img/fb-digiseller.png" />
 						</a></li>
@@ -189,10 +189,10 @@
 				</li>
 			</ul>
 			
-			<div class="digiseller-calc-line-err digiseller-hidden" id="digiseller-buy-error-<?= d.id ?>-<?= index ?>"></div>
+			<div id="digiseller-buy-error-<?= d.id ?>-<?= index ?>" class="digiseller-calc-line-err digiseller-hidden"></div>
 		</form>
 	<? } else { ?>
-		<span class="digiseller-prod-cost" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="visibility:hidden;"' : '') ?>><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <span><?= d.currency ?></span></span>
+		<span class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="visibility:hidden;"' : '') ?>><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
 		<?= button ?>
 	<? } ?>
 </div>

@@ -930,7 +930,8 @@ DS.popup = (() ->
 		doc = document.documentElement
 		body = document.body
 		topScroll = (doc && doc.scrollTop or body && body.scrollTop or 0)
-		setup.$container.parent().css('top', (hs - (if isHard then h else h1) + 20)/3 + topScroll + 'px')
+		# setup.$container.parent().css('top', (hs - (if isHard then h else h1) + 20)/3 + topScroll + 'px')
+		setup.$container.parent().css('top', 20 + topScroll + 'px')
 
 		return
 
@@ -959,7 +960,7 @@ DS.popup = (() ->
 		open: (type, id, onLeft, onRight) ->
 			not setup.$main and  init()
 			
-			if (type is 'img' or type is 'video')
+			if (type isnt 'text')
 				setup.$container.html(DS.tmpl(DS.tmpls.photo, {}))
 				
 				DS.util.each(['img', 'left', 'right'], (param) ->
@@ -990,6 +991,7 @@ DS.popup = (() ->
 				when 'img'
 					# DS.dom.klass('remove', setup.$img, 'digiseller-popup-video')
 					setup.$img.removeClass('digiseller-popup-video')
+					setup.$container.parent().removeClass('digiseller-reveal-video')
 
 					img = new Image()
 					img.onload = () ->
@@ -1011,9 +1013,11 @@ DS.popup = (() ->
 
 					img.src = id
 
-				else						
-					if (type is 'video')						
+				else
+					if (type isnt 'text')
 						setup.$img.addClass('digiseller-popup-video')
+						setup.$container.parent().addClass('digiseller-reveal-video')
+
 
 					show(() ->
 						resize(200, 500, true)
@@ -1194,21 +1198,21 @@ DS.widget =
 			@$elDup = DS.$("##{@prefix}-dup")
 			@$elG = DS.$("##{@prefix}-g")
 			
-			return unless @$el.length
+			return unless @$el.length or @$elDup.length or @$elG.length
 
 			@isInited = false
 
 			that = @
 			DS.ajax('GET', DS.opts.host + 'shop_categories.asp'
-				$el: @$el
+				# $el: @$el
 				data:
 					seller_id: DS.opts.seller_id
 				onLoad: (res) ->					
 					return off unless res
 					
 					that.$el.html( that.render(res.category, null, '') )
-					# that.$elDup.html( that.render(res.category, null, 'dup') )
-					# that.$elG.html( that.render(res.category, null, 'g') )
+					that.$elDup.html( that.render(res.category, null, 'dup') )
+					that.$elG.html( that.render(res.category, null, 'g') )
 
 					that.isInited = true
 
@@ -1220,59 +1224,50 @@ DS.widget =
 			return
 
 		mark: (() ->
-			_go = (cid) ->
-				$cats = DS.$('li', @$el)
+			_make = (cid, $el, prefix, suffix) ->
+				$cats = DS.$('li', $el)
 
 				return unless $cats.length
 
-				$subs = DS.$('ul', @$el)
+				$subs = DS.$('ul', $el)
 				$subs.hide()
 				$subs.eq(0).show()
 				
-				# $subs.show()
-				# for sub in subs
-					# sub.style.display = 'none'
-
-				# subs[0].style.display = ''
-
-				# DS.dom.klass('remove', $cats, "#{@prefix}-active", true)
-				# DS.dom.klass('remove', $cats, "#{@prefix}-active-hmenu", true)
-				
-				# $cats.removeClass(@prefix + '-active')
-					# .removeClass(@prefix + '-active-hmenu')
-					
-				$cats.removeClass('digiseller-moved')
+				$cats.removeClass("#{prefix}-active")
+				$cats.removeClass("#{prefix}-moved")
 
 				return unless cid
 
-				$cat = DS.$("##{@prefix}-#{cid}")
+				$cat = DS.$('#' + prefix + '-' + (if suffix then suffix + '-' else '') + cid)
+			
+				
 				return unless $cat.length
-
-				# DS.dom.klass('add', $cat, @prefix + '-active')
-				# $cat.addClass(@prefix + '-active')
-				$cat.addClass('digiseller-moved')
-
+				
+				$cat.addClass("#{prefix}-active")
+				$cat.addClass("#{prefix}-moved")
+				
 				$parent = $ancestor = $cat
 
-				while $parent.get(0).id isnt @prefix
-					# $parent.style.display = ''
+				while $parent.get(0).id isnt prefix + (if suffix then '-' + suffix else '')
 					$parent.show()
 
-					# $parent = DS.$($parent.get(0).parentNode)
 					$parent = $parent.parent()
 
 					if /li/i.test($parent.get(0).nodeName)
-						# DS.dom.klass('add', $parent, @prefix + '-active-hmenu')
-						# $parent.addClass(@prefix + '-active-hmenu')
-						$parent.addClass('digiseller-moved')
+						$parent.addClass("#{prefix}-moved")
 
-				# DS.dom.$("##{@prefix}-sub-#{cid}")?.style.display = ''
-				DS.$("##{@prefix}-sub-#{cid}").show()
+				DS.$('#' + prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
 
 				return
+			
+			_go = (cid) ->
+				_make(cid, @$el, @prefix, '') if @$el and @$el.length
+				_make(cid, @$elDup, @prefix, 'dup') if @$elDup and @$elDup.length
+				_make(cid, @$elG, @prefix, 'g') if @$elG and @$elG.length
 
 			return (cid) ->
-				return if not @$el or not @$el.length
+				return if (not @$el or not @$el.length) and (not @$elDup or not @$elDup.length) and (not @$elG or not @$elG.length)
+				# return unless @$el.length or @$elDup.length or @$elG.length
 
 				if @isInited
 					_go.call(@, cid)
@@ -1294,7 +1289,7 @@ DS.widget =
 				return
 		)()
 
-		render: (categories, parent_cid, prefix) ->
+		render: (categories, parent_cid, suffix) ->
 			return '' if not categories				
 
 			out = ''
@@ -1305,15 +1300,15 @@ DS.widget =
 				out += tmpl(
 					d: category
 					url: DS.opts.hashPrefix + "/articles/#{category.id}"
-					id: that.prefix + (prefix or '') + "-#{category.id}"
-					sub: that.render(category.sub, category.id)
+					id: that.prefix + (if suffix then '-' + suffix else '') + '-' + category.id
+					sub: that.render(category.sub, category.id, suffix)
 				)
 				
 				return
 			)
-			
+
 			return DS.tmpl(DS.tmpls.categories,
-				id: if parent_cid then @prefix + (prefix or '') + "-sub-#{parent_cid}" else ''
+				id: if parent_cid then @prefix + '-sub' + (if suffix then '-' + suffix else '') + '-' + parent_cid else ''
 				out: out
 			)
 
@@ -1611,11 +1606,15 @@ DS.widget =
 
 				$curAddSelects.hide()
 				
+				cl = 'digiseller-pricing-table-select'
+				
 				if vars > 1
 					$curAdd.show()
-					that.$.method.removeClass(_prefix + '-method').addClass(_prefix + '-method-two')
+					# that.$.method.removeClass(_prefix + '-method').addClass(_prefix + '-method-two')
+					that.$.method.parent().removeClass(cl)
 				else
-					that.$.method.addClass(_prefix + '-method').removeClass(_prefix + '-method-two')
+					# that.$.method.addClass(_prefix + '-method').removeClass(_prefix + '-method-two')
+					that.$.method.parent().addClass(cl)
 
 				onChangeCurAdd($curAdd, withoutGet)
 				
@@ -1780,7 +1779,7 @@ DS.widget =
 			@$.amount.val(data.amount)
 				# else if @$.price.length
 					# console.log(data.amount + ' ' + data.curr)
-			@$.price.html(data.amount + ' <span>' + data.curr + '</span>')
+			@$.price.html(data.amount + ' ' + data.curr) # ' <span>' + data.curr + '</span>'
 
 			# if @$.cnt.length && data.unit_Cnt
 			if @$.cnt.length && data.cnt
@@ -2536,6 +2535,7 @@ DS.route =
 			templHasDiscounts = (data.product.units && data.product.units.discounts) or (data.product.discounts && data.product.discounts.length)
 
 			DS.widget.category.mark(data.product.category_id)
+			
 			DS.widget.main.$el.html( DS.tmpl(DS.tmpls.articleDetail,
 				d: data.product
 				templHasDiscounts: templHasDiscounts
@@ -2914,19 +2914,18 @@ DS.init = ->
 
 	DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
 	
-	
-	
 	$body = DS.$('#digiseller-body')
 	
-	cat = $body.attr('data-cat')
+	orient = if $body.attr('data-cat') is 'g' then 'g' else 'v'
 
 	$body.html( DS.tmpl(DS.tmpls.body,
-		hasCat: if cat is 'g' or cat is 'v' then true else false
-		orient: cat
-		logo: if $body.attr('data-cat') is '1' then true else false
+		hasCat: if orient is 'g' or orient is 'v' then true else false
+		orient: orient
+		logo: if $body.attr('data-logo') is '1' then true else false
 		topmenu: if $body.attr('data-topmenu') is '1' then true else false
 	) )
 	
+	DS.opts.orient = orient
 	
 	DS.widget.category.init()
 	DS.widget.main.init()
