@@ -2,7 +2,7 @@
 <? var reviewsCount = parseInt(d.statistics.good_reviews) + parseInt(d.statistics.bad_reviews); ?>
 <? var price = (d.collection == 'unit' ? 'от ' : '') + d.price + ' ' + d.currency ?>
 
-<img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= DS.opts.seller_id ?>" width="0" height="0" />
+<div style="display:none;"><img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= DS.opts.seller_id ?>" width="0" height="0" /></div>
 
 <div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 	<h2 class="digiseller-name-product"><?= d.name ?></h2>	
@@ -41,42 +41,47 @@
 	<? } ?>
 			
 	<? if (d.preview_imgs || d.preview_videos) { ?>
-		<div id="digiseller-article-thumbs" class="digiseller-prockrutka">					
+	
+		<div id="digiseller-article-thumbs" class="digiseller-prockrutka-wrapper">					
 			<? if (thCount > 4) { ?>
-				<div id="digiseller-photo-next" style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-next" data-next="1">&nbsp;</div>
-				<div id="digiseller-photo-prev" style="cursor: pointer;" class="digiseller-more-views-arrow digiseller-prev">&nbsp;</div>
+				<div class="digiseller-arrow-wrapper">
+					<div id="digiseller-photo-next" class="digiseller-more-views-arrow digiseller-next" data-next="1">&nbsp;</div>
+					<div id="digiseller-photo-prev" class="digiseller-more-views-arrow digiseller-prev">&nbsp;</div>
+				</div>
 			<? } ?>
-
-			<div  id="digiseller-thumbs-wrapper" data-count="<?= thCount ?>">
-				<ul id="digiseller-thumbs-slider" style="position:relative;" class="digiseller-inline-list digiseller-details-product digiseller-details-product-g">	
-					
-					<? if (d.preview_imgs) { ?>							
-						<? var index = 0;
-						
-						DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
-							<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns" <?=  d.preview_imgs.length == 1 ? 'style="display:none;"' : '' ?>>
-								<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>">
-									<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
-								</a>
-							</li>
+			
+			<div class="digiseller-prockrutka">
+				<div id="digiseller-thumbs-wrapper" data-count="<?= thCount ?>">
+					<ul class="digiseller-inline-list digiseller-details-product digiseller-details-product-g">	
+						<div id="digiseller-thumbs-slider">
+							<? if (d.preview_imgs) { ?>							
+								<? var index = 0;
+								
+								DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
+									<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns" <?=  d.preview_imgs.length == 1 ? 'style="display:none;"' : '' ?>>
+										<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>">
+											<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
+										</a>
+									</li>
+									
+									<? index++;
+								}); ?>							
+							<? } ?>
 							
-							<? index++;
-						}); ?>							
-					<? } ?>
-					
-					<? if (d.preview_videos) { ?>							
-						<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
-							<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns">
-								<a class="digiseller-video" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
-									<img src="<?= preview_video.preview ?>" alt="" />									
-								</a>
-							</li>
-							
-							<? index++;
-						}); ?>
-					<? } ?>
-					
-				</ul>
+							<? if (d.preview_videos) { ?>							
+								<? DS.util.each(d.preview_videos, function(preview_video, i) { ?>
+									<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns">
+										<a class="digiseller-video" data-id="<?= preview_video.id ?>" data-type="<?= preview_video.type ?>" data-index="<?= index ?>">
+											<img src="<?= preview_video.preview ?>" alt="" />									
+										</a>
+									</li>
+									
+									<? index++;
+								}); ?>
+							<? } ?>
+						</div>
+					</ul>
+				</div>
 			</div>
 		</div>
 	<? } ?>

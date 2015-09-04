@@ -41,7 +41,31 @@
 				<? if (!d.prices_unit) { ?>	
 					<li class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <?= d.currency ?></li>
 				<? } else { ?>
-					<div class="digiseller-calc-quanity">
+				
+					<li class="digiseller-description digiseller-clearfix digiseller-calc-quanity-v">
+						<div class="digiseller-calc-rur">
+							<span><?= DS.opts.i18n['iWillPay'] ?> <b><?= d.prices_unit.unit_Name ?></b></span>
+							<input name="Unit_Summa" type="text" id="digiseller-calc-amount-<?= index ?>" value="<?= d.prices_unit.unit_Amount ?>"<?= (d.prices_unit.unit_Fixed ? ' disabled="disabled"' : '') ?> />
+						</div>		
+						<div class="digiseller-calc-arrow">
+							<span class="digiseller-calc-<?= d.prices_unit.unit_Fixed ? 'arrowLeft' : 'arrowLeftRight' ?>"></span>
+						</div>
+						<div class="digiseller-calc-points">  	
+							<span><?= DS.opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span>
+							<? if (d.prices_unit.unit_Fixed) { ?>
+								<select id="digiseller-calc-cntSelect-<?= index ?>" style="width:100%" name="Unit_Cnt">											
+									<? DS.util.each(d.prices_unit.unit_Fixed, function(unit_Fixed) { ?>
+										<option value="<?= unit_Fixed ?>"><?= unit_Fixed ?></option>
+									<? }); ?>
+								</select>
+							<? } else { ?>						
+								<input name="Unit_Cnt" type="text" id="digiseller-calc-cnt-<?= index ?>" value="<?= d.prices_unit.unit_Cnt ?>" data-min="<?= d.prices_unit.unit_CntMin ?>" data-max="<?= d.prices_unit.unit_CntMax ?>" />
+							<? } ?>
+						</div>
+					</li>
+					
+				
+					<!--div class="digiseller-calc-quanity">
 						<table>
 							<tr>
 								<td><span><?= DS.opts.i18n['iWillPay'] ?> <b id="digiseller-calc-amountR-<?= index ?>"><?= d.prices_unit.unit_Currency ?></b></span><br /></td>
@@ -80,7 +104,7 @@
 						</table>
 					</div>
 					
-					<div class="digiseller-calc-limit digiseller-hidden" id="digiseller-calc-limit-<?= index ?>"></div>
+					<div class="digiseller-calc-limit digiseller-hidden" id="digiseller-calc-limit-<?= index ?>"></div-->
 				<? } ?>
 				
 				<li class="digiseller-description"><?= DS.opts.i18n['paymentVia'] ?>:</li>

@@ -1,16 +1,14 @@
-
 <? if (orient === 'g') { ?>
 
 	<header class="digiseller-row header-gorizontal">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
-			<nav class="digiseller-top-bar digiseller-show-for-small" role="navigation" data-topbar="">
-				<ul class="digiseller-title-area">
-					<!-- Title Area -->
-					<li class="digiseller-name"></li>
-					<li class="digiseller-toggle-topbar digiseller-menu-icon"><a href=""><span></span></a></li>
+			<nav class="digiseller-top-bar digiseller-show-for-small">
+				<ul>
+					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 				</ul>
-				<section id="digiseller-category-dup"></ class="digiseller-top-bar-section"section>
+				
+				<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
 			</nav>
 			<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
 			<!--div class="right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
@@ -24,9 +22,9 @@
 	</header>
 	
 	<div class="digiseller-row">
-		<nav class="digiseller-top-bar digiseller-expanded">
+		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-nav">
 			<ul>
-				<li class="digiseller-menu-icon"><a href=""></a></li>
+				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 			</ul>
 			
 			<section id="digiseller-category-g"></section>
@@ -46,12 +44,11 @@
 	<header class="digiseller-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
-			<nav class="digiseller-top-bar digiseller-show-for-small" role="navigation" data-topbar="">
-				<ul class="digiseller-title-area">
-					<!-- Title Area -->
-					<li class="digiseller-name"></li>
-					<li class="digiseller-toggle-topbar digiseller-menu-icon"><a href=""><span></span></a></li>
+			<nav class="digiseller-top-bar digiseller-show-for-small">
+				<ul>
+					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 				</ul>
+				
 				<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
 			</nav>
 			<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
@@ -68,11 +65,10 @@
 	</header>
 	
 	<div class="digiseller-row">
-		<nav class="digiseller-top-bar digiseller-hide-for-small hide-for-large digiseller-nav" style="">
-			<ul class="digiseller-title-area">
-				<li class="digiseller-name"></li>
-				<li class="digiseller-toggle-topbar digiseller-menu-icon"><a href=""><span></span></a></li>
-			</ul> 
+		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-hide-for-large digiseller-nav">
+			<ul>
+				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
+			</ul>
 
 			<section id="digiseller-category-g" class="digiseller-top-bar-section"></section>
 		</nav>
@@ -84,7 +80,7 @@
 				<aside class="digiseller-large-2 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-medium digiseller-hide-for-small">
 					<nav class="digiseller-side-nav">
 						<ul>
-							<li class="digiseller-menu-icon"><a href=""></a></li>
+							<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 						</ul>
 						<section id="digiseller-category"></section>
 					</nav>
@@ -97,5 +93,4 @@
 	</main>
 	
 	<footer id="digiseller-topmenu" class="digiseller-row"></footer>
-
 <? } ?>

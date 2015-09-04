@@ -146,6 +146,8 @@ DS.util =
 		return
 
 	scrollUp: () ->
+		# return
+		
 		doc = document.documentElement
 		body = document.body
 		scrollTop = (doc && doc.scrollTop  || body && body.scrollTop  || 0)
@@ -1210,10 +1212,35 @@ DS.widget =
 				onLoad: (res) ->					
 					return off unless res
 					
-					that.$el.html( that.render(res.category, null, '') )
-					that.$elDup.html( that.render(res.category, null, 'dup') )
-					that.$elG.html( that.render(res.category, null, 'g') )
+					if that.$el.length
+						that.$el.html( that.render(res.category, null, '') )
+						DS.eventsDisp.setEventsDisp( that.$el.parent() )
+						
+					if that.$elDup.length
+						that.$elDup.html( that.render(res.category, null, 'dup') )
+						DS.eventsDisp.setEventsDisp( that.$elDup.parent() )
+						
+					if that.$elG.length
+						that.$elG.html( that.render(res.category, null, 'g') )
+						DS.eventsDisp.setEventsDisp( that.$elG.parent() )
+					
+					# DS.util.each(['', '-dup', '-g'], (suffix) ->
+					# DS.util.each(['', '-dup', '-g'], (suffix) ->
+						# $el = DS.$('#digiseller-expand-menu' + suffix)
 
+						# $el.on('click', (e) ->
+							# expanded = $el.attr('data-expanded')
+							# $nav = $el.parent().parent().parent() # :(
+
+							# $nav[if expanded is '1' then 'removeClass' else 'addClass']('digiseller-expanded')
+							# $el.attr('data-expanded', if expanded is '1' then 0 else 1)
+
+							# return
+						# )
+						
+						# return
+					# )
+					
 					that.isInited = true
 
 					that.mark()
@@ -1235,11 +1262,16 @@ DS.widget =
 				
 				$cats.removeClass("#{prefix}-active")
 				$cats.removeClass("#{prefix}-moved")
+				
+				$nav = $el.parent()
+				
+				unless cid
+					$el.css('left', '0%')
+					$nav.css('height', 'inherit')
+					
+					return 
 
-				return unless cid
-
-				$cat = DS.$('#' + prefix + '-' + (if suffix then suffix + '-' else '') + cid)
-			
+				$cat = DS.$('#' + prefix + '-' + (if suffix then suffix + '-' else '') + cid)			
 				
 				return unless $cat.length
 				
@@ -1248,6 +1280,8 @@ DS.widget =
 				
 				$parent = $ancestor = $cat
 
+				deep = 0
+				
 				while $parent.get(0).id isnt prefix + (if suffix then '-' + suffix else '')
 					$parent.show()
 
@@ -1255,9 +1289,15 @@ DS.widget =
 
 					if /li/i.test($parent.get(0).nodeName)
 						$parent.addClass("#{prefix}-moved")
+						deep++					
 
-				DS.$('#' + prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
-
+				$sub = DS.$('#' + prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
+				
+				$el.css('left', '-' + (if $sub.length then deep + 1 else deep) * 100 + '%')
+				
+				if ($sub.length)
+					$nav.css('height', $sub.get(0).offsetHeight + 40 + 'px')
+				
 				return
 			
 			_go = (cid) ->
@@ -1309,6 +1349,7 @@ DS.widget =
 
 			return DS.tmpl(DS.tmpls.categories,
 				id: if parent_cid then @prefix + '-sub' + (if suffix then '-' + suffix else '') + '-' + parent_cid else ''
+				suffix: suffix
 				out: out
 			)
 
@@ -2883,6 +2924,29 @@ DS.eventsDisp =
 		# console.log(DS.share[type](title, img))
 		if DS.share[type]
 			window.open( DS.share[type](title, img), "digisellerShare_#{type}", DS.util.getPopupParams(626, 436) )
+
+		return
+		
+	'click-menu': ($el, e) ->
+		expanded = $el.attr('data-expanded')
+		$nav = $el.parent().parent().parent() # :(
+
+		$nav[if expanded is '1' then 'removeClass' else 'addClass']('digiseller-expanded')
+		$el.attr('data-expanded', if expanded is '1' then 0 else 1)
+
+		return
+		
+	'click-back': ($el, e) ->
+		suffix = $el.attr('data-suffix')
+		
+		$sect = DS.$( '#digiseller-category' + (if suffix then '-' + suffix else '') )
+		
+		curLeft = parseInt( $el.css('left') ) || 0
+		console.log(curLeft)
+		
+		$sect.css('left', '-' + (if not curLeft then 0 else curLeft - 100) + '%')
+		
+		$sect.parent().css('height', $sect.get(0).offsetHeight + 40 + 'px')
 
 		return
 
