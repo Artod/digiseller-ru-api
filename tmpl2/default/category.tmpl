@@ -1,5 +1,5 @@
 <li id="<?= id ?>"<?= sub ? ' class="digiseller-hmenu-withsub"' : '' ?>>
-	<a onclick="location.hash='<?= url ?>';" title="<?= d.name ?>">
+	<a title="<?= d.name ?>" data-action="gocat" data-cid="<?= d.id ?>">
 		<?= d.name ?><!--span>&nbsp;&nbsp;(<?= d.cnt ?>)</span-->
 	</a>
 	<?= sub ?>

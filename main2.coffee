@@ -1133,6 +1133,7 @@ DS.widget =
 		prefix: 'digiseller-search'
 		init: () ->
 			@$el = DS.$("##{@prefix}")
+			
 			return unless @$el.length
 
 			@$el.html(DS.tmpls.search)
@@ -1140,13 +1141,66 @@ DS.widget =
 			$inputs = DS.$('input', @$el)
 			
 			@$input = $inputs.eq(0) # DS.$("input.#{@prefix}-input", @$el)
+			
+			$header = DS.$('#digiseller-header')
+			
 			$form = DS.$('form', @$el)
+			
+			cl = 'digiseller-search-box-active'
 
 			that = @
+			
+			timeout = null
+			
+			# @$input.on('blur', () ->				
+				# timeout = setTimeout( () ->
+					# that.$input.val('')	
+					# $header.removeClass(cl)
+				# , 200)
+				
+				# return
+			# )
+			
+			# $form.on('submit', (e) ->
+				# DS.util.prevent(e)
+				
+				# clearTimeout(timeout)
+				
+				# val = that.$input.val()
+				# hash = DS.opts.hashPrefix + "/search?s=#{val}"
+				
+				# if val is '' or window.location.hash is hash
+					# $header.addClass(cl)
+					# that.$input.get(0).focus()				
+				# else			
+					# window.location.hash = hash
+
+				# return
+			# )
+			
+			
+			@$input.on('blur', () ->				
+				timeout = setTimeout( () ->
+					# that.$input.val('')	
+					$header.removeClass(cl)
+				, 200)
+				
+				return
+			)
+			
 			$form.on('submit', (e) ->
 				DS.util.prevent(e)
-
-				window.location.hash = DS.opts.hashPrefix + "/search?s=#{that.$input.val()}"
+				
+				clearTimeout(timeout)
+				
+				val = that.$input.val()
+				hash = DS.opts.hashPrefix + "/search?s=#{val}"
+				
+				$header.addClass(cl)
+				that.$input.get(0).focus()
+				
+				unless val is '' or window.location.hash is hash				
+					window.location.hash = hash
 
 				return
 			)
@@ -1267,7 +1321,7 @@ DS.widget =
 				
 				unless cid
 					$el.css('left', '0%')
-					$nav.css('height', 'inherit')
+					$nav.css('height', '')
 					
 					return 
 
@@ -1281,7 +1335,7 @@ DS.widget =
 				$parent = $ancestor = $cat
 
 				deep = 0
-				
+
 				while $parent.get(0).id isnt prefix + (if suffix then '-' + suffix else '')
 					$parent.show()
 
@@ -1289,14 +1343,36 @@ DS.widget =
 
 					if /li/i.test($parent.get(0).nodeName)
 						$parent.addClass("#{prefix}-moved")
-						deep++					
+						deep++
 
 				$sub = DS.$('#' + prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
 				
-				$el.css('left', '-' + (if $sub.length then deep + 1 else deep) * 100 + '%')
+				if suffix is ''
+					return
 				
-				if ($sub.length)
-					$nav.css('height', $sub.get(0).offsetHeight + 40 + 'px')
+				nextLeft = (if $sub.length then deep + 1 else deep) * 100
+				
+				$el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
+				
+				# console.log('suffix', suffix)
+				# console.log('suffix', $sub.get(0) && $sub.get(0).offsetHeight)
+
+				if ($sub.length)	
+					# nextHeight = $sub.get(0).offsetHeight					
+					# console.log('suffix', suffix)
+					# console.log('nextHeight', nextHeight)
+					# console.log('clientHeight', $sub.get(0).clientHeight)
+					# console.log('offsetHeight', $sub.get(0).offsetHeight)
+					# console.log( 'jquery', $( $sub.get(0) ).height() )
+					
+					# window.jQuery || document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>')					
+					
+					# DS.util.each(['-dup', '-g'], (suffix) ->
+						# $el = DS.$('#digiseller-category' + suffix)					
+						
+					# )
+					# console.log($sub.children().length)
+					$nav.css('height', ($sub.children().length + 1) * 2.8125 + 'rem') # иначе для невидимых категорий 0 всегда высота
 				
 				return
 			
@@ -1329,7 +1405,7 @@ DS.widget =
 				return
 		)()
 
-		render: (categories, parent_cid, suffix) ->
+		render: (categories, parent_cid, suffix, anc_id) ->
 			return '' if not categories				
 
 			out = ''
@@ -1339,9 +1415,9 @@ DS.widget =
 			DS.util.each(categories, (category) ->
 				out += tmpl(
 					d: category
-					url: DS.opts.hashPrefix + "/articles/#{category.id}"
+					# url: DS.opts.hashPrefix + "/articles/#{category.id}"
 					id: that.prefix + (if suffix then '-' + suffix else '') + '-' + category.id
-					sub: that.render(category.sub, category.id, suffix)
+					sub: that.render(category.sub, category.id, suffix, parent_cid)
 				)
 				
 				return
@@ -1349,6 +1425,7 @@ DS.widget =
 
 			return DS.tmpl(DS.tmpls.categories,
 				id: if parent_cid then @prefix + '-sub' + (if suffix then '-' + suffix else '') + '-' + parent_cid else ''
+				anc_id: anc_id
 				suffix: suffix
 				out: out
 			)
@@ -2932,22 +3009,44 @@ DS.eventsDisp =
 		$nav = $el.parent().parent().parent() # :(
 
 		$nav[if expanded is '1' then 'removeClass' else 'addClass']('digiseller-expanded')
+		$nav[if expanded is '1' then 'addClass' else 'removeClass']('digiseller-imploded')
+		
 		$el.attr('data-expanded', if expanded is '1' then 0 else 1)
 
 		return
 		
 	'click-back': ($el, e) ->
 		suffix = $el.attr('data-suffix')
+		suffix = (if suffix then '-' + suffix else '')
 		
-		$sect = DS.$( '#digiseller-category' + (if suffix then '-' + suffix else '') )
-		
-		curLeft = parseInt( $el.css('left') ) || 0
-		console.log(curLeft)
-		
-		$sect.css('left', '-' + (if not curLeft then 0 else curLeft - 100) + '%')
-		
-		$sect.parent().css('height', $sect.get(0).offsetHeight + 40 + 'px')
+		$sect = DS.$('#digiseller-category' + suffix)
+		$sub = DS.$( '#digiseller-category-sub' + suffix + '-' + $el.attr('data-anc-id') )
 
+		curLeft = parseInt( $sect.attr('data-cur-left') ) || 0
+		
+		nextLeft = (if not curLeft then 0 else curLeft - 100)
+		# nextHeight = ( $sub.get(0) || $sect.get(0) ).offsetHeight
+		nextHeight = ( $sub.get(0) || $sect.get(0) ).offsetHeight
+		
+		DS.util.each(['-dup', '-g'], (suffix) ->
+			$el = DS.$('#digiseller-category' + suffix)
+			
+			$el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
+			# $el.parent().css('height', nextHeight + 40 + 'px')
+			$el.parent().css('height', if $sub.length then ( $sub.children().length + 1) * 2.8125 + 'rem' else  $sect.get(0).offsetHeight + 'px')
+		)
+
+		return
+		
+	'click-gocat': ($el, e) ->
+		cid = $el.attr('data-cid')
+		hash = DS.opts.hashPrefix + '/articles/' + cid
+		
+		if window.location.hash is hash
+			DS.widget.category.mark(cid)
+		else
+			window.location.hash = hash		
+		
 		return
 
 DS.inited = no
@@ -2980,16 +3079,13 @@ DS.init = ->
 	
 	$body = DS.$('#digiseller-body')
 	
-	orient = if $body.attr('data-cat') is 'g' then 'g' else 'v'
-
+	DS.opts.orient = if $body.attr('data-cat') is 'g' then 'g' else 'v'
+	
 	$body.html( DS.tmpl(DS.tmpls.body,
-		hasCat: if orient is 'g' or orient is 'v' then true else false
-		orient: orient
+		hasCat: if DS.opts.orient is 'g' or DS.opts.orient is 'v' then true else false
 		logo: if $body.attr('data-logo') is '1' then true else false
 		topmenu: if $body.attr('data-topmenu') is '1' then true else false
-	) )
-	
-	DS.opts.orient = orient
+	) )	
 	
 	DS.widget.category.init()
 	DS.widget.main.init()
@@ -3004,22 +3100,11 @@ DS.init = ->
 
 	DS.$('#digiseller-topmenu').html( DS.tmpl(DS.tmpls.topmenu, {}) )
 
-	
-	
-	
-	
-	
-	
-	
-
 	DS.$('.digiseller-buy-standalone').each( (el) ->
 		new DS.widget.calc( DS.$(el) )
 		
 		return
 	)	
-	
-	
-	
 	
 	homeInited = false
 	DS.historyClick.addRoute('#.*', (params) ->

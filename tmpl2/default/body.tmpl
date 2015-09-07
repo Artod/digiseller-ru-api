@@ -1,9 +1,8 @@
-<? if (orient === 'g') { ?>
-
-	<header class="digiseller-row header-gorizontal">
+<? if (DS.opts.orient === 'g') { ?>
+	<header id="digiseller-header" class="digiseller-row header-gorizontal">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
-			<nav class="digiseller-top-bar digiseller-show-for-small">
+			<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
 				<ul>
 					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 				</ul>
@@ -22,7 +21,7 @@
 	</header>
 	
 	<div class="digiseller-row">
-		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-nav">
+		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-nav digiseller-imploded">
 			<ul>
 				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 			</ul>
@@ -41,10 +40,10 @@
 	
 <? } else { ?>
 
-	<header class="digiseller-row">
+	<header id="digiseller-header" class="digiseller-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
-			<nav class="digiseller-top-bar digiseller-show-for-small">
+			<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
 				<ul>
 					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 				</ul>
@@ -65,7 +64,7 @@
 	</header>
 	
 	<div class="digiseller-row">
-		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-hide-for-large digiseller-nav">
+		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-hide-for-large digiseller-nav digiseller-imploded">
 			<ul>
 				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 			</ul>
@@ -78,7 +77,7 @@
 		<section class="digiseller-row">
 			<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 				<aside class="digiseller-large-2 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-medium digiseller-hide-for-small">
-					<nav class="digiseller-side-nav">
+					<nav class="digiseller-side-nav digiseller-imploded">
 						<ul>
 							<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
 						</ul>
