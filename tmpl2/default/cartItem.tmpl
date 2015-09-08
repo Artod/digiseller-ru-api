@@ -49,15 +49,18 @@
 				
 				<? if (d.options) { ?>
 					<div class="digiseller-cart-row-param">
-						<? DS.util.each(d.options, function(option) {  ?>
-							<strong><?= option.name ?>: </strong>				
+						<ul>							
+							<? DS.util.each(d.options, function(option) {  ?>
+								<li>
+									<strong><?= option.name ?>: </strong>				
 
-							<? DS.util.each(option.variant, function(variant, i) {  ?>
-								<?= variant.data ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?>
-								<?= option.variant.length - 1 === i ? '' : ', ' ?>
-							<? }) ?>	
-							<br />
-						<? }) ?>
+									<? DS.util.each(option.variant, function(variant, i) {  ?>
+										<?= variant.data ?><?= variant.modify ? ' (' + variant.modify + ')' : '' ?>
+										<?= option.variant.length - 1 === i ? '' : ', ' ?>
+									<? }) ?>	
+								</li>
+							<? }) ?>
+						</ul>
 					</div>
 				<? } ?>
 				

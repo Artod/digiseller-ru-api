@@ -1067,6 +1067,39 @@ DS.share =
 			'image=' + DS.util.enc(img) + '&' +
 			'noparse=0'
 	
+DS.showAgreement = (onOk, index) ->
+	DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
+	
+	that = @
+	
+	agree = (flag, onAgree) ->
+		if typeof index isnt 'undefined'
+			$rules = DS.$('#digiseller-calc-rules-' + index)
+			$rules.get(0).checked = flag if $rules.length
+
+		DS.opts.agree = if flag then 1 else 0
+		DS.cookie.set('digiseller-agree', DS.opts.agree)
+
+		DS.popup.close()
+
+		onAgree() if onAgree
+
+		return
+	
+	DS.$('#digiseller-agree').on('click', () ->
+		agree(true, onOk)
+		
+		return
+	)
+	
+	DS.$('#digiseller-disagree').on('click', () ->
+		agree(false)
+		
+		return
+	)
+	
+	return
+	
 DS.widget =
 	main:
 		$el: null
@@ -1681,7 +1714,7 @@ DS.widget =
 				return
 			)
 			
-			DS.$('.digiseller-buyButton', @$context).on('click', (e) ->
+			DS.$('.digiseller-button', @$context).on('click', (e) ->
 				DS.util.prevent(e)
 			
 				that.buy( DS.$(@) )
@@ -1692,7 +1725,8 @@ DS.widget =
 			@$.agreement.on('click', (e) ->
 				DS.util.prevent(e)
 			
-				that.showAgreement()
+				# that.showAgreement()
+				DS.showAgreement(null, that.index)
 
 				return
 			)		
@@ -1919,41 +1953,10 @@ DS.widget =
 		disable: (disabled) ->
 			go = ($el) ->
 				$el[if disabled then 'addClass' else 'removeClass']('digiseller-cart-btn-disabled')
-					.attr('data-action', if disabled then '' else 'buy')
+					# .attr('data-action', if disabled then '' else 'buy')
 				
 			go(@.$.buy)
 			go(@.$.cart)
-			
-			return
-			
-		showAgreement: (onOk) ->
-			DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
-			
-			that = @
-			
-			agree = (flag, onAgree) ->
-				$rules = DS.$('#digiseller-calc-rules-' + that.index)
-				$rules.get(0).checked = flag if $rules.length
-
-				DS.opts.agree = if flag then 1 else 0
-				DS.cookie.set('digiseller-agree', DS.opts.agree)
-
-				DS.popup.close()
-
-				onAgree() if onAgree
-
-				return
-			
-			DS.$('#digiseller-agree').on('click', () ->
-				agree(true, onOk)
-				
-				return
-			)
-			DS.$('#digiseller-disagree').on('click', () ->
-				agree(false)
-				
-				return
-			)
 			
 			return
 			
@@ -2035,7 +2038,8 @@ DS.widget =
 					return
 
 				if (DS.opts.agreement_text)
-					@showAgreement(buy)
+					# @showAgreement(buy)
+					DS.showAgreement(buy, @index)
 				
 					# DS.popup.open( 'text', DS.tmpl(DS.tmpls.agreement, {}) )
 
@@ -2944,6 +2948,7 @@ DS.eventsDisp =
 		
 		callback = (e, type) ->
 			$el = DS.$(e.originalTarget or e.srcElement)
+			
 			action = $el.attr('data-action')
 
 			if action and typeof DS.eventsDisp[type + '-' + action] is 'function'
@@ -2994,7 +2999,9 @@ DS.eventsDisp =
 
 		return
 
-	'click-share': ($el, e) ->
+	'click-share': ($el, e) ->		
+		DS.util.prevent(e)
+		
 		type = $el.attr('data-type')
 		title = $el.attr('data-title')
 		img = $el.attr('data-img')
@@ -3047,6 +3054,19 @@ DS.eventsDisp =
 		else
 			window.location.hash = hash		
 		
+		return
+		
+	'click-buy': ($el, e) ->
+		id = $el.attr('data-id')
+		ai = $el.attr('data-ai')
+		
+		buy = () ->
+			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')
+			return
+
+		if (DS.opts.agreement_text)
+			DS.showAgreement(buy)
+
 		return
 
 DS.inited = no

@@ -863,14 +863,11 @@ DigiSeller shop widget v. 2
             w1 = Math.round(h1 / scale0);
           }
         }
-        img.style.height = h1 + 'px';
-        img.style.width = w1 + 'px';
       }
-      setup.$container.css('width', ((isHard ? w : w1) + 50) + 'px');
       doc = document.documentElement;
       body = document.body;
       topScroll = doc && doc.scrollTop || body && body.scrollTop || 0;
-      setup.$container.css('top', (hs - (isHard ? h : h1) + 20) / 3 + topScroll + 'px');
+      setup.$container.parent().css('top', 20 + topScroll + 'px');
     };
     init = function() {
       var container;
@@ -888,6 +885,12 @@ DigiSeller shop widget v. 2
     return {
       open: function(type, id, onLeft, onRight) {
         !setup.$main && init();
+        if (type !== 'text') {
+          setup.$container.html(DS.tmpl(DS.tmpls.photo, {}));
+          DS.util.each(['img', 'left', 'right'], function(param) {
+            setup['$' + param] = DS.$("#" + prefix + param);
+          });
+        }
         isClosed = false;
         setup.$container.hide();
         setup.$main.show();
@@ -903,6 +906,7 @@ DigiSeller shop widget v. 2
         switch (type) {
           case 'img':
             setup.$img.removeClass('digiseller-popup-video');
+            setup.$container.parent().removeClass('digiseller-reveal-video');
             img = new Image();
             img.onload = function() {
               var h, w;
@@ -920,11 +924,18 @@ DigiSeller shop widget v. 2
             img.src = id;
             break;
           default:
-            setup.$img.addClass('digiseller-popup-video');
+            if (type !== 'text') {
+              setup.$img.addClass('digiseller-popup-video');
+              setup.$container.parent().addClass('digiseller-reveal-video');
+            }
             show(function() {
               resize(200, 500, true);
             });
-            setup.$img.html(id);
+            if (type === 'text') {
+              setup.$container.html(id);
+            } else {
+              setup.$img.html(id);
+            }
         }
       },
       close: close
@@ -944,6 +955,33 @@ DigiSeller shop widget v. 2
     wme: function(title, img) {
       return '//events.webmoney.ru/sharer.aspx?' + 'url=' + DS.util.enc(document.location) + '&' + 'title=' + DS.util.enc(title) + '&' + 'image=' + DS.util.enc(img) + '&' + 'noparse=0';
     }
+  };
+
+  DS.showAgreement = function(onOk, index) {
+    var agree, that;
+    DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {}));
+    that = this;
+    agree = function(flag, onAgree) {
+      var $rules;
+      if (typeof index !== 'undefined') {
+        $rules = DS.$('#digiseller-calc-rules-' + index);
+        if ($rules.length) {
+          $rules.get(0).checked = flag;
+        }
+      }
+      DS.opts.agree = flag ? 1 : 0;
+      DS.cookie.set('digiseller-agree', DS.opts.agree);
+      DS.popup.close();
+      if (onAgree) {
+        onAgree();
+      }
+    };
+    DS.$('#digiseller-agree').on('click', function() {
+      agree(true, onOk);
+    });
+    DS.$('#digiseller-disagree').on('click', function() {
+      agree(false);
+    });
   };
 
   DS.widget = {
@@ -996,18 +1034,35 @@ DigiSeller shop widget v. 2
       $input: null,
       prefix: 'digiseller-search',
       init: function() {
-        var $form, that;
+        var $form, $header, $inputs, cl, that, timeout;
         this.$el = DS.$("#" + this.prefix);
         if (!this.$el.length) {
           return;
         }
         this.$el.html(DS.tmpls.search);
-        this.$input = DS.$("input." + this.prefix + "-input", this.$el);
-        $form = DS.$("form." + this.prefix + "-form", this.$el);
+        $inputs = DS.$('input', this.$el);
+        this.$input = $inputs.eq(0);
+        $header = DS.$('#digiseller-header');
+        $form = DS.$('form', this.$el);
+        cl = 'digiseller-search-box-active';
         that = this;
+        timeout = null;
+        this.$input.on('blur', function() {
+          timeout = setTimeout(function() {
+            return $header.removeClass(cl);
+          }, 200);
+        });
         $form.on('submit', function(e) {
+          var hash, val;
           DS.util.prevent(e);
-          window.location.hash = DS.opts.hashPrefix + ("/search?s=" + (that.$input.val()));
+          clearTimeout(timeout);
+          val = that.$input.val();
+          hash = DS.opts.hashPrefix + ("/search?s=" + val);
+          $header.addClass(cl);
+          that.$input.get(0).focus();
+          if (!(val === '' || window.location.hash === hash)) {
+            window.location.hash = hash;
+          }
         });
       }
     },
@@ -1015,6 +1070,7 @@ DigiSeller shop widget v. 2
       $el: null,
       prefix: 'digiseller-langs',
       init: function() {
+        var $menu, visible;
         this.$el = DS.$("#" + this.prefix);
         if (!this.$el.length) {
           return;
@@ -1030,6 +1086,12 @@ DigiSeller shop widget v. 2
           DS.opts.currentLang = lang;
           window.location.reload();
         });
+        $menu = DS.$('ul', this.$el);
+        visible = false;
+        DS.$('button', this.$el).on('click', function(e) {
+          $menu[visible ? 'hide' : 'show']();
+          visible = !visible;
+        });
       }
     },
     category: {
@@ -1039,13 +1101,14 @@ DigiSeller shop widget v. 2
       init: function() {
         var that;
         this.$el = DS.$("#" + this.prefix);
-        if (!this.$el.length) {
+        this.$elDup = DS.$("#" + this.prefix + "-dup");
+        this.$elG = DS.$("#" + this.prefix + "-g");
+        if (!(this.$el.length || this.$elDup.length || this.$elG.length)) {
           return;
         }
         this.isInited = false;
         that = this;
         DS.ajax('GET', DS.opts.host + 'shop_categories.asp', {
-          $el: this.$el,
           data: {
             seller_id: DS.opts.seller_id
           },
@@ -1053,47 +1116,82 @@ DigiSeller shop widget v. 2
             if (!res) {
               return false;
             }
-            that.$el.html(that.render(res.category, null, ''));
-            that.$elDup.html(that.render(res.category, null, 'dup'));
-            that.$elG.html(that.render(res.category, null, 'g'));
+            if (that.$el.length) {
+              that.$el.html(that.render(res.category, null, ''));
+              DS.eventsDisp.setEventsDisp(that.$el.parent());
+            }
+            if (that.$elDup.length) {
+              that.$elDup.html(that.render(res.category, null, 'dup'));
+              DS.eventsDisp.setEventsDisp(that.$elDup.parent());
+            }
+            if (that.$elG.length) {
+              that.$elG.html(that.render(res.category, null, 'g'));
+              DS.eventsDisp.setEventsDisp(that.$elG.parent());
+            }
             that.isInited = true;
             that.mark();
           }
         });
       },
       mark: (function() {
-        var _go;
-        _go = function(cid) {
-          var $ancestor, $cat, $cats, $parent, $subs;
-          $cats = DS.$('li', this.$el);
+        var _go, _make;
+        _make = function(cid, $el, prefix, suffix) {
+          var $ancestor, $cat, $cats, $nav, $parent, $sub, $subs, deep, nextLeft;
+          $cats = DS.$('li', $el);
           if (!$cats.length) {
             return;
           }
-          $subs = DS.$('ul', this.$el);
+          $subs = DS.$('ul', $el);
           $subs.hide();
           $subs.eq(0).show();
-          $cats.removeClass(this.prefix + '-active').removeClass(this.prefix + '-active-hmenu');
+          $cats.removeClass("" + prefix + "-active");
+          $cats.removeClass("" + prefix + "-moved");
+          $nav = $el.parent();
           if (!cid) {
+            $el.css('left', '0%');
+            $nav.css('height', '');
             return;
           }
-          $cat = DS.$("#" + this.prefix + "-" + cid);
+          $cat = DS.$('#' + prefix + '-' + (suffix ? suffix + '-' : '') + cid);
           if (!$cat.length) {
             return;
           }
-          $cat.addClass(this.prefix + '-active');
+          $cat.addClass("" + prefix + "-active");
+          $cat.addClass("" + prefix + "-moved");
           $parent = $ancestor = $cat;
-          while ($parent.get(0).id !== this.prefix) {
+          deep = 0;
+          while ($parent.get(0).id !== prefix + (suffix ? '-' + suffix : '')) {
             $parent.show();
             $parent = $parent.parent();
             if (/li/i.test($parent.get(0).nodeName)) {
-              $parent.addClass(this.prefix + '-active-hmenu');
+              $parent.addClass("" + prefix + "-moved");
+              deep++;
             }
           }
-          DS.$("#" + this.prefix + "-sub-" + cid).show();
+          $sub = DS.$('#' + prefix + '-sub-' + (suffix ? suffix + '-' : '') + cid).show();
+          if (suffix === '') {
+            return;
+          }
+          nextLeft = ($sub.length ? deep + 1 : deep) * 100;
+          $el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft);
+          if ($sub.length) {
+            $nav.css('height', ($sub.children().length + 1) * 2.8125 + 'rem');
+          }
+        };
+        _go = function(cid) {
+          if (this.$el && this.$el.length) {
+            _make(cid, this.$el, this.prefix, '');
+          }
+          if (this.$elDup && this.$elDup.length) {
+            _make(cid, this.$elDup, this.prefix, 'dup');
+          }
+          if (this.$elG && this.$elG.length) {
+            return _make(cid, this.$elG, this.prefix, 'g');
+          }
         };
         return function(cid) {
           var count, interval, that;
-          if (!this.$el || !this.$el.length) {
+          if ((!this.$el || !this.$el.length) && (!this.$elDup || !this.$elDup.length) && (!this.$elG || !this.$elG.length)) {
             return;
           }
           if (this.isInited) {
@@ -1113,7 +1211,7 @@ DigiSeller shop widget v. 2
           }
         };
       })(),
-      render: function(categories, parent_cid, prefix) {
+      render: function(categories, parent_cid, suffix, anc_id) {
         var out, that, tmpl;
         if (!categories) {
           return '';
@@ -1124,13 +1222,14 @@ DigiSeller shop widget v. 2
         DS.util.each(categories, function(category) {
           out += tmpl({
             d: category,
-            url: DS.opts.hashPrefix + ("/articles/" + category.id),
-            id: that.prefix + prefix + ("-" + category.id),
-            sub: that.render(category.sub, category.id)
+            id: that.prefix + (suffix ? '-' + suffix : '') + '-' + category.id,
+            sub: that.render(category.sub, category.id, suffix, parent_cid)
           });
         });
         return DS.tmpl(DS.tmpls.categories, {
-          id: parent_cid ? this.prefix + prefix + ("-sub-" + parent_cid) : '',
+          id: parent_cid ? this.prefix + '-sub' + (suffix ? '-' + suffix : '') + '-' + parent_cid : '',
+          anc_id: anc_id,
+          suffix: suffix,
           out: out
         });
       }
@@ -1228,10 +1327,10 @@ DigiSeller shop widget v. 2
 
     })(),
     comments: (function() {
-      function _Class($el, product_id, init) {
+      function _Class($el, product_id, beforeRender) {
         this.$el = $el;
         this.product_id = product_id;
-        this.init = init;
+        this.beforeRender = beforeRender;
         this.isInited = false;
         this.type = '';
         this.page = 1;
@@ -1283,8 +1382,8 @@ DigiSeller shop widget v. 2
           });
           this.pager.render();
         } else {
-          this.init(data);
-          this.container = DS.$('.digiseller-comments', this.$el);
+          this.beforeRender(data);
+          this.container = DS.$('.digiseller-js-comments', this.$el);
           this.isInited = true;
         }
         this.container.html(out);
@@ -1364,13 +1463,13 @@ DigiSeller shop widget v. 2
         debouncedGet = DS.util.debounce(function(type) {
           that.get(type);
         });
-        DS.$('.digiseller-buyButton', this.$context).on('click', function(e) {
+        DS.$('.digiseller-button', this.$context).on('click', function(e) {
           DS.util.prevent(e);
           that.buy(DS.$(this));
         });
         this.$.agreement.on('click', function(e) {
           DS.util.prevent(e);
-          that.showAgreement();
+          DS.showAgreement(null, that.index);
         });
         if (this.$.amount.length) {
           if (this.$.cnt.length) {
@@ -1386,16 +1485,17 @@ DigiSeller shop widget v. 2
           });
         }
         onChangeCurrency = function(withoutGet) {
-          var $curAdd, index, vars;
+          var $curAdd, cl, index, vars;
           index = that.$.currency.get(0).selectedIndex;
           $curAdd = $curAddSelects.eq(index);
           vars = parseInt($curAdd.attr('data-vars'));
           $curAddSelects.hide();
+          cl = 'digiseller-pricing-table-select';
           if (vars > 1) {
             $curAdd.show();
-            that.$.method.removeClass(_prefix + '-method').addClass(_prefix + '-method-two');
+            that.$.method.parent().removeClass(cl);
           } else {
-            that.$.method.addClass(_prefix + '-method').removeClass(_prefix + '-method-two');
+            that.$.method.parent().addClass(cl);
           }
           return onChangeCurAdd($curAdd, withoutGet);
         };
@@ -1429,7 +1529,7 @@ DigiSeller shop widget v. 2
         if (that.$.rules.length) {
           $parentRules = that.$.rules.parent();
           rules = function(flag) {
-            return $parentRules[flag && !that.$.rules.get(0).checked ? 'addClass' : 'removeClass'](_prefix + '-confirmation-error');
+            return $parentRules[flag && !that.$.rules.get(0).checked ? 'addClass' : 'removeClass']('digiseller-agree-error');
           };
           this.$.buy.on('mouseover', function() {
             rules(true);
@@ -1515,7 +1615,7 @@ DigiSeller shop widget v. 2
           return false;
         }
         this.$.amount.val(data.amount);
-        this.$.price.html(data.amount + ' <span>' + data.curr + '</span>');
+        this.$.price.html(data.amount + ' ' + data.curr);
         if (this.$.cnt.length && data.cnt) {
           this.checkMinMax(data.cnt);
           this.$.cnt.val(data.cnt);
@@ -1532,35 +1632,10 @@ DigiSeller shop widget v. 2
       _Class.prototype.disable = function(disabled) {
         var go;
         go = function($el) {
-          return $el[disabled ? 'addClass' : 'removeClass']('digiseller-cart-btn-disabled').attr('data-action', disabled ? '' : 'buy');
+          return $el[disabled ? 'addClass' : 'removeClass']('digiseller-cart-btn-disabled');
         };
         go(this.$.buy);
         go(this.$.cart);
-      };
-
-      _Class.prototype.showAgreement = function(onOk) {
-        var agree, that;
-        DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {}));
-        that = this;
-        agree = function(flag, onAgree) {
-          var $rules;
-          $rules = DS.$('#digiseller-calc-rules-' + that.index);
-          if ($rules.length) {
-            $rules.get(0).checked = flag;
-          }
-          DS.opts.agree = flag ? 1 : 0;
-          DS.cookie.set('digiseller-agree', DS.opts.agree);
-          DS.popup.close();
-          if (onAgree) {
-            onAgree();
-          }
-        };
-        DS.$('#digiseller-agree').on('click', function() {
-          agree(true, onOk);
-        });
-        DS.$('#digiseller-disagree').on('click', function() {
-          agree(false);
-        });
       };
 
       _Class.prototype.buy = function($el) {
@@ -1630,7 +1705,7 @@ DigiSeller shop widget v. 2
             window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", '_blank');
           };
           if (DS.opts.agreement_text) {
-            this.showAgreement(buy);
+            DS.showAgreement(buy, this.index);
           } else {
             buy();
           }
@@ -1723,7 +1798,7 @@ DigiSeller shop widget v. 2
         changeCount = DS.util.debounce(function($this, isDel) {
           that.changeCount($this, isDel);
         });
-        DS.$("." + _prefix + "-del-product", $context).on('click', function(e) {
+        DS.$('.digiseller-delete-bag', $context).on('click', function(e) {
           DS.util.prevent(e);
           that.changeCount(DS.$(this), true);
         });
@@ -1774,12 +1849,12 @@ DigiSeller shop widget v. 2
             $item = DS.$("#" + _prefix + "-item-" + item.item_id);
             $error = DS.$("#" + _prefix + "-item-error-" + item.item_id);
             if (item.error) {
-              $item.addClass(_prefix + '-error');
+              $item.addClass('digiseller-not-available');
               $item.attr('data-error', 1);
               $error.show();
-              DS.$('td', $error).html(item.error);
+              $error.html(item.error);
             } else if (item.item_id === id) {
-              $item.removeClass(_prefix + '-error');
+              $item.removeClass('digiseller-not-available');
               $item.attr('data-error', 0);
               $error.hide();
             }
@@ -1878,7 +1953,7 @@ DigiSeller shop widget v. 2
           });
         }
         DS.widget.main.$el.html(DS.tmpl(DS.tmpls.showcaseArticles, {
-          out: DS.opts.main_view === 'table' ? '<table class="digiseller-table">' + out + '</table>' : out,
+          out: DS.opts.main_view === 'table' && false ? '<table class="digiseller-table">' + out + '</table>' : out,
           categories: data.categories
         }));
       }
@@ -1948,7 +2023,7 @@ DigiSeller shop widget v. 2
           }));
           that = this;
           tmpl = DS.tmpl(DS.tmpls.page);
-          this.pager = new DS.widget.pager(DS.$('.digiseller-paging', DS.widget.main.$el), {
+          this.pager = new DS.widget.pager(DS.$('#digiseller-search-paging'), {
             page: this.page,
             rows: this.rows,
             total: data.totalPages,
@@ -2029,7 +2104,7 @@ DigiSeller shop widget v. 2
         }
         $container = DS.$("#" + this.prefix + "-" + this.cid);
         if ($container.length) {
-          $container.html(DS.opts.view === 'table' ? '<table class="digiseller-table">' + out + '</table>' : out);
+          $container.html(DS.opts.view === 'table' && false ? '<table class="digiseller-table">' + out + '</table>' : out);
           this.pager.page = this.page;
           this.pager.rows = this.rows;
           this.pager.total = data.totalPages;
@@ -2107,15 +2182,21 @@ DigiSeller shop widget v. 2
         });
       },
       render: function(data) {
-        var $container, $preview, $thumbs, activeClass, onClick, that;
+        var $container, $preview, $previewImg, $slider, $thumbs, $wrapper, activeClass, onClick, onSlide, sliderWidth, templHasDiscounts, thCount, thWidth, that;
         if (!data || !data.product) {
           DS.widget.main.$el.html(DS.tmpl(DS.tmpls.nothing, {}));
           return;
         }
+        templHasDiscounts = (data.product.units && data.product.units.discounts) || (data.product.discounts && data.product.discounts.length);
         DS.widget.category.mark(data.product.category_id);
         DS.widget.main.$el.html(DS.tmpl(DS.tmpls.articleDetail, {
-          d: data.product
+          d: data.product,
+          templHasDiscounts: templHasDiscounts,
+          thCount: ((data.product.preview_imgs && data.product.preview_imgs.length) || 0) + ((data.product.preview_videos && data.product.preview_videos.length) || 0)
         }));
+        if (!templHasDiscounts) {
+          DS.route.article.initComments();
+        }
         new DS.widget.calc(DS.$("#" + this.prefix + "-buy-context"), data.product);
         DS.widget.currency.init();
         that = this;
@@ -2123,6 +2204,7 @@ DigiSeller shop widget v. 2
         if ($container.length) {
           $thumbs = DS.$('a', $container);
           $preview = DS.$("#" + this.prefix + "-img-preview");
+          $previewImg = DS.$('img', $preview);
           activeClass = 'digiseller-left-thumbs-active';
           onClick = function($el) {
             var $next, $prev, id, index, type;
@@ -2144,7 +2226,7 @@ DigiSeller shop widget v. 2
             DS.util.prevent(e);
             onClick(DS.$(this));
           }).on('mouseover', function(e) {
-            var $this, id, index;
+            var $this, id, index, previewImg;
             $this = DS.$(this);
             if ($this.attr('data-type') !== 'img') {
               return;
@@ -2153,13 +2235,44 @@ DigiSeller shop widget v. 2
             $this.addClass(activeClass);
             index = $this.attr('data-index');
             id = $this.attr('data-id');
-            $preview.attr('data-index', index).css('backgroundImage', $preview.css('backgroundImage').replace(/idp=[0-9]+&/, "idp=" + id + "&"));
+            $preview.attr('data-index', index);
+            previewImg = $previewImg.get(0);
+            previewImg.src = previewImg.src.replace(/idp=[0-9]+&/, "idp=" + id + "&");
           });
           $preview.on('click', function(e) {
             var index;
             DS.util.prevent(e);
             index = parseInt($preview.attr('data-index'));
             onClick($thumbs.eq(index));
+          });
+          $wrapper = DS.$('#digiseller-thumbs-wrapper');
+          $slider = DS.$('#digiseller-thumbs-slider');
+          thWidth = 90;
+          thCount = parseInt($wrapper.attr('data-count'));
+          sliderWidth = thWidth * thCount;
+          onSlide = function(isNext) {
+            var curLeft, left, showed, toShow, wrWidth;
+            wrWidth = $wrapper.get(0).offsetWidth;
+            curLeft = Math.abs(parseInt($slider.css('left')) || 0);
+            showed = Math[(isNext ? 'floor' : 'ceil')]((curLeft + (isNext ? wrWidth : 0)) / thWidth);
+            toShow = showed + (isNext ? 1 : -1);
+            if (isNext) {
+              if (toShow >= thCount) {
+                toShow = thCount;
+              }
+            } else {
+              if (toShow <= 0) {
+                toShow = 0;
+              }
+            }
+            left = -(curLeft + (toShow * thWidth - (curLeft + (isNext ? wrWidth : 0))));
+            return $slider.css('left', left + 'px');
+          };
+          DS.$('.digiseller-more-views-arrow', $container).on('click', function(e) {
+            var isNext;
+            DS.util.prevent(e);
+            isNext = DS.$(this).attr('data-next') === '1';
+            onSlide(isNext);
           });
         }
       },
@@ -2192,7 +2305,7 @@ DigiSeller shop widget v. 2
             that.comments.get();
           });
           tmpl = DS.tmpl(DS.tmpls.pageComment);
-          that.comments.pager = new DS.widget.pager(DS.$('.digiseller-paging', that.comments.$el), {
+          that.comments.pager = new DS.widget.pager(DS.$('.digiseller-js-paging', that.comments.$el), {
             page: that.comments.page,
             rows: that.comments.rows,
             total: data.totalPages,
@@ -2225,7 +2338,7 @@ DigiSeller shop widget v. 2
           this.id = this.prefix + ("-" + (DS.util.getUID()));
           that = this;
           this.comments = new DS.widget.comments(DS.widget.main.$el, '', function(data) {
-            that.initComments(data);
+            that.beforeRender(data);
             DS.util.scrollUp();
           });
         }
@@ -2233,9 +2346,9 @@ DigiSeller shop widget v. 2
         this.comments.rows = DS.cookie.get(this.prefix + '-rows') || 10;
         this.comments.get();
       },
-      initComments: function(data) {
+      beforeRender: function(data) {
         var $select, goToFirstPage, that, tmpl;
-        this.comments.$el.html(DS.tmpl(DS.tmpls.reviews, {
+        DS.widget.main.$el.html(DS.tmpl(DS.tmpls.reviews, {
           id: this.id,
           totalGood: data.totalGood,
           totalBad: data.totalBad
@@ -2243,9 +2356,9 @@ DigiSeller shop widget v. 2
         that = this;
         tmpl = DS.tmpl(DS.tmpls.pageReview);
         goToFirstPage = function() {
-          DS.historyClick.changeHashSilent(DS.opts.hashPrefix + "/reviews/1");
+          DS.historyClick.changeHashSilent(DS.opts.hashPrefix + '/reviews/1');
         };
-        this.comments.pager = new DS.widget.pager(DS.$('.digiseller-paging', this.comments.$el), {
+        this.comments.pager = new DS.widget.pager(DS.$('.digiseller-js-paging', this.comments.$el), {
           page: this.comments.page,
           rows: this.comments.rows,
           total: data.totalPages,
@@ -2319,16 +2432,18 @@ DigiSeller shop widget v. 2
       DS.route.article.comments.get();
     },
     'click-article-tab': function($el, e) {
-      var $panels, change, index;
+      var $panels, $tabs, change, cl, index;
       DS.util.prevent(e);
       index = $el.attr('data-tab');
-      $panels = $el.parent().next().children();
-      $el.parent().children().removeClass('digiseller-activeTab');
-      $el.addClass('digiseller-activeTab');
+      $tabs = DS.$('#digiseller-tabs').children();
+      $panels = DS.$('#digiseller-tabs-panels').children();
+      cl = 'digiseller-active';
+      $tabs.removeClass(cl);
+      $el.parent().addClass(cl);
       change = function() {
-        $panels.hide().eq(index).show();
+        $panels.removeClass(cl).eq(index).addClass(cl);
       };
-      if (index === '2') {
+      if (index === '1') {
         DS.route.article.initComments(change);
       } else {
         change();
@@ -2336,11 +2451,56 @@ DigiSeller shop widget v. 2
     },
     'click-share': function($el, e) {
       var img, title, type;
+      DS.util.prevent(e);
       type = $el.attr('data-type');
       title = $el.attr('data-title');
       img = $el.attr('data-img');
       if (DS.share[type]) {
         window.open(DS.share[type](title, img), "digisellerShare_" + type, DS.util.getPopupParams(626, 436));
+      }
+    },
+    'click-menu': function($el, e) {
+      var $nav, expanded;
+      expanded = $el.attr('data-expanded');
+      $nav = $el.parent().parent().parent();
+      $nav[expanded === '1' ? 'removeClass' : 'addClass']('digiseller-expanded');
+      $nav[expanded === '1' ? 'addClass' : 'removeClass']('digiseller-imploded');
+      $el.attr('data-expanded', expanded === '1' ? 0 : 1);
+    },
+    'click-back': function($el, e) {
+      var $sect, $sub, curLeft, nextHeight, nextLeft, suffix;
+      suffix = $el.attr('data-suffix');
+      suffix = (suffix ? '-' + suffix : '');
+      $sect = DS.$('#digiseller-category' + suffix);
+      $sub = DS.$('#digiseller-category-sub' + suffix + '-' + $el.attr('data-anc-id'));
+      curLeft = parseInt($sect.attr('data-cur-left')) || 0;
+      nextLeft = (!curLeft ? 0 : curLeft - 100);
+      nextHeight = ($sub.get(0) || $sect.get(0)).offsetHeight;
+      DS.util.each(['-dup', '-g'], function(suffix) {
+        $el = DS.$('#digiseller-category' + suffix);
+        $el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft);
+        return $el.parent().css('height', $sub.length ? ($sub.children().length + 1) * 2.8125 + 'rem' : $sect.get(0).offsetHeight + 'px');
+      });
+    },
+    'click-gocat': function($el, e) {
+      var cid, hash;
+      cid = $el.attr('data-cid');
+      hash = DS.opts.hashPrefix + '/articles/' + cid;
+      if (window.location.hash === hash) {
+        DS.widget.category.mark(cid);
+      } else {
+        window.location.hash = hash;
+      }
+    },
+    'click-buy': function($el, e) {
+      var ai, buy, id;
+      id = $el.attr('data-id');
+      ai = $el.attr('data-ai');
+      buy = function() {
+        window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", '_blank');
+      };
+      if (DS.opts.agreement_text) {
+        DS.showAgreement(buy);
       }
     }
   };
@@ -2348,7 +2508,7 @@ DigiSeller shop widget v. 2
   DS.inited = false;
 
   DS.init = function() {
-    var $body, cat, getEl, homeInited, name, route, _fn, _ref;
+    var $body, getEl, homeInited, name, route, _fn, _ref;
     if (DS.inited) {
       return false;
     }
@@ -2368,11 +2528,10 @@ DigiSeller shop widget v. 2
     DS.opts.agree = DS.cookie.get('digiseller-agree') || DS.opts.agree;
     DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') || DS.opts.cart_uid;
     $body = DS.$('#digiseller-body');
-    cat = $body.attr('data-cat');
+    DS.opts.orient = $body.attr('data-cat') === 'g' ? 'g' : 'v';
     $body.html(DS.tmpl(DS.tmpls.body, {
-      hasCat: cat === 'g' || cat === 'v' ? true : false,
-      orient: cat,
-      logo: $body.attr('data-cat') === '1' ? true : false,
+      hasCat: DS.opts.orient === 'g' || DS.opts.orient === 'v' ? true : false,
+      logo: $body.attr('data-logo') === '1' ? true : false,
       topmenu: $body.attr('data-topmenu') === '1' ? true : false
     }));
     DS.widget.category.init();

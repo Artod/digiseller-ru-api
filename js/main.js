@@ -946,6 +946,33 @@ DigiSeller shop widget v. 1.4.06
     }
   };
 
+  DS.showAgreement = function(onOk, index) {
+    var agree, that;
+    DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {}));
+    that = this;
+    agree = function(flag, onAgree) {
+      var $rules;
+      if (typeof index !== 'undefined') {
+        $rules = DS.$('#digiseller-calc-rules-' + index);
+        if ($rules.length) {
+          $rules.get(0).checked = flag;
+        }
+      }
+      DS.opts.agree = flag ? 1 : 0;
+      DS.cookie.set('digiseller-agree', DS.opts.agree);
+      DS.popup.close();
+      if (onAgree) {
+        onAgree();
+      }
+    };
+    DS.$('#digiseller-agree').on('click', function() {
+      agree(true, onOk);
+    });
+    DS.$('#digiseller-disagree').on('click', function() {
+      agree(false);
+    });
+  };
+
   DS.widget = {
     main: {
       $el: null,
@@ -1365,7 +1392,7 @@ DigiSeller shop widget v. 1.4.06
         });
         this.$.agreement.on('click', function(e) {
           DS.util.prevent(e);
-          that.showAgreement();
+          DS.showAgreement(null, that.index);
         });
         if (this.$.amount.length) {
           if (this.$.cnt.length) {
@@ -1527,35 +1554,10 @@ DigiSeller shop widget v. 1.4.06
       _Class.prototype.disable = function(disabled) {
         var go;
         go = function($el) {
-          return $el[disabled ? 'addClass' : 'removeClass']('digiseller-cart-btn-disabled').attr('data-action', disabled ? '' : 'buy');
+          return $el[disabled ? 'addClass' : 'removeClass']('digiseller-cart-btn-disabled');
         };
         go(this.$.buy);
         go(this.$.cart);
-      };
-
-      _Class.prototype.showAgreement = function(onOk) {
-        var agree, that;
-        DS.popup.open('text', DS.tmpl(DS.tmpls.agreement, {}));
-        that = this;
-        agree = function(flag, onAgree) {
-          var $rules;
-          $rules = DS.$('#digiseller-calc-rules-' + that.index);
-          if ($rules.length) {
-            $rules.get(0).checked = flag;
-          }
-          DS.opts.agree = flag ? 1 : 0;
-          DS.cookie.set('digiseller-agree', DS.opts.agree);
-          DS.popup.close();
-          if (onAgree) {
-            onAgree();
-          }
-        };
-        DS.$('#digiseller-agree').on('click', function() {
-          agree(true, onOk);
-        });
-        DS.$('#digiseller-disagree').on('click', function() {
-          agree(false);
-        });
       };
 
       _Class.prototype.buy = function($el) {
@@ -1625,9 +1627,7 @@ DigiSeller shop widget v. 1.4.06
             window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", '_blank');
           };
           if (DS.opts.agreement_text) {
-            this.showAgreement(buy);
-          } else {
-            buy();
+            DS.showAgreement(buy, this.index);
           }
         }
       };
@@ -2336,6 +2336,17 @@ DigiSeller shop widget v. 1.4.06
       img = $el.attr('data-img');
       if (DS.share[type]) {
         window.open(DS.share[type](title, img), "digisellerShare_" + type, DS.util.getPopupParams(626, 436));
+      }
+    },
+    'click-buy': function($el, e) {
+      var ai, buy, id;
+      id = $el.attr('data-id');
+      ai = $el.attr('data-ai');
+      buy = function() {
+        window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", '_blank');
+      };
+      if (DS.opts.agreement_text) {
+        DS.showAgreement(buy);
       }
     }
   };

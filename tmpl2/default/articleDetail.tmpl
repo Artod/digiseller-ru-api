@@ -1,6 +1,6 @@
-<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
+<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : ''; ?>
 <? var reviewsCount = parseInt(d.statistics.good_reviews) + parseInt(d.statistics.bad_reviews); ?>
-<? var price = (d.collection == 'unit' ? 'от ' : '') + d.price + ' ' + d.currency ?>
+<? var price = (d.collection == 'unit' ? 'от ' : '') + d.price + ' ' + d.currency; ?>
 
 <div style="display:none;"><img src="//shop.digiseller.ru/xml/shop_views.asp?idd=<?= d.id ?>&ids=<?= DS.opts.seller_id ?>" width="0" height="0" /></div>
 

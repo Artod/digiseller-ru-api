@@ -44,7 +44,9 @@
 			</td>
 			
 			<td colspan="2" class="digiseller-large-4 digiseller-medium-4 digiseller-small-12 digiseller-columns" id="digiseller-cart-amount-cont">									
-				<p class="digiseller-description-price digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns"><?= DS.opts.i18n['inTotal'] ?>: <span id="digiseller-cart-amount"><?= d.amount ?></span></p>	
+				<p class="digiseller-description-price digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns">
+					<a><?= DS.opts.i18n['inTotal'] ?>: <span id="digiseller-cart-amount"><?= d.amount ?></span></a>
+				</p>	
 				<select class="digiseller-cart-currency digiseller-large-6 digiseller-medium-6 digiseller-small-12 digiseller-columns" id="digiseller-cart-currency">
 					<? DS.util.each(d.cart_curr, function(curr) { ?>
 						<option value="<?= curr ?>"><?= curr ?></option>
