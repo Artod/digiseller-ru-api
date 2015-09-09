@@ -1993,11 +1993,15 @@ DS.widget =
 						return
 				
 				required$Els = {}
+				needCheck = no
 				data = DS.serialize($form.get(0), (el) ->
 					$parent = DS.$(el).parent()
 					
 					if $parent.attr('data-required')
 						required$Els[el.name] = $parent
+						
+					if $parent.attr('data-need-check')
+						needCheck = yes
 				)
 
 				error = no
@@ -2017,31 +2021,36 @@ DS.widget =
 				
 				return if error
 				
-				if not isCart
+				# if not isCart
+					# $form.get(0).submit()
+				# else
+				
+				data.cart_uid = DS.opts.cart_uid if isCart
+				
+				if not isCart and not needCheck
 					$form.get(0).submit()
-				else
-					# console.log(data.cart_uid)
-					# console.log(DS.opts.cart_uid)
-					data.cart_uid = DS.opts.cart_uid
-					DS.ajax('POST', DS.opts.host + 'shop_cart_add.asp',
+				else 
+					DS.ajax('POST', if isCart then DS.opts.host + 'shop_cart_add.asp' else '',
 						data: data,
 						onLoad: (res, xhr) ->
 							if res.cart_err and res.cart_err isnt ''
 								$error.html(res.cart_err).show()
+							else unless isCart
+								$form.get(0).submit()
 								
-								#!!!!!!!!!!!!!!!!!!!! return
-							
-							DS.opts.cart_uid = res.cart_uid || ''
-							
-							DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
-							DS.widget.cartButton.setCount(res.cart_cnt)
-							
-							new DS.widget.cart()
+							if isCart
+								DS.opts.cart_uid = res.cart_uid || ''
+								
+								DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
+								DS.widget.cartButton.setCount(res.cart_cnt)
+								
+								new DS.widget.cart()							
 							
 							return
 						# onFail: (xhr) ->
 							# console.log('Ошибка:', xhr.responseText)
 					)
+				
 			else
 				buy = () ->
 					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')					

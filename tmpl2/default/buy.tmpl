@@ -13,21 +13,6 @@
 <div <?= d.is_available ? 'id="digiseller-calc-' + index + '"' : '' ?>> <!--class="digiseller-calc <?= d.is_available ? '' : 'digiseller-notinstock' ?>" -->
 	<? var mainImg = d.preview_imgs && d.preview_imgs[0] ? d.preview_imgs[0].url : '' ?>
 
-	<? if (needImg) { ?>
-		<div class="digiseller-product-0-image">
-			<? if (mainImg) { ?>					
-				<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
-			<? } else { ?>
-				<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
-			<? } ?>
-		</div>
-	<? } ?>
-
-	<? if (needName) { ?>			
-		<div class="digiseller-product-0-digiseller-name">
-			<span><?= d.name ?></span>
-		</div>
-	<? } ?>
 
 	<? if (d.is_available) { ?>	
 		<form method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>-<?= index ?>">
@@ -36,77 +21,51 @@
 			<input type="hidden" name="ID_D" value="<?= d.id ?>" />
 			<input type="hidden" name="seller_id" value="<?= DS.opts.seller_id ?>" />
 			<input type="hidden" name="FailPage" value="<?= failPage ?>" />
+	<? } ?>	
+			<ul class="digiseller-pricing-table digiseller-pricing-table-select">
+
+	<? if (needImg) { ?>
+				<li class="digiseller-standalone-img">
+					<? if (mainImg) { ?>					
+						<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
+					<? } else { ?>
+						<img class="digiseller-calc-0-product_image" src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= (imgSize ? imgSize : DS.opts.imgsize_infopage) ?>" alt="<?= d.name ?>" />
+					<? } ?>
+				</li>
+	<? } ?>
+
+	<? if (needName) { ?>
+				<li class="digiseller-standalone-description"><?= d.name ?></li>
+	<? } ?>
 			
-			<ul class="digiseller-pricing-table">
-				<? if (!d.prices_unit) { ?>	
-					<li class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <?= d.currency ?></li>
-				<? } else { ?>
-				
-					<li class="digiseller-description digiseller-clearfix digiseller-calc-quanity-v">
-						<div class="digiseller-calc-rur">
-							<span><?= DS.opts.i18n['iWillPay'] ?> <b><?= d.prices_unit.unit_Name ?></b></span>
-							<input name="Unit_Summa" type="text" id="digiseller-calc-amount-<?= index ?>" value="<?= d.prices_unit.unit_Amount ?>"<?= (d.prices_unit.unit_Fixed ? ' disabled="disabled"' : '') ?> />
-						</div>		
-						<div class="digiseller-calc-arrow">
-							<span class="digiseller-calc-<?= d.prices_unit.unit_Fixed ? 'arrowLeft' : 'arrowLeftRight' ?>"></span>
-						</div>
-						<div class="digiseller-calc-points">  	
-							<span><?= DS.opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span>
-							<? if (d.prices_unit.unit_Fixed) { ?>
-								<select id="digiseller-calc-cntSelect-<?= index ?>" style="width:100%" name="Unit_Cnt">											
-									<? DS.util.each(d.prices_unit.unit_Fixed, function(unit_Fixed) { ?>
-										<option value="<?= unit_Fixed ?>"><?= unit_Fixed ?></option>
-									<? }); ?>
-								</select>
-							<? } else { ?>						
-								<input name="Unit_Cnt" type="text" id="digiseller-calc-cnt-<?= index ?>" value="<?= d.prices_unit.unit_Cnt ?>" data-min="<?= d.prices_unit.unit_CntMin ?>" data-max="<?= d.prices_unit.unit_CntMax ?>" />
-							<? } ?>
-						</div>
-					</li>
-					
-				
-					<!--div class="digiseller-calc-quanity">
-						<table>
-							<tr>
-								<td><span><?= DS.opts.i18n['iWillPay'] ?> <b id="digiseller-calc-amountR-<?= index ?>"><?= d.prices_unit.unit_Currency ?></b></span><br /></td>
-								<td colspan="3"><span><?= DS.opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span></td>
-							</tr>
-							<tr>
-								<td>
-									<div class="digiseller-calc-left">
-										<input name="Unit_Summa" type="text" id="digiseller-calc-amount-<?= index ?>" value="<?= d.prices_unit.unit_Amount ?>"<?= (d.prices_unit.unit_Fixed ? ' disabled="disabled"' : '') ?> />   
-									</div>
-								</td>
-								<td>
-									<div class="digiseller-calc-center">
-										<span class="digiseller-calc-<?= d.prices_unit.unit_Fixed ? 'arrowLeft' : 'arrowLeftRight' ?>"></span>
-									</div>							
-								</td>
-								<td >
-									<div class="digiseller-calc-right">
-										<div>
-										<? if (d.prices_unit.unit_Fixed) { ?>
-											<select id="digiseller-calc-cntSelect-<?= index ?>" style="width:100%" name="Unit_Cnt">											
-												<? DS.util.each(d.prices_unit.unit_Fixed, function(unit_Fixed) { ?>
-													<option value="<?= unit_Fixed ?>"><?= unit_Fixed ?></option>
-												<? }); ?>
-											</select>
-										<? } else { ?>						
-											<input name="Unit_Cnt" type="text" id="digiseller-calc-cnt-<?= index ?>" value="<?= d.prices_unit.unit_Cnt ?>" data-min="<?= d.prices_unit.unit_CntMin ?>" data-max="<?= d.prices_unit.unit_CntMax ?>" />
-										<? } ?>
-										</div>
-										<div>
-											<span class="digiseller-calc-right-value"><?= d.prices_unit.unit_CntDesc ?></span>
-										</div>
-									</div>
-								</td>
-							</tr>
-						</table>
+	<? if (d.is_available) { ?>
+			<? if (!d.prices_unit) { ?>	
+				<li class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <?= d.currency ?></li>
+			<? } else { ?>
+			
+				<li class="digiseller-description digiseller-clearfix digiseller-calc-quanity-v">
+					<div class="digiseller-calc-rur">
+						<span><?= DS.opts.i18n['iWillPay'] ?> <b><?= d.prices_unit.unit_Name ?></b></span>
+						<input name="Unit_Summa" type="text" id="digiseller-calc-amount-<?= index ?>" value="<?= d.prices_unit.unit_Amount ?>"<?= (d.prices_unit.unit_Fixed ? ' disabled="disabled"' : '') ?> />
+					</div>		
+					<div class="digiseller-calc-arrow">
+						<span class="digiseller-calc-<?= d.prices_unit.unit_Fixed ? 'arrowLeft' : 'arrowLeftRight' ?>"></span>
 					</div>
-					
-					<div class="digiseller-calc-limit digiseller-hidden" id="digiseller-calc-limit-<?= index ?>"></div-->
-				<? } ?>
-				
+					<div class="digiseller-calc-points">  	
+						<span><?= DS.opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span>
+						<? if (d.prices_unit.unit_Fixed) { ?>
+							<select id="digiseller-calc-cntSelect-<?= index ?>" style="width:100%" name="Unit_Cnt">											
+								<? DS.util.each(d.prices_unit.unit_Fixed, function(unit_Fixed) { ?>
+									<option value="<?= unit_Fixed ?>"><?= unit_Fixed ?></option>
+								<? }); ?>
+							</select>
+						<? } else { ?>						
+							<input name="Unit_Cnt" type="text" id="digiseller-calc-cnt-<?= index ?>" value="<?= d.prices_unit.unit_Cnt ?>" data-min="<?= d.prices_unit.unit_CntMin ?>" data-max="<?= d.prices_unit.unit_CntMax ?>" />
+						<? } ?>
+					</div>
+				</li>
+			<? } ?>
+			
 				<li class="digiseller-description"><?= DS.opts.i18n['paymentVia'] ?>:</li>
 
 				<li class="digiseller-bullet-item digiseller-clearfix" id="digiseller-calc-method-<?= index ?>">
@@ -136,7 +95,7 @@
 				<ul id="digiseller-calc-options-<?= index ?>">
 					<? if (d.options && d.options.length) { ?>				
 						<? DS.util.each(d.options, function(option, i) { ?>							
-							<li class="digiseller-bullet-item digiseller-param"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
+							<li class="digiseller-bullet-item digiseller-param"<?= option.required == 1 ? ' data-required="1"' : '' ?> <?= option.need_check == 1 ? ' data-need-check="1"' : '' ?>>
 								<p><?= option.label ?> <?= option.required == 1 ? '<span title="' + DS.opts.i18n['required'] + '">*</span>' : '' ?> <?= option.comment ? '<span class="digiseller-form-help">?</span><i class="digiseller-form-tip">' + option.comment + '</i>' : '' ?></p>
 								
 								<? switch(option.type) {
@@ -181,13 +140,13 @@
 
 					<? } ?>
 				</ul>
-				
-				<? if (DS.opts.agreement_text) { ?>
-					<li class="digiseller-bullet-item digiseller-agree">
-						<input id="digiseller-calc-rules-<?= index ?>" type="checkbox" <?= agree == 1 ? 'checked="checked"' : '' ?> />
-						<?= DS.opts.i18n['iAgreeWithTerms'].replace('data-action="agreement"', 'id="digiseller-calc-agreement-' + index + '"') ?>
-					</li>
-				<? } ?>				
+			
+			<? if (DS.opts.agreement_text) { ?>
+				<li class="digiseller-bullet-item digiseller-agree">
+					<input id="digiseller-calc-rules-<?= index ?>" type="checkbox" <?= agree == 1 ? 'checked="checked"' : '' ?> />
+					<?= DS.opts.i18n['iAgreeWithTerms'].replace('data-action="agreement"', 'id="digiseller-calc-agreement-' + index + '"') ?>
+				</li>
+			<? } ?>				
 
 				<li class="digiseller-cta-button-v">
 					<?= button ?>
@@ -211,14 +170,19 @@
 						</a></li>
 					</ul>					
 				</li>
+	<? } else { ?>
+				<li class="digiseller-price">
+					<span class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="visibility:hidden;"' : '') ?>><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
+				</li>
+				<li class="digiseller-description"><?= DS.opts.i18n['notAvailable'] ?></li>	
+	<? } ?>			
 			</ul>
 			
+	<? if (d.is_available) { ?>	
 			<div id="digiseller-buy-error-<?= d.id ?>-<?= index ?>" class="digiseller-calc-line-err digiseller-hidden"></div>
 		</form>
-	<? } else { ?>
-		<span class="digiseller-price" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="visibility:hidden;"' : '') ?>><?= d.prices_unit ? DS.opts.i18n['from'] : '' ?> <?= d.price ?> <?= d.currency ?></span>
-		<?= button ?>
 	<? } ?>
+	
 </div>
 
 

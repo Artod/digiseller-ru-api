@@ -1,12 +1,10 @@
-<div class="digiseller-options-filter digiseller-options-filter-reviews digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-	<div class="digiseller-sortby digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-		<span><?= DS.opts.i18n['show'] ?>: </span>
-		<select>
-			<option value="all"><?= DS.opts.i18n['allReviews'] ?></option>
-			<option value="good"><?= DS.opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
-			<option value="bad"><?= DS.opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
-		</select>
-	</div>
+<div class="digiseller-sortby digiseller-tabs-content-reviews digiseller-clearfix">
+	<span><?= DS.opts.i18n['show'] ?>: </span>
+	<select>
+		<option value="all"><?= DS.opts.i18n['allReviews'] ?></option>
+		<option value="good"><?= DS.opts.i18n['positive'] ?> (<?= totalGood ?>)</option>
+		<option value="bad"><?= DS.opts.i18n['negative'] ?> (<?= totalBad ?>)</option>
+	</select>
 </div>
 
 <div class="digiseller-js-comments"></div>

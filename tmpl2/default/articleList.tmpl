@@ -42,6 +42,18 @@
 
 <div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 	<div class="digiseller-clearfix digiseller-wrapper-product">
+		<? switch(d.label) {
+			case 'top': ?>
+				<span class="digiseller-lider digiseller-vitrinaicon"><?= DS.opts.i18n['leader!'] ?></span>
+				<? break;
+			case 'sale': ?>
+				<span class="digiseller-action digiseller-vitrinaicon"><?= DS.opts.i18n['action!'] ?></span>
+				<? break;
+			case 'new': ?>
+				<span class="digiseller-newproduct digiseller-vitrinaicon"><?= DS.opts.i18n['new!'] ?></span>
+				<? break;
+		} ?>
+	
 		<div class="digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-wrapper-img">
 			<a onclick="location.hash='<?= url ?>';">
 				<img src="//graph.digiseller.ru/img.ashx?id_d=<?= d.cntImg != 0 ? d.id : 1 ?>&maxlength=<?= imgsize ?>" alt="" />
