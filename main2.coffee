@@ -134,27 +134,37 @@ DS.util =
 
 		return "scrollbars=1, resizable=1, menubar=0, left=#{left}, top=#{top}, width=#{width}, height=#{height}, toolbar=0, status=0"
 
-	getAbsPos: (a) ->
-		`var b = {
-			x: 0,
-			y: 0
-		};
-		if (a.offsetParent) do b.x += a.offsetLeft, b.y += a.offsetTop, a = a.offsetParent;
-		while (a);
-		return b`
+	# getAbsPos: (a) ->
+		# `var b = {
+			# x: 0,
+			# y: 0
+		# };
+		# if (a.offsetParent) do b.x += a.offsetLeft, b.y += a.offsetTop, a = a.offsetParent;
+		# while (a);
+		# return b`
 
-		return
-
-	scrollUp: () ->
 		# return
 		
+	getAbsPos: (element, side) ->
+		`var position = 0;
+		
+		while (element != null) {
+			position += element["offset" + side];
+			element = element.offsetParent;
+		}
+		
+		return position`
+		
+		return	
+
+	scrollUp: () ->		
 		doc = document.documentElement
 		body = document.body
 		scrollTop = (doc && doc.scrollTop  || body && body.scrollTop  || 0)
-		posY = DS.util.getAbsPos(DS.widget.main.$el).y
+		posY = DS.util.getAbsPos(DS.widget.main.$el.get(0), 'Top')
 
 		if scrollTop > posY
-			window.scroll(null, DS.util.getAbsPos(DS.widget.main.$el).y)
+			window.scroll(null, posY)
 
 		return
 

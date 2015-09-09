@@ -149,10 +149,10 @@ DS.util =
 		doc = document.documentElement
 		body = document.body
 		scrollTop = (doc && doc.scrollTop  || body && body.scrollTop  || 0)
-		posY = DS.util.getAbsPos(DS.widget.main.$el).y
+		posY = DS.util.getAbsPos( DS.widget.main.$el.get(0) ).y
 
 		if scrollTop > posY
-			window.scroll(null, DS.util.getAbsPos(DS.widget.main.$el).y)
+			window.scroll(null, posY)
 
 		return
 
