@@ -2030,7 +2030,7 @@ DS.widget =
 				if not isCart and not needCheck
 					$form.get(0).submit()
 				else 
-					DS.ajax('POST', if isCart then DS.opts.host + 'shop_cart_add.asp' else '',
+					DS.ajax('POST', if isCart then DS.opts.host + 'shop_cart_add.asp' else 'shop_precheck.asp',
 						data: data,
 						onLoad: (res, xhr) ->
 							if res.cart_err and res.cart_err isnt ''
