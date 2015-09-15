@@ -1,6 +1,6 @@
 ###*
-DigiSeller shop widget v. 1.4.06
-10.03.2015 http://artod.ru
+DigiSeller shop widget v. 1.5
+15.09.2015 http://artod.ru
 ###
 
 return off if window.DigiSeller?
@@ -1986,7 +1986,7 @@ DS.widget =
 					)
 			else
 				buy = () ->
-					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')
+					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
 					return
 
 				if (DS.opts.agreement_text)
@@ -2912,11 +2912,13 @@ DS.eventsDisp =
 		ai = $el.attr('data-ai')
 		
 		buy = () ->
-			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')
+			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
 			return
 
 		if (DS.opts.agreement_text)
 			DS.showAgreement(buy)
+		else
+			buy()
 
 		return
 

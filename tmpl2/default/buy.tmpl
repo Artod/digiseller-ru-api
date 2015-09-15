@@ -15,7 +15,7 @@
 
 
 	<? if (d.is_available) { ?>	
-		<form method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>-<?= index ?>">
+		<form method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>-<?= index ?>" target="<?= DS.opts.buyTargetSelf == 1 ? '_self' : '_blank' ?>">
 			<input type="hidden" name="Agent" value="<?= (ai === null /*нету аттрибута*/ ? d.agency_id : ai) ?>" />
 			<input type="hidden" name="product_id" value="<?= d.id ?>" />
 			<input type="hidden" name="ID_D" value="<?= d.id ?>" />

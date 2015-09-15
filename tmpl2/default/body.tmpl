@@ -1,33 +1,50 @@
 <? if (DS.opts.orient === 'g') { ?>
 	<header id="digiseller-header" class="digiseller-row header-gorizontal">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-			<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
-			<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
-				<ul>
-					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
-				</ul>
-				
-				<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
-			</nav>
-			<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
-			<!--div class="right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-				<div class="right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-					<a href="https://www.oplata.info/"><span title="Мои покупки" class="has-tip" aria-haspopup="true" data-tooltip=""><button class="digiseller-button-packet" href="#"></button></span></a>
+			<? if (logo) { ?>
+				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
+			<? } ?>
+			
+			<? if (hasCat) { ?>
+				<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
+					<ul>
+						<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
+					</ul>
+					
+					<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
+				</nav>
+			<? } ?>
+			
+			<? if (langs) { ?>
+				<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
+			<? } ?>
+			
+			<? if (topmenu && DS.opts.menu_purchases) { ?>				
+				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
+					<a href="https://www.oplata.info/"><span><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
-			</div-->
-			<div id="digiseller-cart-btn" class="digiseller-right digiseller-basket-box-wrapper digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
-			<div id="digiseller-search" class="digiseller-right digiseller-search-box digiseller-large-3 digiseller-medium-5 digiseller-small-1 digiseller-columns"></div>
+			<? } ?>
+			
+			<? if (cart) { ?>
+				<div id="digiseller-cart-btn" class="digiseller-right digiseller-basket-box-wrapper digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
+			<? } ?>
+			
+			<? if (search) { ?>
+				<div id="digiseller-search" class="digiseller-right digiseller-search-box digiseller-large-3 digiseller-medium-5 digiseller-small-1 digiseller-columns"></div>
+			<? } ?>
 		</div>
 	</header>
 	
 	<div class="digiseller-row">
-		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-nav digiseller-imploded">
-			<ul>
-				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
-			</ul>
-			
-			<section id="digiseller-category-g"></section>
-		</nav>
+		<? if (hasCat) { ?>
+			<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-nav digiseller-imploded">
+				<ul>
+					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
+				</ul>
+				
+				<section id="digiseller-category-g"></section>
+			</nav>
+		<? } ?>
 	</div>
 	
 	<main>
@@ -36,13 +53,16 @@
 		</div>
 	</main>
 	
-	<footer id="digiseller-topmenu" class="digiseller-row"></footer>
+	<footer <?= topmenu ? 'id="digiseller-topmenu"' : '' ?> class="digiseller-row"></footer>
 	
 <? } else { ?>
 
 	<header id="digiseller-header" class="digiseller-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-			<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
+			<? if (logo) { ?>
+				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
+			<? } ?>
+			
 			<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
 				<ul>
 					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
@@ -50,20 +70,30 @@
 				
 				<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
 			</nav>
-			<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
-
-			<? if (DS.opts.menu_purchases) { ?>
+			
+			<? if (langs) { ?>
+				<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
+			<? } ?>
+			
+			<? if (topmenu && DS.opts.menu_purchases) { ?>
 				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-					<a href="https://www.oplata.info/"><span title="Мои покупки"><button class="digiseller-button-packet" href="#"></button></span></a>
+					<a href="https://www.oplata.info/"><span><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
 			<? } ?>
 
-			<div id="digiseller-cart-btn" class="digiseller-right digiseller-basket-box-wrapper digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
-			<div id="digiseller-search" class="digiseller-right digiseller-search-box digiseller-large-3 digiseller-medium-5 digiseller-small-1 digiseller-columns"></div>
+			<? if (cart) { ?>
+				<div id="digiseller-cart-btn" class="digiseller-right digiseller-basket-box-wrapper digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
+			<? } ?>
+			
+			<? if (search) { ?>
+				<div id="digiseller-search" class="digiseller-right digiseller-search-box digiseller-large-3 digiseller-medium-5 digiseller-small-1 digiseller-columns"></div>
+			<? } ?>
+			
 		</div>
 	</header>
 	
 	<div class="digiseller-row">
+
 		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-hide-for-large digiseller-nav digiseller-imploded">
 			<ul>
 				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
@@ -71,6 +101,7 @@
 
 			<section id="digiseller-category-g" class="digiseller-top-bar-section"></section>
 		</nav>
+
 	</div>
 	
 	<main>
@@ -90,6 +121,7 @@
 			</div>
 		</section>
 	</main>
+		
+	<footer <?= topmenu ? 'id="digiseller-topmenu"' : '' ?> class="digiseller-row"></footer>
 	
-	<footer id="digiseller-topmenu" class="digiseller-row"></footer>
 <? } ?>

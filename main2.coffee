@@ -2030,7 +2030,7 @@ DS.widget =
 				if not isCart and not needCheck
 					$form.get(0).submit()
 				else 
-					DS.ajax('POST', if isCart then DS.opts.host + 'shop_cart_add.asp' else 'shop_precheck.asp',
+					DS.ajax('POST', DS.opts.host + (if isCart then 'shop_cart_add.asp' else 'shop_precheck.asp'),
 						data: data,
 						onLoad: (res, xhr) ->
 							if res.cart_err and res.cart_err isnt ''
@@ -2053,7 +2053,7 @@ DS.widget =
 				
 			else
 				buy = () ->
-					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')					
+					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')					
 					return
 
 				if (DS.opts.agreement_text)
@@ -3080,11 +3080,13 @@ DS.eventsDisp =
 		ai = $el.attr('data-ai')
 		
 		buy = () ->
-			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", '_blank')
+			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
 			return
 
 		if (DS.opts.agreement_text)
 			DS.showAgreement(buy)
+		else
+			buy()
 
 		return
 
@@ -3118,12 +3120,17 @@ DS.init = ->
 	
 	$body = DS.$('#digiseller-body')
 	
-	DS.opts.orient = if $body.attr('data-cat') is 'g' then 'g' else 'v'
+	dataCat = $body.attr('data-cat')
+
+	DS.opts.orient = if dataCat is 'v' then 'v' else 'g'
 	
 	$body.html( DS.tmpl(DS.tmpls.body,
-		hasCat: if DS.opts.orient is 'g' or DS.opts.orient is 'v' then true else false
+		hasCat: if dataCat is 'g' or dataCat is 'v' then true else false
 		logo: if $body.attr('data-logo') is '1' then true else false
 		topmenu: if $body.attr('data-topmenu') is '1' then true else false
+		langs: if $body.attr('data-langs') is '1' then true else false
+		cart: if $body.attr('data-cart') is '1' then true else false
+		search: if $body.attr('data-search') is '1' then true else false
 	) )	
 	
 	DS.widget.category.init()
@@ -3133,11 +3140,15 @@ DS.init = ->
 	DS.widget.lang.init()
 	DS.widget.cartButton.init()
 	
-	DS.$('#digiseller-logo').html( DS.tmpl(DS.tmpls.logo,
-		logo_img: DS.opts.logo_img
-	) )
+	$logo = DS.$('#digiseller-logo')
+	if $logo.length
+		$logo.html( DS.tmpl(DS.tmpls.logo,
+			logo_img: DS.opts.logo_img
+		) )
 
-	DS.$('#digiseller-topmenu').html( DS.tmpl(DS.tmpls.topmenu, {}) )
+	$topmenu = DS.$('#digiseller-topmenu')
+	if $topmenu.length
+		$topmenu.html( DS.tmpl(DS.tmpls.topmenu, {}) )
 
 	DS.$('.digiseller-buy-standalone').each( (el) ->
 		new DS.widget.calc( DS.$(el) )
