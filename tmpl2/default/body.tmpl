@@ -2,16 +2,16 @@
 	<header id="digiseller-header" class="digiseller-row header-gorizontal">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<? if (logo) { ?>
-				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
+				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small digiseller-hide-for-medium"></div>
 			<? } ?>
 			
 			<? if (hasCat) { ?>
-				<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
+				<nav class="digiseller-top-bar digiseller-hide-for-large">
 					<ul>
-						<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
+						<li class="digiseller-menu-icon"><a data-action="menu" id="digiseller-category-dup-show"></a></li>
 					</ul>
 					
-					<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
+					<!--section id="digiseller-category-dup" class="digiseller-top-bar-section"></section-->
 				</nav>
 			<? } ?>
 			
@@ -33,19 +33,19 @@
 				<div id="digiseller-search" class="digiseller-right digiseller-search-box digiseller-large-3 digiseller-medium-5 digiseller-small-1 digiseller-columns"></div>
 			<? } ?>
 		</div>
-	</header>
-	
-	<div class="digiseller-row">
-		<? if (hasCat) { ?>
-			<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-nav digiseller-imploded">
-				<ul>
+	</header>	
+
+	<? if (hasCat) { ?>
+		<div class="digiseller-row">
+			<nav class="digiseller-top-bar digiseller-hide-for-medium digiseller-hide-for-small">
+				<!--ul>
 					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
-				</ul>
+				</ul-->
 				
 				<section id="digiseller-category-g"></section>
 			</nav>
-		<? } ?>
-	</div>
+		</div>
+	<? } ?>
 	
 	<main>
 		<div id="digiseller-main" class="digiseller-row digiseller-product-row-g">
@@ -60,15 +60,15 @@
 	<header id="digiseller-header" class="digiseller-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<? if (logo) { ?>
-				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small"></div>
+				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small digiseller-hide-for-medium"></div>
 			<? } ?>
 			
-			<nav class="digiseller-top-bar digiseller-show-for-small digiseller-imploded">
+			<nav class="digiseller-top-bar digiseller-hide-for-large digiseller-imploded">
 				<ul>
-					<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
+					<li class="digiseller-menu-icon"><a data-action="menu" id="digiseller-category-dup-show"></a></li>
 				</ul>
 				
-				<section id="digiseller-category-dup" class="digiseller-top-bar-section"></section>
+				<!--section id="digiseller-category-dup" class="digiseller-top-bar-section"></section-->
 			</nav>
 			
 			<? if (langs) { ?>
@@ -92,36 +92,29 @@
 		</div>
 	</header>
 	
-	<div class="digiseller-row">
+	<!--nav class="digiseller-top-bar digiseller-hide-for-small digiseller-hide-for-large digiseller-nav digiseller-imploded">
+		<ul>
+			<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
+		</ul>
 
-		<nav class="digiseller-top-bar digiseller-hide-for-small digiseller-hide-for-large digiseller-nav digiseller-imploded">
-			<ul>
-				<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
-			</ul>
-
-			<section id="digiseller-category-g" class="digiseller-top-bar-section"></section>
-		</nav>
-
-	</div>
+		<section id="digiseller-category-g" class="digiseller-top-bar-section"></section>
+	</nav-->
 	
 	<main>
 		<section class="digiseller-row">
 			<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-				<aside class="digiseller-large-2 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-medium digiseller-hide-for-small">
-					<nav class="digiseller-side-nav digiseller-imploded">
-						<ul>
-							<li class="digiseller-menu-icon"><a data-action="menu"></a></li>
-						</ul>
+				<aside class="digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-medium digiseller-hide-for-small">
+					<nav class="digiseller-top-bar digiseller-side-nav digiseller-hide-for-medium digiseller-hide-for-small">
 						<section id="digiseller-category"></section>
 					</nav>
 				</aside>
-				<div id="digiseller-main" class="digiseller-large-10 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-					<div style="text-align:center;"><img src="http://www.digiseller.ru/shop/img/preloader.gif" alt="Загрузка..." /></div>
+				<div id="digiseller-main" class="digiseller-large-9 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+					<div style="text-align:center;"><img src="http://www.digiseller.ru/shop/img/preloader.gif" alt="..." /></div>
 				</div>
 			</div>
 		</section>
 	</main>
 		
 	<footer <?= topmenu ? 'id="digiseller-topmenu"' : '' ?> class="digiseller-row"></footer>
-	
+
 <? } ?>

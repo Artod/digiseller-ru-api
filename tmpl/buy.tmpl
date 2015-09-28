@@ -1,0 +1,226 @@
+<?
+	var button = (d.is_available
+		? '<a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1"'
+			+ (d.prices_unit && d.prices_unit.unit_CntMin ? ' data-min="' + d.prices_unit.unit_CntMin + '"' : '')
+			+ (d.prices_unit && d.prices_unit.unit_CntMax ? ' data-max="' + d.prices_unit.unit_CntMax + '"' : '')
+			+ ' id="digiseller-calc-buy">' + DS.opts.i18n['buy'] + '</a>'
+			+ (DS.opts.hasCart ? ' <a class="digiseller-buyButton" data-action="buy" data-id="' + d.id + '" data-form="1" data-cart="1" id="digiseller-calc-cart">' + DS.opts.i18n['toCart'] + '</a>' : '')
+		: '<a class="digiseller-buyButton-empty">' + DS.opts.i18n['notAvailable'] + '</a>'
+	);
+?>
+
+<div class="digiseller-productBuy">
+	<? if (d.is_available) { ?>
+		<div id="digiseller-calc" class="digiseller-calc">		
+			<form method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>">
+			
+				<input type="hidden" name="Agent" value="<?= d.agency_id ?>" />
+				<input type="hidden" name="product_id" value="<?= d.id ?>" />
+				<input type="hidden" name="ID_D" value="<?= d.id ?>" />
+				<input type="hidden" name="seller_id" value="<?= DS.opts.seller_id ?>" />
+				<input type="hidden" name="FailPage" value="<?= failPage ?>" />
+					
+				<? if (!d.prices_unit) { ?>	
+					<span class="digiseller-prod-cost" id="digiseller-calc-price"><?= d.price ?> <?= d.currency ?></span>
+				<? } else { ?>
+					<div class="digiseller-calc-quanity">
+						<table>
+						<tr>
+							<td><span><?= DS.opts.i18n['iWillPay'] ?> <b id="digiseller-calc-amountR"><?= d.prices_unit.unit_Currency ?></b></span><br /></td>
+							<td colspan="3"><span><?= DS.opts.i18n['iWillGet'] ?> <b><?= d.prices_unit.unit_Name ?></b></span></td>
+						</tr>
+						<tr>
+							<td>
+								<div class="digiseller-calc-left">
+									<input name="Unit_Summa" type="text" id="digiseller-calc-amount" value="<?= d.prices_unit.unit_Amount ?>"<?= (d.prices_unit.unit_Fixed ? ' disabled="disabled"' : '') ?> />   
+								</div>
+							</td>
+							<td>
+								<div class="digiseller-calc-center">
+									<span class="digiseller-calc-<?= d.prices_unit.unit_Fixed ? 'arrowLeft' : 'arrowLeftRight' ?>"></span>
+								</div>							
+							</td>
+							<td >
+								<div class="digiseller-calc-right">
+									<div>
+									<? if (d.prices_unit.unit_Fixed) { ?>
+										<select id="digiseller-calc-cntSelect" style="width:100%" name="Unit_Cnt">
+											<? for (var i = 0, l = d.prices_unit.unit_Fixed.length; i < l; i++) { ?>
+												<option value="<?= d.prices_unit.unit_Fixed[i] ?>"><?= d.prices_unit.unit_Fixed[i] ?></option>
+											<? } ?>
+										</select>
+									<? } else { ?>						
+										<input name="Unit_Cnt" type="text" id="digiseller-calc-cnt" value="<?= d.prices_unit.unit_Cnt ?>" data-min="<?= d.prices_unit.unit_CntMin ?>" data-max="<?= d.prices_unit.unit_CntMax ?>" />
+									<? } ?>
+									</div>
+									<div>
+										<span class="digiseller-calc-right-value"><?= d.prices_unit.unit_CntDesc ?></span>
+									</div>
+								</div>
+							</td>
+						</tr>
+						</table>
+					</div>
+					
+					<div class="digiseller-calc-limit digiseller-hidden" id="digiseller-calc-limit"></div>
+				<? } ?>
+
+				<div class="digiseller-calc-method">
+					<span><?= DS.opts.i18n['paymentVia'] ?>:</span><br />ss
+					<select id="digiseller-calc-currency" name="TypeCurr">
+						<? var currency = {
+							wmz: 'USD',
+							wmr: 'RUR',
+							wme: 'EUR',
+							wmu: 'UAH'
+						};
+						for (type in DS.opts.types) {
+							if (!Object.prototype.hasOwnProperty.call(DS.opts.types, type) || !d.prices[type] || d.prices[type] == 0) continue; ?>
+								
+							<option class="digiseller-calc-option digiseller-calc-<?= type ?>" value="<?= type ?>" data-price="<?= d.prices[type] ?>"<?= currency[type] === DS.opts.currency ? ' selected="selected"' : '' ?>><?= DS.opts.types[type] ?></option>
+						<? } ?>
+					</select>
+					
+					
+					
+					
+					
+					
+					
+					<? if (d.payment_methods) {	?>
+						<select id="digiseller-calc-currency" name="TypeCurr">
+							<? var val, cur;
+							for (type in d.payment_methods) {
+								if ( !DS.util.hasOwnProp(DS.opts.types, type) || !d.payment_methods[type] || !d.payment_methods[type][0] ) continue;
+								/*val = d.payment_methods[type][0][0]
+								cur = d.payment_methods[type][0][1];*/
+							?>
+								
+								<option class="digiseller-calc-option digiseller-calc-"><?= type ?></option>
+							<? } ?>
+						</select>
+						
+						<? var val, cur;
+						for (type in d.payment_methods) { ?>
+							<select id="digiseller-calc-currency-add-" class="digiseller-hidden">
+								<? if ( !DS.util.hasOwnProp(DS.opts.types, type) || !d.payment_methods[type] ) continue;
+								
+								DS.util.each(d.payment_methods[type], function(options) {
+									val = options[0];
+									cur = options[1]; ?>
+									
+									<option value="<?= val ?>"><?= val ?></option>
+								<? }); ?>
+							</select>
+						<? }
+					} ?>
+				</div>
+				
+				<? if (d.options && d.options.length) { ?>
+					<div id="digiseller-calc-options">
+						<? for (var i = 0, l = d.options.length; i < l; i++) {
+							var option = d.options[i]; ?>
+							
+							<div class="digiseller-calc-line"<?= option.required == 1 ? ' data-required="1"' : '' ?>>
+								<div><?= option.label ?> <?= option.required == 1 ? '<span title="' + DS.opts.i18n['required'] + '">*</span>' : '' ?></div>
+								
+								<? switch (option.type) {
+									case 'text': ?>
+									
+										<input type="text" name="<?= option.name ?>" />						
+										
+										<? break;									
+									case 'textarea': ?>		
+									
+										<textarea name="<?= option.name ?>"></textarea>
+										
+										<? break;									
+									case 'select': ?>
+									
+										<select name="<?= option.name ?>">
+										<? if (option.variants && option.variants.length)
+											if (option.required != 1) { ?>
+												<option></option>
+											<? }
+											
+											for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
+												<option value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' selected' : '' ?>>
+													<?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?>
+												</option>
+											<? } ?>										
+										</select>
+										
+										<? break;
+									case 'checkbox': case 'radio':
+									
+										if (option.variants && option.variants.length)
+											for (var ii = 0, ll = option.variants.length; ii < ll; ii++) { ?>										
+												<input type="<?= option.type ?>" id="<?= option.name ?>_<?= ii ?>" name="<?= option.name ?>" value="<?= option.variants[ii].value ?>"<?= option.variants[ii]['default'] == 1 ? ' checked' : '' ?> />
+												<label for="<?= option.name ?>_<?= ii ?>"><?= option.variants[ii].text ?><?= option.variants[ii].modify ? ' (' + option.variants[ii].modify + ')' : '' ?></label><br />
+											<? } ?>
+											
+										<? break;
+								} ?>
+							</div> 
+						<? } ?>
+					</div>
+				<? } ?>
+				
+				<? if (DS.opts.agreement_text) { ?>
+					<div class="digiseller-calc-confirmation">
+						<input type="checkbox" id="digiseller-calc-rules"<?= agree == 1 ? ' checked="checked"' : '' ?> />
+						<?= DS.opts.i18n['iAgreeWithTerms'] ?>
+					</div>
+				<? } ?>
+	 
+				<div class="digiseller-calc-buy">
+					<?= button ?>
+				</div>
+				
+				<div class="digiseller-calc-line-err digiseller-hidden" id="digiseller-buy-error-<?= d.id ?>"></div>
+			</form>
+		</div>
+	<? } ?>
+</div>
+
+
+<!--
+
+				<div class="digiseller-calc-line">
+					<div>Input</div>
+					<input type="text">
+				</div>
+
+				<div class="digiseller-calc-line">
+					<div>Textarea</div>
+					<textarea></textarea>
+				</div>
+
+				<div class="digiseller-calc-line">
+					<div>Select</div>
+					<select>
+						<option>option 1</option>
+						<option>option 2</option>
+						<option>option 3</option>
+						<option>option 4</option>
+						<option>option 5</option>
+						<option>option 6</option>
+					</select>
+				</div> 
+
+				<div class="digiseller-calc-line"> 
+					<div>Radio</div>
+					<input type="radio" id="radio1"><label for="radio1">radio 1 label</label><br>
+					<input type="radio" id="radio2"><label for="radio2">radio 2 label</label><br>
+					<input type="radio" id="radio3"><label for="radio3">radio 3 label</label><br>
+					<input type="radio" id="radio4"><label for="radio4">radio 4 label</label><br>
+				</div>
+
+				<div class="digiseller-calc-line">
+					<div>Checkbox</div>
+					<input type="checkbox" id="checkbox1"><label for="checkbox1">check 1 label</label><br>
+					<input type="checkbox" id="checkbox2"><label for="checkbox2">check 2 label</label><br>
+					<input type="checkbox" id="checkbox3"><label for="checkbox3">check 3 label</label><br>
+					<input type="checkbox" id="checkbox4"><label for="checkbox4">check 4 label</label><br>
+				</div>
+-->

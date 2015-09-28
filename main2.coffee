@@ -120,7 +120,9 @@ DS.util =
 
 	each: (els, cb) ->
 		for el, i in els
-			cb(el, i)
+			res = cb(el, i)
+			if res is false
+				break
 		
 		return
 		
@@ -1320,6 +1322,7 @@ DS.widget =
 					if that.$elG.length
 						that.$elG.html( that.render(res.category, null, 'g') )
 						DS.eventsDisp.setEventsDisp( that.$elG.parent() )
+						that.initMoreFunc()						
 					
 					# DS.util.each(['', '-dup', '-g'], (suffix) ->
 					# DS.util.each(['', '-dup', '-g'], (suffix) ->
@@ -1343,8 +1346,56 @@ DS.widget =
 					that.mark()
 
 					return
+			)			
+			
+			$showBut = DS.$("##{@prefix}-dup-show")
+			$menu = DS.$('#digiseller-off-menu')	
+			$fade = DS.$('#digiseller-off-menu-fade')	
+			
+			$showBut.on('click', () ->
+				$menu.show()
+			)
+			
+			$fade.on('click', () ->
+				$menu.hide()
 			)
 
+			return
+			
+		initMoreFunc: () ->			
+			$ul = @$elG.children()
+			$els = $ul.children()
+			$nav = @$elG.parent()
+			contW = $nav.get(0).offsetWidth				
+			width = 0
+			divide_ind = 0
+			len = $els.length
+			
+			$els.each( (el) ->
+				width += el.offsetWidth
+				
+				if width > contW					
+					return false
+					
+				divide_ind++
+			)
+			
+			if divide_ind > 0 and divide_ind isnt len
+				container = document.createElement('div')
+				@$elG.children().get(0).innerHTML = DS.tmpl(DS.tmpls.catMore, {})
+			
+				$section = DS.$('#digiseller-cat-first')
+				$ul = DS.$('#digiseller-cat-more')
+
+				i = 0
+				$els.each( (el) ->
+					clone = el.cloneNode(true)
+					
+					(if i < divide_ind then $section else $ul).get(0).appendChild(clone)
+					
+					i++
+				)
+			
 			return
 
 		mark: (() ->
@@ -1415,7 +1466,7 @@ DS.widget =
 						
 					# )
 					# console.log($sub.children().length)
-					$nav.css('height', ($sub.children().length + 1) * 2.8125 + 'rem') # иначе для невидимых категорий 0 всегда высота
+					$nav.css('height', ($sub.children().length ) * 2.8125 + 'rem') # иначе для невидимых категорий 0 всегда высота
 				
 				return
 			
@@ -1448,7 +1499,7 @@ DS.widget =
 				return
 		)()
 
-		render: (categories, parent_cid, suffix, anc_id) ->
+		render: (categories, parent, suffix, anc) ->
 			return '' if not categories				
 
 			out = ''
@@ -1460,15 +1511,16 @@ DS.widget =
 					d: category
 					# url: DS.opts.hashPrefix + "/articles/#{category.id}"
 					id: that.prefix + (if suffix then '-' + suffix else '') + '-' + category.id
-					sub: that.render(category.sub, category.id, suffix, parent_cid)
+					sub: that.render(category.sub, category, suffix, parent)
 				)
 				
 				return
 			)
 
 			return DS.tmpl(DS.tmpls.categories,
-				id: if parent_cid then @prefix + '-sub' + (if suffix then '-' + suffix else '') + '-' + parent_cid else ''
-				anc_id: anc_id
+				id: if parent and parent.id then @prefix + '-sub' + (if suffix then '-' + suffix else '') + '-' + parent.id else ''
+				anc_id: if anc and anc.id then anc.id else ''
+				parent_name: if parent and parent.id then parent.name else ''
 				suffix: suffix
 				out: out
 			)
@@ -1991,18 +2043,20 @@ DS.widget =
 
 					if !isChecked
 						return
+						
+				needCheck = $form.attr('data-need-check') is '1'
 				
 				required$Els = {}
-				needCheck = no
 				data = DS.serialize($form.get(0), (el) ->
 					$parent = DS.$(el).parent()
 					
 					if $parent.attr('data-required')
 						required$Els[el.name] = $parent
 						
-					if $parent.attr('data-need-check')
-						needCheck = yes
+					# if $parent.attr('data-need-check')
+						# needCheck = yes
 				)
+
 
 				error = no
 				# DS.dom.klass('del', DS.dom.$('.digiseller-calc-line', $form), 'digiseller-calc-line-err', true)				
@@ -2033,18 +2087,24 @@ DS.widget =
 					DS.ajax('POST', DS.opts.host + (if isCart then 'shop_cart_add.asp' else 'shop_precheck.asp'),
 						data: data,
 						onLoad: (res, xhr) ->
+							hasError = no
+							
 							if res.cart_err and res.cart_err isnt ''
 								$error.html(res.cart_err).show()
-							else unless isCart
+								hasError = yes
+								
+							if not hasError and not isCart
 								$form.get(0).submit()
 								
 							if isCart
-								DS.opts.cart_uid = res.cart_uid || ''
+								if res.cart_uid 
+									DS.opts.cart_uid = res.cart_uid
+									DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
 								
-								DS.cookie.set('digiseller-cart_uid', DS.opts.cart_uid)
-								DS.widget.cartButton.setCount(res.cart_cnt)
+								if typeof res.cart_cnt isnt 'undefined'
+									DS.widget.cartButton.setCount(res.cart_cnt)
 								
-								new DS.widget.cart()							
+								new DS.widget.cart() unless hasError						
 							
 							return
 						# onFail: (xhr) ->
@@ -2490,7 +2550,7 @@ DS.route =
 
 				DS.widget.currency.init()
 
-			DS.$("##{@prefix}-query").html( @search.replace('<', '&lt;').replace('>', '&gt;') )
+			DS.$("##{@prefix}-query").html( @search.replace(/</g, '&lt;').replace(/>/g, '&gt;') )
 			DS.$("##{@prefix}-total").html(data.totalItems)
 
 			return
@@ -3031,13 +3091,15 @@ DS.eventsDisp =
 		return
 		
 	'click-menu': ($el, e) ->
-		expanded = $el.attr('data-expanded')
-		$nav = $el.parent().parent().parent() # :(
+		# expanded = $el.attr('data-expanded')
+		# $nav = $el.parent().parent().parent() # :(
 
-		$nav[if expanded is '1' then 'removeClass' else 'addClass']('digiseller-expanded')
-		$nav[if expanded is '1' then 'addClass' else 'removeClass']('digiseller-imploded')
+		# $nav[if expanded is '1' then 'removeClass' else 'addClass']('digiseller-expanded')
+		# $nav[if expanded is '1' then 'addClass' else 'removeClass']('digiseller-imploded')
 		
-		$el.attr('data-expanded', if expanded is '1' then 0 else 1)
+		# $el.attr('data-expanded', if expanded is '1' then 0 else 1)
+		
+		
 
 		return
 		
@@ -3054,13 +3116,13 @@ DS.eventsDisp =
 		# nextHeight = ( $sub.get(0) || $sect.get(0) ).offsetHeight
 		nextHeight = ( $sub.get(0) || $sect.get(0) ).offsetHeight
 		
-		DS.util.each(['-dup', '-g'], (suffix) ->
-			$el = DS.$('#digiseller-category' + suffix)
-			
-			$el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
-			# $el.parent().css('height', nextHeight + 40 + 'px')
-			$el.parent().css('height', if $sub.length then ( $sub.children().length + 1) * 2.8125 + 'rem' else  $sect.get(0).offsetHeight + 'px')
-		)
+		# DS.util.each(['-dup', '-g'], (suffix) ->
+		$cont = DS.$('#digiseller-category-dup') # + suffix)
+		
+		$cont.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
+		# $cont.parent().css('height', nextHeight + 40 + 'px')
+		$cont.parent().css('height', if $sub.length then ( $sub.children().length ) * 2.8125 + 'rem' else  $sect.get(0).offsetHeight + 'px')
+		# )
 
 		return
 		
@@ -3124,14 +3186,21 @@ DS.init = ->
 
 	DS.opts.orient = if dataCat is 'v' then 'v' else 'g'
 	
+	hasCat = if dataCat is 'g' or dataCat is 'v' then true else false
+	
 	$body.html( DS.tmpl(DS.tmpls.body,
-		hasCat: if dataCat is 'g' or dataCat is 'v' then true else false
+		hasCat: hasCat
 		logo: if $body.attr('data-logo') is '1' then true else false
 		topmenu: if $body.attr('data-topmenu') is '1' then true else false
 		langs: if $body.attr('data-langs') is '1' then true else false
 		cart: if $body.attr('data-cart') is '1' then true else false
 		search: if $body.attr('data-search') is '1' then true else false
-	) )	
+	) )
+	
+	if hasCat
+		container = document.createElement('div')
+		container.innerHTML = DS.tmpl(DS.tmpls.categoriesLeftOff, {})
+		DS.el.body.appendChild(container.firstChild)
 	
 	DS.widget.category.init()
 	DS.widget.main.init()

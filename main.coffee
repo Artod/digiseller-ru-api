@@ -2419,7 +2419,7 @@ DS.route =
 
 				DS.widget.currency.init()
 
-			DS.$("##{@prefix}-query").html( @search.replace('<', '&lt;').replace('>', '&gt;') )
+			DS.$("##{@prefix}-query").html( @search.replace(/</g, '&lt;').replace(/>/g, '&gt;') )
 			DS.$("##{@prefix}-total").html(data.totalItems)
 
 			return

@@ -2,7 +2,7 @@
 	<head>
 
 	
-		
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<!--script type="text/javascript" src="//www.digiseller.ru/shop_test/digiseller-api.js.asp?seller_id=18728"></script-->
 
 	</head>
@@ -15,7 +15,13 @@
 		%> 18728 -->
 		
 		<!--link rel="stylesheet" href="//shop.digiseller.ru/xml/new/shop_css_test.asp?seller_id=18728"/-->
-
+	
+		
+		
+		
+		
+		
+		
 		<script>
 			(function(d) {
 				var gc = function(c) { return d.cookie.match(new RegExp("(?:^|; )digiseller-" + c + "=([^;]*)")); },
@@ -48,7 +54,7 @@
 		</div>
 		
 
-
+<!--
 
 
 
@@ -62,7 +68,6 @@
 <br />
 <br />
 
--------
 
 
 
@@ -156,7 +161,7 @@
 <div class="digiseller-buy-standalone" data-id="1892644" data-img="1" data-name="1" data-img-size="50"></div>
 
 
-<div class="digiseller-buy-standalone" data-id="1885882" data-img="0" data-img-size="" data-name="0" data-no-price="0"></div>
+<div class="digiseller-buy-standalone" data-id="1885882" data-img="0" data-img-size="" data-name="0" data-no-price="0"></div-->
 
 
 
@@ -165,7 +170,6 @@
 
 
 
-<!-- -->
 
 	</body>
 </html>
