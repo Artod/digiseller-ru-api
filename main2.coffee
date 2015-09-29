@@ -1314,15 +1314,28 @@ DS.widget =
 					if that.$el.length
 						that.$el.html( that.render(res.category, null, '') )
 						DS.eventsDisp.setEventsDisp( that.$el.parent() )
-						
+
 					if that.$elDup.length
 						that.$elDup.html( that.render(res.category, null, 'dup') )
 						DS.eventsDisp.setEventsDisp( that.$elDup.parent() )
 						
+						$showBut = DS.$("##{that.prefix}-dup-show")
+						$menu = DS.$('#digiseller-off-menu')	
+						$fade = DS.$('#digiseller-off-menu-fade')	
+
+						$showBut.on('click', () ->
+							$menu.show()
+							that.adjustHeightDupMenu()
+						)
+						
+						$fade.on('click', () ->
+							$menu.hide()
+						)
+						
 					if that.$elG.length
 						that.$elG.html( that.render(res.category, null, 'g') )
 						DS.eventsDisp.setEventsDisp( that.$elG.parent() )
-						that.initMoreFunc()						
+						that.initMoreFunc()
 					
 					# DS.util.each(['', '-dup', '-g'], (suffix) ->
 					# DS.util.each(['', '-dup', '-g'], (suffix) ->
@@ -1346,18 +1359,6 @@ DS.widget =
 					that.mark()
 
 					return
-			)			
-			
-			$showBut = DS.$("##{@prefix}-dup-show")
-			$menu = DS.$('#digiseller-off-menu')	
-			$fade = DS.$('#digiseller-off-menu-fade')	
-			
-			$showBut.on('click', () ->
-				$menu.show()
-			)
-			
-			$fade.on('click', () ->
-				$menu.hide()
 			)
 
 			return
@@ -1366,7 +1367,7 @@ DS.widget =
 			$ul = @$elG.children()
 			$els = $ul.children()
 			$nav = @$elG.parent()
-			contW = $nav.get(0).offsetWidth				
+			contW = $nav.get(0).offsetWidth	- 150			
 			width = 0
 			divide_ind = 0
 			len = $els.length
@@ -1374,12 +1375,12 @@ DS.widget =
 			$els.each( (el) ->
 				width += el.offsetWidth
 				
-				if width > contW					
+				if width > contW	
 					return false
 					
 				divide_ind++
 			)
-			
+
 			if divide_ind > 0 and divide_ind isnt len
 				container = document.createElement('div')
 				@$elG.children().get(0).innerHTML = DS.tmpl(DS.tmpls.catMore, {})
@@ -1395,11 +1396,24 @@ DS.widget =
 					
 					i++
 				)
+
+				DS.$('#digiseller-cat-more-count').html( DS.opts.i18n['More'] + ' ' + (len - divide_ind) )
+			
+			return
+			
+		adjustHeightDupMenu: () ->			
+			$sub = DS.$('#digiseller-category-sub-dup-' + @curCid)
+			
+			if (not $sub.length)
+				$sub = DS.$('#digiseller-category-dup-' + @curCid).parent()			
+			
+			if ($sub.length && $sub.get(0).offsetHeight)
+				DS.$('#digiseller-category-dup').parent().css('height', $sub.get(0).offsetHeight)
 			
 			return
 
 		mark: (() ->
-			_make = (cid, $el, prefix, suffix) ->
+			_make = (cid, $el, suffix) ->
 				$cats = DS.$('li', $el)
 
 				return unless $cats.length
@@ -1408,8 +1422,8 @@ DS.widget =
 				$subs.hide()
 				$subs.eq(0).show()
 				
-				$cats.removeClass("#{prefix}-active")
-				$cats.removeClass("#{prefix}-moved")
+				$cats.removeClass("#{@prefix}-active")
+				$cats.removeClass("#{@prefix}-moved")
 				
 				$nav = $el.parent()
 				
@@ -1419,61 +1433,44 @@ DS.widget =
 					
 					return 
 
-				$cat = DS.$('#' + prefix + '-' + (if suffix then suffix + '-' else '') + cid)			
+				$cat = DS.$('#' + @prefix + '-' + (if suffix then suffix + '-' else '') + cid)			
 				
 				return unless $cat.length
 				
-				$cat.addClass("#{prefix}-active")
-				$cat.addClass("#{prefix}-moved")
+				$cat.addClass("#{@prefix}-active")
+				$cat.addClass("#{@prefix}-moved")
 				
 				$parent = $ancestor = $cat
 
 				deep = 0
 
-				while $parent.get(0).id isnt prefix + (if suffix then '-' + suffix else '')
+				while $parent.get(0).id isnt @prefix + (if suffix then '-' + suffix else '')
 					$parent.show()
 
 					$parent = $parent.parent()
 
 					if /li/i.test($parent.get(0).nodeName)
-						$parent.addClass("#{prefix}-moved")
+						$parent.addClass("#{@prefix}-moved")
 						deep++
 
-				$sub = DS.$('#' + prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
-				
-				if suffix is ''
-					return
-				
-				nextLeft = (if $sub.length then deep + 1 else deep) * 100
-				
-				$el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
-				
-				# console.log('suffix', suffix)
-				# console.log('suffix', $sub.get(0) && $sub.get(0).offsetHeight)
+				if suffix is 'dup'
+					# $sub = DS.$('#' + @prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
+					$sub = DS.$('#' + @prefix + '-sub-dup-' + cid).show()					
+					nextLeft = (if $sub.length then deep + 1 else deep) * 100					
+					$el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
 
-				if ($sub.length)	
-					# nextHeight = $sub.get(0).offsetHeight					
-					# console.log('suffix', suffix)
-					# console.log('nextHeight', nextHeight)
-					# console.log('clientHeight', $sub.get(0).clientHeight)
-					# console.log('offsetHeight', $sub.get(0).offsetHeight)
-					# console.log( 'jquery', $( $sub.get(0) ).height() )
+					@adjustHeightDupMenu()
 					
-					# window.jQuery || document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>')					
+					# if ($sub.length)
+						# $nav.css('height', ($sub.children().length + 0.5) * 2.8125 + 'rem') # иначе для невидимых категорий 0 всегда высота
 					
-					# DS.util.each(['-dup', '-g'], (suffix) ->
-						# $el = DS.$('#digiseller-category' + suffix)					
-						
-					# )
-					# console.log($sub.children().length)
-					$nav.css('height', ($sub.children().length ) * 2.8125 + 'rem') # иначе для невидимых категорий 0 всегда высота
-				
 				return
 			
 			_go = (cid) ->
-				_make(cid, @$el, @prefix, '') if @$el and @$el.length
-				_make(cid, @$elDup, @prefix, 'dup') if @$elDup and @$elDup.length
-				_make(cid, @$elG, @prefix, 'g') if @$elG and @$elG.length
+				@curCid = cid
+				_make.call(@, cid, @$el, '') if @$el and @$el.length
+				_make.call(@, cid, @$elDup, 'dup') if @$elDup and @$elDup.length
+				_make.call(@, cid, @$elG, 'g') if @$elG and @$elG.length
 
 			return (cid) ->
 				return if (not @$el or not @$el.length) and (not @$elDup or not @$elDup.length) and (not @$elG or not @$elG.length)
@@ -1520,7 +1517,7 @@ DS.widget =
 			return DS.tmpl(DS.tmpls.categories,
 				id: if parent and parent.id then @prefix + '-sub' + (if suffix then '-' + suffix else '') + '-' + parent.id else ''
 				anc_id: if anc and anc.id then anc.id else ''
-				parent_name: if parent and parent.id then parent.name else ''
+				parent: parent
 				suffix: suffix
 				out: out
 			)
@@ -3121,11 +3118,15 @@ DS.eventsDisp =
 		
 		$cont.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
 		# $cont.parent().css('height', nextHeight + 40 + 'px')
-		$cont.parent().css('height', if $sub.length then ( $sub.children().length ) * 2.8125 + 'rem' else  $sect.get(0).offsetHeight + 'px')
+		
+		# $cont.parent().css('height', if $sub.length then ( $sub.children().length + 0.5 ) * 2.8125 + 'rem' else  $sect.get(0).offsetHeight + 'px')
+
+		$cont.parent().css('height', if $sub.length then $sub.get(0).offsetHeight + 'px' else  $sect.get(0).offsetHeight + 'px')
+		
 		# )
 
 		return
-		
+
 	'click-gocat': ($el, e) ->
 		cid = $el.attr('data-cid')
 		hash = DS.opts.hashPrefix + '/articles/' + cid
@@ -3136,7 +3137,7 @@ DS.eventsDisp =
 			window.location.hash = hash		
 		
 		return
-		
+
 	'click-buy': ($el, e) ->
 		id = $el.attr('data-id')
 		ai = $el.attr('data-ai')

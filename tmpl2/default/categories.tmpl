@@ -1,9 +1,14 @@
 <ul id="<?= id ?>">
-	<li class="digiseller-back"><a data-action="back" data-anc-id="<?= anc_id ?>" data-suffix="<?= suffix ?>"></a></li>
-		<li class="digiseller-current-bookmark">
-			<?= parent_name ?>
-		</li>	
+		<? if (suffix === 'dup') { ?>
+			<li class="digiseller-back"><a data-action="back" data-anc-id="<?= anc_id ?>" data-suffix="<?= suffix ?>"></a></li>
+			
+			<? if (parent) { ?>
+				<li class="digiseller-current-bookmark">
+					<a data-cid="<?= parent.id ?>" data-action="gocat" title="<?= parent.name ?>"><?= parent.name ?></a>
+				</li>
+			<? } ?>
+		<? } ?>
+		
+		<?= out ?>
 
-	
-	<?= out ?>
 </ul>
