@@ -1103,7 +1103,7 @@ DigiSeller shop widget v. 2
       isInited: false,
       prefix: 'digiseller-category',
       init: function() {
-        var $fade, $menu, $showBut, that;
+        var that;
         this.$el = DS.$("#" + this.prefix);
         this.$elDup = DS.$("#" + this.prefix + "-dup");
         this.$elG = DS.$("#" + this.prefix + "-g");
@@ -1117,6 +1117,7 @@ DigiSeller shop widget v. 2
             seller_id: DS.opts.seller_id
           },
           onLoad: function(res) {
+            var $fade, $showBut;
             if (!res) {
               return false;
             }
@@ -1127,6 +1128,16 @@ DigiSeller shop widget v. 2
             if (that.$elDup.length) {
               that.$elDup.html(that.render(res.category, null, 'dup'));
               DS.eventsDisp.setEventsDisp(that.$elDup.parent());
+              $showBut = DS.$("#" + that.prefix + "-dup-show");
+              that.$menu = DS.$('#digiseller-off-menu');
+              $fade = DS.$('#digiseller-off-menu-fade');
+              $showBut.on('click', function() {
+                that.$menu.show();
+                return that.adjustHeightDupMenu();
+              });
+              $fade.on('click', function() {
+                return that.$menu.hide();
+              });
             }
             if (that.$elG.length) {
               that.$elG.html(that.render(res.category, null, 'g'));
@@ -1137,22 +1148,13 @@ DigiSeller shop widget v. 2
             that.mark();
           }
         });
-        $showBut = DS.$("#" + this.prefix + "-dup-show");
-        $menu = DS.$('#digiseller-off-menu');
-        $fade = DS.$('#digiseller-off-menu-fade');
-        $showBut.on('click', function() {
-          return $menu.show();
-        });
-        $fade.on('click', function() {
-          return $menu.hide();
-        });
       },
       initMoreFunc: function() {
         var $els, $nav, $section, $ul, contW, container, divide_ind, i, len, width;
         $ul = this.$elG.children();
         $els = $ul.children();
         $nav = this.$elG.parent();
-        contW = $nav.get(0).offsetWidth;
+        contW = $nav.get(0).offsetWidth - 150;
         width = 0;
         divide_ind = 0;
         len = $els.length;
@@ -1175,11 +1177,22 @@ DigiSeller shop widget v. 2
             (i < divide_ind ? $section : $ul).get(0).appendChild(clone);
             return i++;
           });
+          DS.$('#digiseller-cat-more-count').html(DS.opts.i18n['More'] + ' ' + (len - divide_ind));
+        }
+      },
+      adjustHeightDupMenu: function() {
+        var $sub;
+        $sub = DS.$('#digiseller-category-sub-dup-' + this.curCid);
+        if (!$sub.length) {
+          $sub = DS.$('#digiseller-category-dup-' + this.curCid).parent();
+        }
+        if ($sub.length && $sub.get(0).offsetHeight) {
+          DS.$('#digiseller-category-dup').parent().css('height', $sub.get(0).offsetHeight);
         }
       },
       mark: (function() {
         var _go, _make;
-        _make = function(cid, $el, prefix, suffix) {
+        _make = function(cid, $el, suffix) {
           var $ancestor, $cat, $cats, $nav, $parent, $sub, $subs, deep, nextLeft;
           $cats = DS.$('li', $el);
           if (!$cats.length) {
@@ -1188,49 +1201,51 @@ DigiSeller shop widget v. 2
           $subs = DS.$('ul', $el);
           $subs.hide();
           $subs.eq(0).show();
-          $cats.removeClass("" + prefix + "-active");
-          $cats.removeClass("" + prefix + "-moved");
+          $cats.removeClass("" + this.prefix + "-active");
+          $cats.removeClass("" + this.prefix + "-moved");
           $nav = $el.parent();
           if (!cid) {
             $el.css('left', '0%');
             $nav.css('height', '');
+            this.$menu.hide();
             return;
           }
-          $cat = DS.$('#' + prefix + '-' + (suffix ? suffix + '-' : '') + cid);
+          $cat = DS.$('#' + this.prefix + '-' + (suffix ? suffix + '-' : '') + cid);
           if (!$cat.length) {
             return;
           }
-          $cat.addClass("" + prefix + "-active");
-          $cat.addClass("" + prefix + "-moved");
+          $cat.addClass("" + this.prefix + "-active");
+          $cat.addClass("" + this.prefix + "-moved");
           $parent = $ancestor = $cat;
           deep = 0;
-          while ($parent.get(0).id !== prefix + (suffix ? '-' + suffix : '')) {
+          while ($parent.get(0).id !== this.prefix + (suffix ? '-' + suffix : '')) {
             $parent.show();
             $parent = $parent.parent();
             if (/li/i.test($parent.get(0).nodeName)) {
-              $parent.addClass("" + prefix + "-moved");
+              $parent.addClass("" + this.prefix + "-moved");
               deep++;
             }
           }
-          $sub = DS.$('#' + prefix + '-sub-' + (suffix ? suffix + '-' : '') + cid).show();
-          if (suffix === '') {
-            return;
-          }
-          nextLeft = ($sub.length ? deep + 1 : deep) * 100;
-          $el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft);
-          if ($sub.length) {
-            $nav.css('height', ($sub.children().length) * 2.8125 + 'rem');
+          if (suffix === 'dup') {
+            $sub = DS.$('#' + this.prefix + '-sub-dup-' + cid).show();
+            nextLeft = ($sub.length ? deep + 1 : deep) * 100;
+            $el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft);
+            if (!$sub.length) {
+              this.$menu.hide();
+            }
+            this.adjustHeightDupMenu();
           }
         };
         _go = function(cid) {
+          this.curCid = cid;
           if (this.$el && this.$el.length) {
-            _make(cid, this.$el, this.prefix, '');
+            _make.call(this, cid, this.$el, '');
           }
           if (this.$elDup && this.$elDup.length) {
-            _make(cid, this.$elDup, this.prefix, 'dup');
+            _make.call(this, cid, this.$elDup, 'dup');
           }
           if (this.$elG && this.$elG.length) {
-            return _make(cid, this.$elG, this.prefix, 'g');
+            return _make.call(this, cid, this.$elG, 'g');
           }
         };
         return function(cid) {
@@ -1273,7 +1288,7 @@ DigiSeller shop widget v. 2
         return DS.tmpl(DS.tmpls.categories, {
           id: parent && parent.id ? this.prefix + '-sub' + (suffix ? '-' + suffix : '') + '-' + parent.id : '',
           anc_id: anc && anc.id ? anc.id : '',
-          parent_name: parent && parent.id ? parent.name : '',
+          parent: parent,
           suffix: suffix,
           out: out
         });
@@ -2533,7 +2548,7 @@ DigiSeller shop widget v. 2
       nextHeight = ($sub.get(0) || $sect.get(0)).offsetHeight;
       $cont = DS.$('#digiseller-category-dup');
       $cont.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft);
-      $cont.parent().css('height', $sub.length ? ($sub.children().length) * 2.8125 + 'rem' : $sect.get(0).offsetHeight + 'px');
+      $cont.parent().css('height', $sub.length ? $sub.get(0).offsetHeight + 'px' : $sect.get(0).offsetHeight + 'px');
     },
     'click-gocat': function($el, e) {
       var cid, hash;
@@ -2563,7 +2578,7 @@ DigiSeller shop widget v. 2
   DS.inited = false;
 
   DS.init = function() {
-    var $body, $logo, $topmenu, container, dataCat, getEl, hasCat, homeInited, name, route, _fn, _ref;
+    var $body, $downmenu, $logo, container, dataCat, getEl, hasCat, homeInited, name, route, _fn, _ref;
     if (DS.inited) {
       return false;
     }
@@ -2589,7 +2604,8 @@ DigiSeller shop widget v. 2
     $body.html(DS.tmpl(DS.tmpls.body, {
       hasCat: hasCat,
       logo: $body.attr('data-logo') === '1' ? true : false,
-      topmenu: $body.attr('data-topmenu') === '1' ? true : false,
+      downmenu: $body.attr('data-downmenu') === '1' ? true : false,
+      purchases: $body.attr('data-purchases') === '1' ? true : false,
       langs: $body.attr('data-langs') === '1' ? true : false,
       cart: $body.attr('data-cart') === '1' ? true : false,
       search: $body.attr('data-search') === '1' ? true : false
@@ -2611,9 +2627,9 @@ DigiSeller shop widget v. 2
         logo_img: DS.opts.logo_img
       }));
     }
-    $topmenu = DS.$('#digiseller-topmenu');
-    if ($topmenu.length) {
-      $topmenu.html(DS.tmpl(DS.tmpls.topmenu, {}));
+    $downmenu = DS.$('#digiseller-downmenu');
+    if ($downmenu.length) {
+      $downmenu.html(DS.tmpl(DS.tmpls.downmenu, {}));
     }
     DS.$('.digiseller-buy-standalone').each(function(el) {
       new DS.widget.calc(DS.$(el));

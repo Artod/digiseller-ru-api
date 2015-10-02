@@ -1320,16 +1320,16 @@ DS.widget =
 						DS.eventsDisp.setEventsDisp( that.$elDup.parent() )
 						
 						$showBut = DS.$("##{that.prefix}-dup-show")
-						$menu = DS.$('#digiseller-off-menu')	
+						that.$menu = DS.$('#digiseller-off-menu')	
 						$fade = DS.$('#digiseller-off-menu-fade')	
 
 						$showBut.on('click', () ->
-							$menu.show()
+							that.$menu.show()
 							that.adjustHeightDupMenu()
 						)
 						
 						$fade.on('click', () ->
-							$menu.hide()
+							that.$menu.hide()
 						)
 						
 					if that.$elG.length
@@ -1430,6 +1430,7 @@ DS.widget =
 				unless cid
 					$el.css('left', '0%')
 					$nav.css('height', '')
+					@$menu.hide()
 					
 					return 
 
@@ -1456,9 +1457,12 @@ DS.widget =
 				if suffix is 'dup'
 					# $sub = DS.$('#' + @prefix + '-sub-' + (if suffix then suffix + '-' else '') + cid).show()
 					$sub = DS.$('#' + @prefix + '-sub-dup-' + cid).show()					
-					nextLeft = (if $sub.length then deep + 1 else deep) * 100					
+					nextLeft = (if $sub.length then deep + 1 else deep) * 100
 					$el.css('left', '-' + nextLeft + '%').attr('data-cur-left', nextLeft)
 
+					unless $sub.length
+						@$menu.hide()
+					
 					@adjustHeightDupMenu()
 					
 					# if ($sub.length)
@@ -1466,11 +1470,13 @@ DS.widget =
 					
 				return
 			
-			_go = (cid) ->
+			_go = (cid) ->		
 				@curCid = cid
 				_make.call(@, cid, @$el, '') if @$el and @$el.length
 				_make.call(@, cid, @$elDup, 'dup') if @$elDup and @$elDup.length
 				_make.call(@, cid, @$elG, 'g') if @$elG and @$elG.length
+				
+
 
 			return (cid) ->
 				return if (not @$el or not @$el.length) and (not @$elDup or not @$elDup.length) and (not @$elG or not @$elG.length)
@@ -3192,7 +3198,8 @@ DS.init = ->
 	$body.html( DS.tmpl(DS.tmpls.body,
 		hasCat: hasCat
 		logo: if $body.attr('data-logo') is '1' then true else false
-		topmenu: if $body.attr('data-topmenu') is '1' then true else false
+		downmenu: if $body.attr('data-downmenu') is '1' then true else false
+		purchases: if $body.attr('data-purchases') is '1' then true else false
 		langs: if $body.attr('data-langs') is '1' then true else false
 		cart: if $body.attr('data-cart') is '1' then true else false
 		search: if $body.attr('data-search') is '1' then true else false
@@ -3216,9 +3223,9 @@ DS.init = ->
 			logo_img: DS.opts.logo_img
 		) )
 
-	$topmenu = DS.$('#digiseller-topmenu')
-	if $topmenu.length
-		$topmenu.html( DS.tmpl(DS.tmpls.topmenu, {}) )
+	$downmenu = DS.$('#digiseller-downmenu')
+	if $downmenu.length
+		$downmenu.html( DS.tmpl(DS.tmpls.downmenu, {}) )
 
 	DS.$('.digiseller-buy-standalone').each( (el) ->
 		new DS.widget.calc( DS.$(el) )

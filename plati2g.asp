@@ -11,7 +11,8 @@
 				s.async = true; s.id = 'digiseller-js'; s.src = '//www.digiseller.ru/shop_test/digiseller-api.js2.asp?seller_id=18728' + l + c;
 				!d.getElementById(st.id) && pl.appendChild(st); !d.getElementById(s.id) && pl.appendChild(s);
 			})(document);
-		</script>		
+		</script>	
+<meta name="viewport" content="width=device-width, initial-scale=1">			
 	</head>
 	<body>
 		<!-- <%
@@ -27,7 +28,7 @@
 		
 		
 		
-		<span class="digiseller-body" id="digiseller-body" data-cat="g" data-logo="1" data-topmenu="1" data-langs="1" data-cart="1" data-search="1"></span>
+		<span class="digiseller-body" id="digiseller-body" data-cat="g" data-logo="1" data-downmenu="1" data-purchases="1" data-langs="1" data-cart="1" data-search="1"></span>
 		
 		
 	

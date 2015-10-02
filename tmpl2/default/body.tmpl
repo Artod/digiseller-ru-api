@@ -19,7 +19,7 @@
 				<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
 			<? } ?>
 			
-			<? if (topmenu && DS.opts.menu_purchases) { ?>				
+			<? if (purchases) { ?>				
 				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
 					<a href="https://www.oplata.info/"><span><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
@@ -53,7 +53,7 @@
 		</div>
 	</main>
 	
-	<footer <?= topmenu ? 'id="digiseller-topmenu"' : '' ?> class="digiseller-row"></footer>
+	<footer <?= downmenu ? 'id="digiseller-downmenu"' : '' ?> class="digiseller-row"></footer>
 	
 <? } else { ?>
 
@@ -75,7 +75,7 @@
 				<div id="digiseller-langs" class="digiseller-right digiseller-langs-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns"></div>
 			<? } ?>
 			
-			<? if (topmenu && DS.opts.menu_purchases) { ?>
+			<? if (purchases) { ?>
 				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
 					<a href="https://www.oplata.info/"><span><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
@@ -115,6 +115,6 @@
 		</section>
 	</main>
 		
-	<footer <?= topmenu ? 'id="digiseller-topmenu"' : '' ?> class="digiseller-row"></footer>
+	<footer <?= downmenu ? 'id="digiseller-downmenu"' : '' ?> class="digiseller-row"></footer>
 
 <? } ?>

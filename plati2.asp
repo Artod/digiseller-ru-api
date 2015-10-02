@@ -27,7 +27,7 @@
 		
 
 		
-		<span class="digiseller-body" id="digiseller-body" data-cat="v" data-logo="1" data-topmenu="1" data-langs="1" data-cart="1" data-search="1"></span>
+		<span class="digiseller-body" id="digiseller-body" data-cat="v" data-logo="1" data-downmenu="1" data-purchases="1" data-langs="1" data-cart="1" data-search="1"></span>
 		
 		
 		
