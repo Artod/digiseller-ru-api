@@ -1,6 +1,6 @@
 <? if (DS.opts.orient === 'g') { ?>
 	<header id="digiseller-header" class="digiseller-row header-gorizontal">
-		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns <?= !cart ? 'digiseller-basket-box-miss' : '' ?> <?= !purchases ? 'digiseller-packet-box-miss' : '' ?> <?= !langs ? 'digiseller-langs-box-miss' : '' ?>">
 			<? if (logo) { ?>
 				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small digiseller-hide-for-medium"></div>
 			<? } ?>
@@ -58,7 +58,7 @@
 <? } else { ?>
 
 	<header id="digiseller-header" class="digiseller-row">
-		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
+		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns <?= !cart ? 'digiseller-basket-box-miss' : '' ?> <?= !purchases ? 'digiseller-packet-box-miss' : '' ?> <?= !langs ? 'digiseller-langs-box-miss' : '' ?>">
 			<? if (logo) { ?>
 				<div id="digiseller-logo" class="digiseller-logo digiseller-large-3 digiseller-medium-3 digiseller-small-12 digiseller-columns digiseller-hide-for-small digiseller-hide-for-medium"></div>
 			<? } ?>
