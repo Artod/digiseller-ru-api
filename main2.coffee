@@ -119,6 +119,8 @@ DS.util =
 		return
 
 	each: (els, cb) ->
+		els = els or {}
+		
 		for el, i in els
 			res = cb(el, i)
 			if res is false
@@ -327,7 +329,7 @@ DS.$ = (() ->
 				@.removeClass('digiseller-hidden')
 				
 			hide: () ->
-				@.addClass('digiseller-hidden')				
+				@.addClass('digiseller-hidden')
 					
 			get: (i) ->
 				_els[i]
@@ -713,8 +715,9 @@ DS.ajax = (() ->
 			
 			if needCheck and parseInt( opts.$el.attr('data-qid') ) isnt uid
 				return
-
+				
 			opts.onLoad(JSON.parse(xhr.responseText), xhr)
+
 
 		xhr.onerror = () ->			
 			_onComplete(xhr)			
@@ -1122,6 +1125,23 @@ DS.widget =
 			DS.eventsDisp.setEventsDisp(@$el)
 
 			return
+			
+		getStatic: (name) ->
+			that = @
+
+			DS.ajax('GET', DS.opts.host + 'shop_menu.asp',
+				$el: @$el
+				data:
+					seller_id: DS.opts.seller_id
+					menu: name
+				onLoad: (data) ->
+					return off unless data
+
+					that.$el.html( DS.tmpl(DS.tmpls.static, data) )
+					DS.util.scrollUp()
+					
+					return
+			)
 
 	loader: (() ->
 		_counter = 0
@@ -1744,18 +1764,21 @@ DS.widget =
 			return
 			
 		renderInit: (data) ->
-			@$context.html( DS.tmpl(DS.tmpls.buy,
-				d: data
-				index: @index
-				# isStandAlone: isStandAlone
-				ai: @$context.attr('data-ai')
-				imgSize: @$context.attr('data-img-size')
-				needImg: if @$context.attr('data-img') is '1' then true else false
-				needName: if @$context.attr('data-name') is '1' then true else false
-				noPrice: if @$context.attr('data-no-price') is '1' then true else false				
-				failPage: DS.util.enc(window.location)
-				agree: DS.opts.agree
-			) )
+			unless data				
+				@$context.html( DS.tmpl(DS.tmpls.nothing, {}) )
+			else
+				@$context.html( DS.tmpl(DS.tmpls.buy,
+					d: data
+					index: @index
+					# isStandAlone: isStandAlone
+					ai: @$context.attr('data-ai')
+					imgSize: @$context.attr('data-img-size')
+					needImg: if @$context.attr('data-img') is '1' then true else false
+					needName: if @$context.attr('data-name') is '1' then true else false
+					noPrice: if @$context.attr('data-no-price') is '1' then true else false				
+					failPage: DS.util.enc(window.location)
+					agree: DS.opts.agree
+				) )
 		
 			return
 			
@@ -2997,28 +3020,28 @@ DS.route =
 
 			return
 
-	contacts:
-		url: '/contacts'
-		action: (params) ->
-			that = @
-			# DS.JSONP.get(DS.opts.host + 'shop_contacts.asp', DS.widget.main.$el,
-			DS.ajax('GET', DS.opts.host + 'shop_contacts.asp',
-				$el: DS.widget.main.$el
-				data:
-					seller_id: DS.opts.seller_id
-				onLoad: (data) ->
-					return off unless data
+	# contacts:
+		# url: '/contacts'
+		# action: (params) ->
+			# that = @
+			
+			# DS.ajax('GET', DS.opts.host + 'shop_contacts.asp',
+				# $el: DS.widget.main.$el
+				# data:
+					# seller_id: DS.opts.seller_id
+				# onLoad: (data) ->
+					# return off unless data
 
-					DS.widget.main.$el.html( DS.tmpl(DS.tmpls.contacts,
-						d: data
-					) )
+					# DS.widget.main.$el.html( DS.tmpl(DS.tmpls.contacts,
+						# d: data
+					# ) )
 
-					DS.util.scrollUp()
+					# DS.util.scrollUp()
 
-					return
-			)
+					# return
+			# )
 
-			return
+			# return
 
 DS.eventsDisp =
 	setEventsDisp: ($context) ->
@@ -3244,8 +3267,12 @@ DS.init = ->
 		return
 	)
 	
-	
+	DS.historyClick.addRoute(DS.opts.hashPrefix + '/([a-z]*)'  , (params) ->
+		DS.widget.main.getStatic(params[1])
 
+		return
+	)
+	
 	for name, route of DS.route
 		# continue if not route.url or not route.action
 		continue if not DS.route.hasOwnProperty(name) or not route.url or not route.action
@@ -3260,6 +3287,8 @@ DS.init = ->
 
 			return
 		)(route)
+		
+
 
 	DS.historyClick.rootAlias(DS.opts.hashPrefix + '/home')
 	DS.historyClick.onGo = () ->
