@@ -125,6 +125,7 @@ DigiSeller shop widget v. 2
     },
     each: function(els, cb) {
       var el, i, res, _i, _len;
+      els = els || {};
       for (i = _i = 0, _len = els.length; _i < _len; i = ++_i) {
         el = els[i];
         res = cb(el, i);
@@ -995,6 +996,24 @@ DigiSeller shop widget v. 2
         this.$el = DS.$('#digiseller-main');
         this.$el.html('');
         DS.eventsDisp.setEventsDisp(this.$el);
+      },
+      getStatic: function(name) {
+        var that;
+        that = this;
+        return DS.ajax('GET', DS.opts.host + 'shop_menu.asp', {
+          $el: this.$el,
+          data: {
+            seller_id: DS.opts.seller_id,
+            menu: name
+          },
+          onLoad: function(data) {
+            if (!data) {
+              return false;
+            }
+            that.$el.html(DS.tmpl(DS.tmpls["static"], data));
+            DS.util.scrollUp();
+          }
+        });
       }
     },
     loader: (function() {
@@ -1495,17 +1514,21 @@ DigiSeller shop widget v. 2
       }
 
       _Class.prototype.renderInit = function(data) {
-        this.$context.html(DS.tmpl(DS.tmpls.buy, {
-          d: data,
-          index: this.index,
-          ai: this.$context.attr('data-ai'),
-          imgSize: this.$context.attr('data-img-size'),
-          needImg: this.$context.attr('data-img') === '1' ? true : false,
-          needName: this.$context.attr('data-name') === '1' ? true : false,
-          noPrice: this.$context.attr('data-no-price') === '1' ? true : false,
-          failPage: DS.util.enc(window.location),
-          agree: DS.opts.agree
-        }));
+        if (!data) {
+          this.$context.html(DS.tmpl(DS.tmpls.nothing, {}));
+        } else {
+          this.$context.html(DS.tmpl(DS.tmpls.buy, {
+            d: data,
+            index: this.index,
+            ai: this.$context.attr('data-ai'),
+            imgSize: this.$context.attr('data-img-size'),
+            needImg: this.$context.attr('data-img') === '1' ? true : false,
+            needName: this.$context.attr('data-name') === '1' ? true : false,
+            noPrice: this.$context.attr('data-no-price') === '1' ? true : false,
+            failPage: DS.util.enc(window.location),
+            agree: DS.opts.agree
+          }));
+        }
       };
 
       _Class.prototype.init = function() {
@@ -2275,6 +2298,7 @@ DigiSeller shop widget v. 2
           DS.route.article.initComments();
         }
         new DS.widget.calc(DS.$("#" + this.prefix + "-buy-context"), data.product);
+        new DS.widget.calc(DS.$("#" + this.prefix + "-buy-context2"), data.product);
         DS.widget.currency.init();
         that = this;
         $container = DS.$("#" + this.prefix + "-thumbs");
@@ -2461,28 +2485,6 @@ DigiSeller shop widget v. 2
           goToFirstPage();
         });
       }
-    },
-    contacts: {
-      url: '/contacts',
-      action: function(params) {
-        var that;
-        that = this;
-        DS.ajax('GET', DS.opts.host + 'shop_contacts.asp', {
-          $el: DS.widget.main.$el,
-          data: {
-            seller_id: DS.opts.seller_id
-          },
-          onLoad: function(data) {
-            if (!data) {
-              return false;
-            }
-            DS.widget.main.$el.html(DS.tmpl(DS.tmpls.contacts, {
-              d: data
-            }));
-            DS.util.scrollUp();
-          }
-        });
-      }
     }
   };
 
@@ -2578,7 +2580,7 @@ DigiSeller shop widget v. 2
   DS.inited = false;
 
   DS.init = function() {
-    var $body, $downmenu, $logo, container, dataCat, getEl, hasCat, homeInited, name, route, _fn, _ref;
+    var $body, $downmenu, $logo, container, dataCat, getEl, hasCat, homeInited, name, route, setAdaptClass, _fn, _ref;
     if (DS.inited) {
       return false;
     }
@@ -2599,8 +2601,8 @@ DigiSeller shop widget v. 2
     DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') || DS.opts.cart_uid;
     $body = DS.$('#digiseller-body');
     dataCat = $body.attr('data-cat');
-    DS.opts.orient = dataCat === 'v' ? 'v' : 'g';
-    hasCat = dataCat === 'g' || dataCat === 'v' ? true : false;
+    DS.opts.orient = dataCat === 'v' ? 'v' : 'h';
+    hasCat = dataCat === 'h' || dataCat === 'v' ? true : false;
     $body.html(DS.tmpl(DS.tmpls.body, {
       hasCat: hasCat,
       logo: $body.attr('data-logo') === '1' ? true : false,
@@ -2631,6 +2633,21 @@ DigiSeller shop widget v. 2
     if ($downmenu.length) {
       $downmenu.html(DS.tmpl(DS.tmpls.downmenu, {}));
     }
+    setAdaptClass = function() {
+      var width;
+      width = $body.get(0).offsetWidth;
+      console.log(width);
+      $body.removeClass('digiseller-small').removeClass('digiseller-medium').removeClass('digiseller-large');
+      if (width < 641) {
+        return $body.addClass('digiseller-small');
+      } else if (641 <= width && width < 1010) {
+        return $body.addClass('digiseller-medium');
+      } else {
+        return $body.addClass('digiseller-large');
+      }
+    };
+    setAdaptClass();
+    DS.$(window).on('resize', setAdaptClass);
     DS.$('.digiseller-buy-standalone').each(function(el) {
       new DS.widget.calc(DS.$(el));
     });
@@ -2641,6 +2658,9 @@ DigiSeller shop widget v. 2
       }
       homeInited = true;
       DS.route.home.action();
+    });
+    DS.historyClick.addRoute(DS.opts.hashPrefix + '/([a-z]*)', function(params) {
+      DS.widget.main.getStatic(params[1]);
     });
     _ref = DS.route;
     _fn = function(route) {

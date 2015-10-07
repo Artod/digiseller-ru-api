@@ -186,7 +186,8 @@ DS.util =
 			, delay || 200)
 			
 			return
-
+	
+	
 
 # NanoJQuery
 DS.$ = (() ->
@@ -2779,6 +2780,7 @@ DS.route =
 			# new DS.widget.calc(data.product.id, data.product.prices_unit)
 
 			new DS.widget.calc(DS.$("##{@prefix}-buy-context"), data.product)
+			new DS.widget.calc(DS.$("##{@prefix}-buy-context2"), data.product)
 
 			DS.widget.currency.init()
 
@@ -3182,6 +3184,7 @@ DS.eventsDisp =
 
 		return
 
+		
 DS.inited = no
 DS.init = ->
 	return off if DS.inited
@@ -3214,9 +3217,9 @@ DS.init = ->
 	
 	dataCat = $body.attr('data-cat')
 
-	DS.opts.orient = if dataCat is 'v' then 'v' else 'g'
+	DS.opts.orient = if dataCat is 'v' then 'v' else 'h'
 	
-	hasCat = if dataCat is 'g' or dataCat is 'v' then true else false
+	hasCat = if dataCat is 'h' or dataCat is 'v' then true else false
 	
 	$body.html( DS.tmpl(DS.tmpls.body,
 		hasCat: hasCat
@@ -3249,6 +3252,29 @@ DS.init = ->
 	$downmenu = DS.$('#digiseller-downmenu')
 	if $downmenu.length
 		$downmenu.html( DS.tmpl(DS.tmpls.downmenu, {}) )
+		
+		
+	setAdaptClass = () ->
+		width = $body.get(0).offsetWidth
+		
+		console.log(width)
+		
+		$body
+			.removeClass('digiseller-small')
+			.removeClass('digiseller-medium')
+			.removeClass('digiseller-large')
+		
+		if width < 641
+			$body.addClass('digiseller-small')
+		else if 641 <= width and width < 1010
+			$body.addClass('digiseller-medium')
+		else			
+			$body.addClass('digiseller-large')
+			
+	setAdaptClass()
+
+	DS.$(window).on('resize', setAdaptClass)
+		
 
 	DS.$('.digiseller-buy-standalone').each( (el) ->
 		new DS.widget.calc( DS.$(el) )

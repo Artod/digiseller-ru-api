@@ -40,7 +40,7 @@
 	<div class="digiseller-row digiseller-category-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<? DS.util.each(d.categories, function(category) { ?>
-				<div class="digiseller-wrapper-category digiseller-large-<?= DS.opts.orient === 'g' ? '3' : '4' ?> digiseller-medium-<?= DS.opts.orient === 'g' ? '3' : '4' ?> digiseller-small-6 digiseller-columns">
+				<div class="digiseller-wrapper-category digiseller-large-<?= DS.opts.orient === 'h' ? '3' : '4' ?> digiseller-medium-<?= DS.opts.orient === 'h' ? '3' : '4' ?> digiseller-small-6 digiseller-columns">
 					<div class="digiseller-wrapper-img">
 						<a onclick="location.hash='<?= DS.opts.hashPrefix ?>/articles/<?= category.id ?>';">
 							<img src="//graph.digiseller.ru/img.ashx?idn=<?= category.hasImg == 1 ? category.id : 1?>&maxlength=<?= DS.opts.imgsize_category ?>" alt="<?= name ?>" />
@@ -59,7 +59,7 @@
 <?= (d.totalPages ? articlesPanel : '') ?>
 
 <? if (d.totalPages || !d.totalPages && !hasCategories) { ?>
-	<div id="<?= id ?>">
+	<div id="<?= id ?>" class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 		<?= DS.opts.view === 'table' && false ? '<table class="digiseller-table" id="' + id + '-table">' + out + '</table>' : out ?>
 	</div>
 	

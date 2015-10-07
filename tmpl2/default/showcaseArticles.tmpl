@@ -4,7 +4,7 @@
 	<div class="digiseller-row digiseller-category-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
 			<? DS.util.each(categories, function(category) { ?>
-				<div class="digiseller-wrapper-category digiseller-large-<?= DS.opts.orient === 'g' ? '3' : '4' ?> digiseller-medium-<?= DS.opts.orient === 'g' ? '3' : '4' ?> digiseller-small-6 digiseller-columns">
+				<div class="digiseller-wrapper-category digiseller-large-<?= DS.opts.orient === 'h' ? '3' : '4' ?> digiseller-medium-<?= DS.opts.orient === 'h' ? '3' : '4' ?> digiseller-small-6 digiseller-columns">
 					<div class="digiseller-wrapper-img">
 						<a onclick="location.hash='<?= DS.opts.hashPrefix ?>/articles/<?= category.id ?>';">
 							<img src="//graph.digiseller.ru/img.ashx?idn=<?= category.hasImg == 1 ? category.id : 1?>&maxlength=<?= DS.opts.imgsize_category ?>" alt="<?= name ?>" />

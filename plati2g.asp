@@ -1,4 +1,4 @@
-<%@ Language=VBScript %><html>
+<%@ Language=VBScript %><!DOCTYPE html><html>
 	<head>	
 		<script>
 			(function(d) {
@@ -15,6 +15,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">			
 	</head>
 	<body>
+
 		<!-- <%
 		Dim MyRandomNum
 		Randomize
@@ -28,7 +29,7 @@
 		
 		
 		
-		<span class="digiseller-body" id="digiseller-body" data-cat="g" data-logo="1" data-downmenu="1" data-purchases="1" data-langs="1" data-cart="1" data-search="1"></span>
+		<span class="digiseller-body" id="digiseller-body" data-cat="h" data-logo="1" data-downmenu="1" data-purchases="1" data-langs="1" data-cart="1" data-search="1"></span>
 		
 		
 	

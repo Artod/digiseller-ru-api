@@ -28,16 +28,16 @@
 </section>
 		
 <section class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns">
-	<aside id="digiseller-article-buy-context" class="digiseller-calc digiseller-hide-for-small digiseller-medium-5 digiseller-small-12 digiseller-columns <?= DS.opts.orient === 'g' ? 'digiseller-large-5 digiseller-large-offset-2 digiseller-medium-offset-2' : 'digiseller-large-5' ?>"></aside>			
+	<aside id="digiseller-article-buy-context" class="digiseller-calc digiseller-hide-for-small digiseller-medium-5 digiseller-small-12 digiseller-columns <?= DS.opts.orient === 'h' ? 'digiseller-large-5 digiseller-large-offset-2 digiseller-medium-offset-2' : 'digiseller-large-5' ?>"></aside>			
 
 	<? if (mainImg) {
 		var imgSize = parseInt(DS.opts.imgsize_infopage) + 20; ?>
 		
 		<a id="digiseller-article-img-preview" class="digiseller-product" href="<?= mainImg ?>" target="_blank" data-type="img" data-index="0" >
-			<img alt="product" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= name ?>" />
+			<img alt="product" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= 400 /*DS.opts.imgsize_infopage*/ ?>" alt="<?= name ?>" />
 		</a>
 	<? } else { ?>
-		<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= DS.opts.imgsize_infopage ?>" alt="<?= d.name ?>" />
+		<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= 400 /*DS.opts.imgsize_infopage*/ ?>" alt="<?= d.name ?>" />
 	<? } ?>
 			
 	<? if (d.preview_imgs || d.preview_videos) { ?>
@@ -60,7 +60,7 @@
 								DS.util.each(d.preview_imgs, function(preview_img, i) { ?>
 									<li class="digiseller-large-2 digiseller-medium-2 digiseller-small-2 digiseller-columns" <?=  d.preview_imgs.length == 1 ? 'style="display:none;"' : '' ?>>
 										<a href="<?= preview_img.url ?>" data-type="img" data-index="<?= index ?>" data-id="<?= preview_img.id ?>">
-											<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=44&crop=1" alt="" />
+											<img src="//graph.digiseller.ru/img.ashx?idp=<?= preview_img.id ?>&maxlength=70&crop=1" alt="" />
 										</a>
 									</li>
 									
@@ -86,7 +86,7 @@
 		</div>
 	<? } ?>
 			
-	<aside id="digiseller-article-buy-context" class="digiseller-calc-show-for-small digiseller-show-for-small digiseller-large-5 digiseller-medium-5 digiseller-small-12 digiseller-large-offset-2 digiseller-medium-offset-2 digiseller-columns"></aside>			
+	<aside id="digiseller-article-buy-context2" class="digiseller-calc-show-for-small digiseller-show-for-small digiseller-large-5 digiseller-medium-5 digiseller-small-12 digiseller-large-offset-2 digiseller-medium-offset-2 digiseller-columns"></aside>			
 			
 	<div class="digiseller-product-buy">
 		<?= d.info ?>
