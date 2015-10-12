@@ -37,7 +37,9 @@
 			<img alt="product" src="//graph.digiseller.ru/img.ashx?idp=<?= d.preview_imgs[0].id ?>&maxlength=<?= 400 /*DS.opts.imgsize_infopage*/ ?>" alt="<?= name ?>" />
 		</a>
 	<? } else { ?>
-		<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= 400 /*DS.opts.imgsize_infopage*/ ?>" alt="<?= d.name ?>" />
+		<a class="digiseller-product">
+			<img src="//graph.digiseller.ru/img.ashx?id_d=1&maxlength=<?= 400 /*DS.opts.imgsize_infopage*/ ?>" alt="<?= d.name ?>" />
+		</a>
 	<? } ?>
 			
 	<? if (d.preview_imgs || d.preview_videos) { ?>

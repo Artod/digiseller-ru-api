@@ -1624,7 +1624,7 @@ DigiSeller shop widget v. 1.5
           }
         } else {
           buy = function() {
-            window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", DS.opts.buyTargetSelf === 1 ? '_self' : '_blank');
+            window.open(("https://www.oplata.info/asp/pay_wm.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + ("&dsn=limit&lang=" + DS.opts.currentLang), DS.opts.buyTargetSelf === 1 ? '_self' : '_blank');
           };
           if (DS.opts.agreement_text) {
             DS.showAgreement(buy, this.index);
@@ -1845,7 +1845,6 @@ DigiSeller shop widget v. 1.5
           data: {
             seller_id: DS.opts.seller_id,
             category_id: 0,
-            rows: 10,
             order: DS.opts.sort,
             currency: DS.opts.currency
           },
@@ -2343,7 +2342,7 @@ DigiSeller shop widget v. 1.5
       id = $el.attr('data-id');
       ai = $el.attr('data-ai');
       buy = function() {
-        window.open(("https://www.oplata.info/asp/pay_x20.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + "&dsn=limit", DS.opts.buyTargetSelf === 1 ? '_self' : '_blank');
+        window.open(("https://www.oplata.info/asp/pay_wm.asp?id_d=" + id) + (ai !== null ? "&ai=" + ai : '') + ("&dsn=limit&lang=" + DS.opts.currentLang), DS.opts.buyTargetSelf === 1 ? '_self' : '_blank');
       };
       if (DS.opts.agreement_text) {
         DS.showAgreement(buy);

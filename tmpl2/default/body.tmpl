@@ -1,4 +1,11 @@
 <? if (DS.opts.orient === 'h') { ?>
+
+	<? if (DS.opts.online_chat == 1) { ?>
+		<div class="digiseller-consult-online" id="digiseller-support">
+			<div class="digiseller-alert-box"><span>online</span>Задать вопрос <a class="close" href="#">x</a></div>
+		</div>
+	<? } ?>
+	
 	<header id="digiseller-header" class="digiseller-row header-gorizontal">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns <?= !cart ? 'digiseller-basket-box-miss' : '' ?> <?= !purchases ? 'digiseller-packet-box-miss' : '' ?> <?= !langs ? 'digiseller-langs-box-miss' : '' ?>">
 			<? if (logo) { ?>
@@ -21,7 +28,7 @@
 			
 			<? if (purchases) { ?>				
 				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-					<a href="https://www.oplata.info/"><span><button class="digiseller-button-packet" href="#"></button></span></a>
+					<a href="https://www.oplata.info/" title="<?= DS.opts.i18n.myPurchases ?>"><span><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
 			<? } ?>
 			
@@ -53,10 +60,18 @@
 		</div>
 	</main>
 	
-	<footer <?= downmenu ? 'id="digiseller-downmenu"' : '' ?> class="digiseller-row"></footer>
+	<? if (downmenu) { ?>		
+		<footer id="digiseller-downmenu" class="digiseller-row"></footer>		
+	<? } ?>
 	
 <? } else { ?>
 
+	<? if (true || DS.opts.online_chat == 1) { ?>
+		<div class="digiseller-consult-online" id="digiseller-support">
+			<div class="digiseller-alert-box"><span>online</span>Задать вопрос <a class="close" href="#">x</a></div>
+		</div>
+	<? } ?>
+	
 	<header id="digiseller-header" class="digiseller-row">
 		<div class="digiseller-large-12 digiseller-medium-12 digiseller-small-12 digiseller-columns <?= !cart ? 'digiseller-basket-box-miss' : '' ?> <?= !purchases ? 'digiseller-packet-box-miss' : '' ?> <?= !langs ? 'digiseller-langs-box-miss' : '' ?>">
 			<? if (logo) { ?>
@@ -77,7 +92,7 @@
 			
 			<? if (purchases) { ?>
 				<div class="digiseller-right digiseller-packet-box digiseller-large-1 digiseller-medium-1 digiseller-small-2 digiseller-columns">
-					<a href="https://www.oplata.info/"><span><button class="digiseller-button-packet" href="#"></button></span></a>
+					<a href="https://www.oplata.info/" title="<?= DS.opts.i18n.myPurchases ?>"><span><button class="digiseller-button-packet" href="#"></button></span></a>
 				</div>
 			<? } ?>
 
@@ -114,7 +129,9 @@
 			</div>
 		</section>
 	</main>
-		
-	<footer <?= downmenu ? 'id="digiseller-downmenu"' : '' ?> class="digiseller-row"></footer>
+	
+	<? if (downmenu) { ?>		
+		<footer id="digiseller-downmenu" class="digiseller-row"></footer>		
+	<? } ?>
 
 <? } ?>

@@ -275,42 +275,38 @@ DS.$ = (() ->
 					
 				@
 				
-			on: (type, handler) ->
+			on: (typeWithScope, handler) ->
 				@each (el, i) ->
-					# events = {}
-					# events[el] = events[el] or {}
-					# events[el][type] = events[el][type] or []
-
 					el.DigiSeller = {} if not el.DigiSeller
 					el.DigiSeller.events = {} if not el.DigiSeller.events
-					el.DigiSeller.events[type] = [] if not el.DigiSeller.events[type]
+					el.DigiSeller.events[typeWithScope] = [] if not el.DigiSeller.events[typeWithScope]
 					
 					events = (el and el.DigiSeller and el.DigiSeller.events) or {}
-					# console.log(events)
-					# events[type] = events[type] or []					
+					
+					type = typeWithScope.split('-')[0]
 
 					if el.attachEvent
 						ieHandler = (type) ->
 							handler.call(el, type)
 
-						el.attachEvent('on' + type, ieHandler)					
+						el.attachEvent("on#{type}", ieHandler)					
 
-						# events[el][type].push(ieHandler)
-						el.DigiSeller.events[type].push(ieHandler)
+						el.DigiSeller.events[typeWithScope].push(ieHandler)
 
 					else if el.addEventListener
 						el.addEventListener(type, handler, false)
-						# events[el][type].push(handler)
-						el.DigiSeller.events[type].push(handler)
+						el.DigiSeller.events[typeWithScope].push(handler)
 					
 					return
 				
 				@
 				
-			off: (type, handler) ->
+			off: (typeWithScope, handler) ->
 				@each (el, i) ->					
-					handlers = (el and el.DigiSeller and el.DigiSeller.events and el.DigiSeller.events[type]) or []
+					handlers = (el and el.DigiSeller and el.DigiSeller.events and el.DigiSeller.events[typeWithScope]) or []
 					j = handlers.length
+					
+					type = typeWithScope.split('.')[0]
 					
 					while j--
 						handler = handlers[j]
@@ -884,12 +880,12 @@ DS.popup = (() ->
 	# rightCallback = null
 	isClosed = true
 
-	show = (onResize) ->		
-		setup.$loader.hide()
+	show = (onResize) ->
+		# setup.$loader.hide()
 		setup.$container.show()
 
 		# wrCallback = DS.dom.addEvent(window, 'resize', onResize)
-		DS.$(window).on('resize', onResize)		
+		DS.$(window).on('resize-popup', onResize)
 		
 		# as = () ->
 			# console.log('empt')
@@ -910,7 +906,7 @@ DS.popup = (() ->
 		setup.$img.html('')
 		setup.$main.hide()
 		# DS.dom.removeEvent(window, 'resize', wrCallback)
-		DS.$(window).off('resize')	
+		DS.$(window).off('resize-popup')	
 		
 		isClosed = true
 		img = null
@@ -978,7 +974,9 @@ DS.popup = (() ->
 		open: (type, id, onLeft, onRight) ->
 			not setup.$main and  init()
 			
-			if (type isnt 'text')
+			DS.setAdaptClass(setup.$main)
+			
+			if (type isnt 'text' and type isnt 'cart')
 				setup.$container.html(DS.tmpl(DS.tmpls.photo, {}))
 				
 				DS.util.each(['img', 'left', 'right'], (param) ->
@@ -991,7 +989,7 @@ DS.popup = (() ->
 
 			setup.$container.hide()
 			setup.$main.show()
-			setup.$loader.show()
+			# setup.$loader.show()
 
 			setup.$left[if onLeft then 'show' else 'hide']()
 			if onLeft
@@ -1005,11 +1003,13 @@ DS.popup = (() ->
 				# rightCallback = DS.dom.addEvent(setup.$right, 'click', onRight)
 				setup.$right.off('click').on('click', onRight)
 
+			setup.$container.parent().removeClass('digiseller-reveal-bag')
+			setup.$img.removeClass('digiseller-popup-video')
+			setup.$container.parent().removeClass('digiseller-reveal-video')
+			
 			switch type
 				when 'img'
 					# DS.dom.klass('remove', setup.$img, 'digiseller-popup-video')
-					setup.$img.removeClass('digiseller-popup-video')
-					setup.$container.parent().removeClass('digiseller-reveal-video')
 
 					img = new Image()
 					img.onload = () ->
@@ -1018,7 +1018,7 @@ DS.popup = (() ->
 						h = img.height
 						w = img.width
 						
-						DS.$(window).off('resize')
+						DS.$(window).off('resize-popup')
 
 						show(() ->							
 							resize(h, w)
@@ -1032,17 +1032,19 @@ DS.popup = (() ->
 					img.src = id
 
 				else
-					if (type isnt 'text')
+					if (type isnt 'text' and type isnt 'cart')
 						setup.$img.addClass('digiseller-popup-video')
 						setup.$container.parent().addClass('digiseller-reveal-video')
 
+					if type is 'cart'
+						setup.$container.parent().addClass('digiseller-reveal-bag')
 
 					show(() ->
 						resize(200, 500, true)
 						return
 					)
 					
-					if (type is 'text')
+					if (type is 'text' or type is 'cart')
 						setup.$container.html(id)
 					else
 						setup.$img.html(id)					
@@ -1342,10 +1344,18 @@ DS.widget =
 						
 						$showBut = DS.$("##{that.prefix}-dup-show")
 						that.$menu = DS.$('#digiseller-off-menu')	
-						$fade = DS.$('#digiseller-off-menu-fade')	
-
+						$fade = DS.$('#digiseller-off-menu-fade')
+						$aside = DS.$('aside', that.$menu)
+						
+						doc = document.documentElement
+						body = document.body						
+		
 						$showBut.on('click', () ->
+							# posY = DS.util.getAbsPos($showBut.get(0), 'Top')
+							scrollTop = (doc && doc.scrollTop  || body && body.scrollTop  || 0)
 							that.$menu.show()
+							$aside.css('top', (if scrollTop > 0 then scrollTop else 0) + 'px')
+							
 							that.adjustHeightDupMenu()
 						)
 						
@@ -2140,7 +2150,7 @@ DS.widget =
 				
 			else
 				buy = () ->
-					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')					
+					window.open("https://www.oplata.info/asp/pay_wm.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit&lang=#{DS.opts.currentLang}", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')					
 					return
 
 				if (DS.opts.agreement_text)
@@ -2239,7 +2249,7 @@ DS.widget =
 				
 			DS.widget.cartButton.setCount(count)
 			
-			DS.popup.open( 'text',  DS.tmpl(DS.tmpls.cart, {
+			DS.popup.open( 'cart',  DS.tmpl(DS.tmpls.cart, {
 				d: res
 				failPage: DS.util.enc(window.location)
 				items: items
@@ -2433,7 +2443,7 @@ DS.route =
 				data:
 					seller_id: DS.opts.seller_id
 					category_id: 0
-					rows: 10
+					# rows: 10
 					order: DS.opts.sort
 					currency: DS.opts.currency
 				onLoad: (data) ->
@@ -2852,7 +2862,7 @@ DS.route =
 				
 				$wrapper = DS.$('#digiseller-thumbs-wrapper')
 				$slider = DS.$('#digiseller-thumbs-slider')
-				thWidth = 90
+				thWidth = 91
 				thCount	= parseInt( $wrapper.attr('data-count') )
 				sliderWidth = thWidth * thCount
 				
@@ -3174,7 +3184,7 @@ DS.eventsDisp =
 		ai = $el.attr('data-ai')
 		
 		buy = () ->
-			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
+			window.open("https://www.oplata.info/asp/pay_wm.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit&lang=#{DS.opts.currentLang}", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
 			return
 
 		if (DS.opts.agreement_text)
@@ -3183,7 +3193,49 @@ DS.eventsDisp =
 			buy()
 
 		return
+		
+DS.setAdaptClass = ($el, exact) ->
+	width = DS.$body.get(0).offsetWidth
 
+	$el
+		.removeClass('digiseller-x-small')
+		.removeClass('digiseller-small')
+		.removeClass('digiseller-x-medium')
+		.removeClass('digiseller-medium')
+		.removeClass('digiseller-large')	
+	
+	if width <= 640
+		$el.addClass('digiseller-small')
+		
+		if width <= 465 and exact
+			$el.addClass('digiseller-x-small')
+			
+	else if width <= 1024
+		$el.addClass('digiseller-medium')
+		
+		if width <= 768 and exact
+			$el.addClass('digiseller-x-medium')
+
+	else			
+		$el.addClass('digiseller-large')
+		
+DS.support = () ->   
+	w = 640
+	h = 480
+	scrollbars = 'no'
+
+	mypage = 'http://www.internet-support.ru/asp/start.asp?fr=g&user=' + DS.opts.seller_id + '&service=1&shop=1&lang=' + DS.opts.currentLang + '&id_d=' + 0	
+	
+	LeftPosition = if screen.width then (screen.width - w)/2 else 100
+	TopPosition = if screen.height then (screen.height - h)/2 else 100
+
+	settings = 'width=' + w + ',height=' + h + ',top=' + TopPosition + ',left='+LeftPosition+',scrollbars='+scrollbars+',location=no,directories=no,status=no,menubar=no,toolbar=no,resizable=yes'
+
+
+	winC = window.open(mypage, 'popupC', settings)
+	winC.focus()
+
+	return
 		
 DS.inited = no
 DS.init = ->
@@ -3213,22 +3265,22 @@ DS.init = ->
 
 	DS.opts.cart_uid = DS.cookie.get('digiseller-cart_uid') or DS.opts.cart_uid
 	
-	$body = DS.$('#digiseller-body')
+	DS.$body = DS.$('#digiseller-body')
 	
-	dataCat = $body.attr('data-cat')
+	dataCat = DS.$body.attr('data-cat')
 
 	DS.opts.orient = if dataCat is 'v' then 'v' else 'h'
 	
 	hasCat = if dataCat is 'h' or dataCat is 'v' then true else false
 	
-	$body.html( DS.tmpl(DS.tmpls.body,
+	DS.$body.html( DS.tmpl(DS.tmpls.body,
 		hasCat: hasCat
-		logo: if $body.attr('data-logo') is '1' then true else false
-		downmenu: if $body.attr('data-downmenu') is '1' then true else false
-		purchases: if $body.attr('data-purchases') is '1' then true else false
-		langs: if $body.attr('data-langs') is '1' then true else false
-		cart: if $body.attr('data-cart') is '1' then true else false
-		search: if $body.attr('data-search') is '1' then true else false
+		logo: if DS.$body.attr('data-logo') is '1' then true else false
+		downmenu: if DS.$body.attr('data-downmenu') is '1' then true else false
+		purchases: if DS.$body.attr('data-purchases') is '1' then true else false
+		langs: if DS.$body.attr('data-langs') is '1' then true else false
+		cart: if DS.$body.attr('data-cart') is '1' then true else false
+		search: if DS.$body.attr('data-search') is '1' then true else false
 	) )
 	
 	if hasCat
@@ -3252,35 +3304,40 @@ DS.init = ->
 	$downmenu = DS.$('#digiseller-downmenu')
 	if $downmenu.length
 		$downmenu.html( DS.tmpl(DS.tmpls.downmenu, {}) )
-		
-		
-	setAdaptClass = () ->
-		width = $body.get(0).offsetWidth
-		
-		console.log(width)
-		
-		$body
-			.removeClass('digiseller-small')
-			.removeClass('digiseller-medium')
-			.removeClass('digiseller-large')
-		
-		if width < 641
-			$body.addClass('digiseller-small')
-		else if 641 <= width and width < 1010
-			$body.addClass('digiseller-medium')
-		else			
-			$body.addClass('digiseller-large')
-			
-	setAdaptClass()
 
-	DS.$(window).on('resize', setAdaptClass)
+	DS.setAdaptClass(DS.$body, yes)
+	
+	DS.$(window).on('resize-adapt', () ->
+		DS.setAdaptClass(DS.$body, yes)
 		
+		$popupMain = DS.$('#digiseller-popup-main')		
+
+		if $popupMain.length
+			DS.setAdaptClass($popupMain)
+	)		
 
 	DS.$('.digiseller-buy-standalone').each( (el) ->
 		new DS.widget.calc( DS.$(el) )
 		
 		return
-	)	
+	)
+	
+	$support = DS.$('#digiseller-support')
+	$support.on('click', (e) ->
+		e.stopPropagation()
+		
+		DS.support()
+		
+		return false
+	)
+	
+	DS.$('.close').on('click', (e) ->
+		e.stopPropagation()
+		
+		$support.remove()
+		
+		return false
+	)
 	
 	homeInited = false
 	DS.historyClick.addRoute('#.*', (params) ->
@@ -3293,7 +3350,7 @@ DS.init = ->
 		return
 	)
 	
-	DS.historyClick.addRoute(DS.opts.hashPrefix + '/([a-z]*)'  , (params) ->
+	DS.historyClick.addRoute(DS.opts.hashPrefix + '/([a-z]*)', (params) ->
 		DS.widget.main.getStatic(params[1])
 
 		return

@@ -1986,7 +1986,7 @@ DS.widget =
 					)
 			else
 				buy = () ->
-					window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
+					window.open("https://www.oplata.info/asp/pay_wm.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit&lang=#{DS.opts.currentLang}", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
 					return
 
 				if (DS.opts.agreement_text)
@@ -2276,7 +2276,7 @@ DS.route =
 				data:
 					seller_id: DS.opts.seller_id
 					category_id: 0
-					rows: 10
+					# rows: 10
 					order: DS.opts.sort
 					currency: DS.opts.currency
 				onLoad: (data) ->
@@ -2912,7 +2912,7 @@ DS.eventsDisp =
 		ai = $el.attr('data-ai')
 		
 		buy = () ->
-			window.open("https://www.oplata.info/asp/pay_x20.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
+			window.open("https://www.oplata.info/asp/pay_wm.asp?id_d=#{id}" + (if ai isnt null then "&ai=#{ai}" else '') + "&dsn=limit&lang=#{DS.opts.currentLang}", if DS.opts.buyTargetSelf is 1 then '_self' else '_blank')
 			return
 
 		if (DS.opts.agreement_text)
