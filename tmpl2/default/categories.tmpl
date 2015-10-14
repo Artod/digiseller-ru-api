@@ -2,14 +2,14 @@
 	<? if (suffix === 'dup') { ?>
 		<li class="digiseller-back">
 			<a data-action="back" data-anc-id="<?= anc_id ?>" data-suffix="<?= suffix ?>"></a>
-			<a class="digiseller-back-home" href="#"></a>
+			<a class="digiseller-back-home" onclick="window.location.hash='#'"></a>
 		</li>			
 		
 		<li class="digiseller-current-bookmark">
 			<? if (parent) { ?>
 				<a data-cid="<?= parent.id ?>" data-action="gocat" title="<?= parent.name ?>"><?= parent.name ?></a>
 			<? } else { ?>
-				<a href="#"><?= DS.opts.i18n['shop'] ?></a>
+				<a  onclick="window.location.hash='#'"><?= DS.opts.i18n['shop'] ?></a>
 			<? } ?>
 		</li>
 	<? } ?>

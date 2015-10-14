@@ -28,7 +28,7 @@
 		<span class="digiseller-body" id="digiseller-body" data-cat="v" data-logo="1" data-downmenu="1" data-purchases="1" data-langs="1" data-cart="1" data-search="1"></span>
 		
 		
-		<div class="digiseller-buy-standalone" data-id="1304331" data-img="1" data-name="1" data-img-size="200" data-ai="1111111111111111111111" data-no-price="1" ></div>
+<!-- 		<div class="digiseller-buy-standalone" data-id="1304331" data-img="1" data-name="1" data-img-size="200" data-ai="1111111111111111111111" data-no-price="1" ></div>
 		
 		<br/>
 		
@@ -40,7 +40,7 @@
 		
 		<br/>
 		
-		<div class="digiseller-buy-standalone" data-id="1829167" data-img="1" data-name="1" data-no-price="0" data-ai="123456"></div>
+		<div class="digiseller-buy-standalone" data-id="1829167" data-img="1" data-name="1" data-no-price="0" data-ai="123456"></div> -->
 		
 	</body>
 </html>
