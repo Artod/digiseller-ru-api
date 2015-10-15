@@ -31,12 +31,13 @@
 	
 	<? if (d.is_available) { ?>	
 		<form method="POST" action="https://www.oplata.info/asp2/pay.asp" id="digiseller-buy-form-<?= d.id ?>-<?= index ?>" target="<?= DS.opts.buyTargetSelf == 1 ? '_self' : '_blank' ?>">
-			<input type="hidden" name="Agent" value="<?= (ai === null /*íåòó àòòğèáóòà*/ ? d.agency_id : ai) ?>" />
+			<input type="hidden" name="Agent" value="<?= (ai === null /*Ã­Ã¥Ã²Ã³ Ã Ã²Ã²Ã°Ã¨Ã¡Ã³Ã²Ã */ ? d.agency_id : ai) ?>" />
 			<input type="hidden" name="product_id" value="<?= d.id ?>" />
 			<input type="hidden" name="ID_D" value="<?= d.id ?>" />
 			<input type="hidden" name="seller_id" value="<?= DS.opts.seller_id ?>" />
 			<input type="hidden" name="FailPage" value="<?= failPage ?>" />
-				
+			<input type="hidden" name="lang" value="<?= DS.opts.currentLang ?>" />
+			
 			<? if (!d.prices_unit) { ?>	
 				<span class="digiseller-prod-cost" id="digiseller-calc-price-<?= index ?>" <?= (noPrice ? 'style="display:none;"' : '') ?>><?= d.price ?> <span><?= d.currency ?></span></span>
 			<? } else { ?>
